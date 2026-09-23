@@ -40,7 +40,8 @@ Then read the diff for contradictions, commit with a changelog entry, push.
    ```bash
    git tag -a vX.Y.Z -m "vX.Y.Z"
    git push origin main --tags
-   gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <(sed -n '/^## X.Y.Z/,/^## /p' CHANGELOG.md | head -n -1)
+   gh release create vX.Y.Z --title "vX.Y.Z" \
+     --notes-file <(sed -n '/^## X.Y.Z/,/^## /p' CHANGELOG.md | sed '$d')
    ```
 4. Never move or delete a published tag; cut a new patch version instead.
 

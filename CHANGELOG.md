@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0
+
+- Easy setup for any agent: `INSTALL.md` (agent-executable instructions),
+  `scripts/setup.sh` (macOS/Linux `curl | sh`), `scripts/install.ps1` (Windows PowerShell).
+- Remote setup clones to `~/.flutter-superpower` and installs into all agent locations;
+  re-running updates the clone. Verified end-to-end in a clean home directory.
+- README: easy-setup section (agent prompt, one-liners, manual, project-level).
+
 ## 1.3.0
 
 - `templates/app/` — full skeleton (core, di, theme, router, widgets, splash/home) copied by

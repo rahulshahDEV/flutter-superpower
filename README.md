@@ -38,7 +38,10 @@ flutter-superpower/
 ├── SKILL.md                         ← entry point: laws, workflow, red flags, evidence gate
 ├── CHANGELOG.md
 ├── AGENTS.md                        ← guidance for agents editing this skill
+├── INSTALL.md                       ← agent-executable install instructions
 ├── scripts/
+│   ├── setup.sh                     ← one-command remote setup (curl | sh)
+│   ├── install.ps1                  ← Windows installer
 │   ├── install.sh                   ← cross-agent installer
 │   ├── new_app.sh                   ← scaffold a full app skeleton (analyze-clean)
 │   └── new_feature.sh               ← generate a feature: all layers + codegen + route snippet
@@ -67,16 +70,35 @@ flutter-superpower/
 
 ## Install (any agent)
 
-One script installs into every known Agent Skills location:
+### Easy setup
+
+**Let your agent do it** — paste into any agent that can fetch a URL:
+
+> Fetch and follow https://raw.githubusercontent.com/rahulshahDEV/flutter-superpower/main/INSTALL.md
+
+**One-liner (macOS / Linux):**
 
 ```bash
-git clone https://github.com/rahulshahDEV/flutter-superpower.git
-cd flutter-superpower
-./scripts/install.sh          # install where an agent is detected
-./scripts/install.sh --all    # also create dirs for agents not yet installed
-./scripts/install.sh --copy   # copy instead of symlink (Windows / no-symlink setups)
-./scripts/install.sh --project /path/to/flutter/app   # project-level for one app
+curl -fsSL https://raw.githubusercontent.com/rahulshahDEV/flutter-superpower/main/scripts/setup.sh | sh
 ```
+
+**Windows (PowerShell):**
+
+```powershell
+iwr -useb https://raw.githubusercontent.com/rahulshahDEV/flutter-superpower/main/scripts/install.ps1 | iex
+```
+
+**Manual:**
+
+```bash
+git clone https://github.com/rahulshahDEV/flutter-superpower.git ~/.flutter-superpower
+~/.flutter-superpower/scripts/install.sh          # install where an agent is detected
+~/.flutter-superpower/scripts/install.sh --all    # also create dirs for agents not yet installed
+~/.flutter-superpower/scripts/install.sh --copy   # copy instead of symlink
+~/.flutter-superpower/scripts/install.sh --project /path/to/flutter/app   # one app only
+```
+
+Restart the agent session after installing — skills are discovered at session start.
 
 | Agent | Global location(s) installed |
 |---|---|
@@ -143,7 +165,7 @@ produces an analyze-clean feature with passing tests.
   git tag -a vX.Y.Z -m "vX.Y.Z"
   git push origin main --tags
   gh release create vX.Y.Z --title "vX.Y.Z" \
-    --notes-file <(sed -n '/^## X.Y.Z/,/^## /p' CHANGELOG.md | head -n -1)
+    --notes-file <(sed -n '/^## X.Y.Z/,/^## /p' CHANGELOG.md | sed '$d')
   ```
 
 ## License
