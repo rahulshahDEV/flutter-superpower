@@ -51,12 +51,12 @@ explains, or reviews, use it as the rubric, not the scaffold.
 ## Workflow
 
 ```
-New app?      → REQUIRED: references/playbooks.md § New App (order: create+clean →
-                pubspec → core foundations → di → bootstrap+shell → flavors →
-                Firebase → first feature → verify)
-New feature?  → REQUIRED: references/playbooks.md § New Feature (bottom-up: entity →
-                repo contract → model → data source → repo impl → use case → state →
-                cubit → widgets → screen → route → constants; wire route last)
+New app?      → scripts/new_app.sh <name> (scaffolds core/di/theme/router + splash/home,
+                verified: analyze clean). Then references/playbooks.md § New App for
+                flavors, Firebase, and the manual path.
+New feature?  → scripts/new_feature.sh <name> --app <dir> (generates all layers + codegen
+                + endpoint constant, prints the GoRoute). Manual order in
+                references/playbooks.md § New Feature (wire the route last).
 Editing?      → read the closest existing feature first, mirror it exactly
 Bug?          → REQUIRED: references/debugging.md (loop, symptom→layer table)
 Tests?        → REQUIRED: references/testing.md (fakes, cubit/widget tests, no mockito)
@@ -90,6 +90,7 @@ a raw `Color` "just this once") is the violation, not an exception to it.
 | Firebase | Core + Messaging only (unless app needs more). `FcmService` + `@pragma('vm:entry-point')` background handler |
 | Uploads | presigned URL client, never multipart through the auth client |
 | Simplest solution | climb the ladder in `references/ponytail.md` before writing anything new |
+| Scaffolding | `scripts/new_app.sh <name>` / `scripts/new_feature.sh <name> --app <dir>` (templates in `templates/`) |
 
 ## References
 
@@ -146,6 +147,7 @@ Run and paste the result (or summarize the exact output) — never assert succes
 ```bash
 dart format .
 fdev gen          # only if annotations/generated code changed
+                  # Dart 3.10+ build-hook error? fdev gen -- --force-jit
 flutter analyze   # must be 0 issues
 flutter test      # must be all green
 ```

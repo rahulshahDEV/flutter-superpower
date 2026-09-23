@@ -2,6 +2,10 @@
 
 ## New App from zero
 
+**Fast path:** `scripts/new_app.sh <name> --org com.example --title "My App"` does steps 1–5
+below (verified: `flutter analyze` clean, tests pass) and prints the next commands. Read the
+rest of this section for the manual path, flavors, and Firebase.
+
 Do steps in order; the app compiles and runs after step 5, then each feature is additive.
 
 1. **Create + clean**
@@ -30,7 +34,10 @@ Do steps in order; the app compiles and runs after step 5, then each feature is 
 
 ## New Feature
 
-Bottom-up. Every step compiles before the next; the route is wired last.
+**Fast path:** `scripts/new_feature.sh <name> --app /path/to/app` generates every file below
+(sealed-state variant, codegen run, endpoint constant inserted) and prints the GoRoute snippet
+to paste. Then replace the placeholder entity fields and logic. Manual order follows —
+bottom-up, every step compiles before the next, route wired last.
 
 1. **Entity** — `domain/entities/<thing>.dart` (Equatable, final fields, computed getters).
 2. **Repository contract** — `domain/repositories/<feature>_repository.dart`:

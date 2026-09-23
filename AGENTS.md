@@ -15,6 +15,11 @@ This repo **is** the `flutter-superpower` skill. `SKILL.md` is the entry point a
 - Contradiction check before committing: state names (sealed vs freezed), DI annotations,
   verify command order, route-argument rules must agree across SKILL.md + references.
 - Prefer `fdev` commands in docs; always give the raw fallback.
+- `templates/**` and `scripts/**` are part of the skill: keep them in sync with the
+  references (state shape, annotations, verify order) and re-run the smoke test after
+  editing — `scripts/new_app.sh demo_app --dir <tmp>` then `flutter analyze` must be clean,
+  and `scripts/new_feature.sh orders --app <tmp>` must also analyze clean and pass
+  `flutter test`.
 
 ## Verify before commit
 

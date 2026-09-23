@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.3.0
+
+- `templates/app/` — full skeleton (core, di, theme, router, widgets, splash/home) copied by
+  `scripts/new_app.sh`; verified `flutter analyze` clean + tests pass.
+- `templates/feature/` — data/domain/presentation feature scaffold with sealed states;
+  `scripts/new_feature.sh` generates it, runs codegen, inserts the endpoint constant, and
+  prints the GoRoute snippet; verified analyze clean + tests pass.
+- Documented the Dart 3.10+ `--force-jit` codegen workaround (native build hooks in the
+  package graph) across SKILL.md, playbooks, app-bootstrap, and fdev references.
+- Fixed generator edge cases: injectable annotation name collisions (`show lazySingleton`),
+  wildcard lint, duplicate endpoint insertion.
+
 ## 1.2.0
 
 - Cross-agent compatibility: `scripts/install.sh` (Claude Code, opencode, Codex, Gemini CLI,

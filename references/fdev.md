@@ -17,6 +17,7 @@ fdev doctor
 | Task | Use | Instead of |
 |---|---|---|
 | Regenerate codegen (injectable, json_serializable, freezed) | `fdev gen` (watch: `fdev gen --watch`; extra args after `--`) | `dart run build_runner build --delete-conflicting-outputs` |
+| Codegen fails with `'dart compile' does not support build hooks` (Dart 3.10+, `objective_c` in the graph) | `fdev gen -- --force-jit` | `dart run build_runner build --delete-conflicting-outputs --force-jit` |
 | Clean + fetch packages | `fdev clean` | `flutter clean && flutter pub get` |
 | Android APK build | `fdev apk [flavor] [-t lib/main_dev.dart] [--debug|--profile] [--split-per-abi] [--dart-define K=V]` | `flutter build apk ...` |
 | Android App Bundle | `fdev appbundle [flavor] [-t ...] [--debug|--profile] [--dart-define K=V]` | `flutter build appbundle ...` |

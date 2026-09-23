@@ -226,6 +226,7 @@ requested. FCM wiring:
 ```bash
 dart format .
 fdev gen          # if annotations/generated code changed (fallback: dart run build_runner build --delete-conflicting-outputs)
+                  # build-hook error on Dart 3.10+? append: --force-jit
 flutter analyze
 flutter test
 fdev apk dev      # or: flutter run --flavor dev -t lib/main_dev.dart (smoke test)

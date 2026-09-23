@@ -38,8 +38,14 @@ flutter-superpower/
 ├── SKILL.md                         ← entry point: laws, workflow, red flags, evidence gate
 ├── CHANGELOG.md
 ├── AGENTS.md                        ← guidance for agents editing this skill
-├── scripts/install.sh               ← cross-agent installer
-├── templates/pointer-snippet.md     ← AGENTS.md / Cursor-rule pointer for non-skill agents
+├── scripts/
+│   ├── install.sh                   ← cross-agent installer
+│   ├── new_app.sh                   ← scaffold a full app skeleton (analyze-clean)
+│   └── new_feature.sh               ← generate a feature: all layers + codegen + route snippet
+├── templates/
+│   ├── app/                         ← skeleton copied by new_app.sh
+│   ├── feature/                     ← feature files copied by new_feature.sh
+│   └── pointer-snippet.md           ← AGENTS.md / Cursor-rule pointer for non-skill agents
 └── references/
     ├── architecture.md              ← layers, folders, naming, feature template
     ├── state-and-di.md              ← cubits, states, injectable wiring
@@ -113,10 +119,9 @@ The symlink points at the clone, so `git pull` updates every agent at once. No r
 
 | # | Addition | Why | Effort |
 |---|---|---|---|
-| 1 | `templates/` real skeleton dart files | copy-paste speed instead of reading prose | S |
-| 0 | ~~cross-agent installer + pointer snippet~~ | done (`scripts/install.sh`, `templates/`) | — |
-| 2 | `scripts/new_app.sh` — scaffolds the whole core/ + di/ + flavors | zero-to-running in one command | M |
-| 3 | `scripts/new_feature.sh <name>` — generates the full feature tree + stubs | feature loop becomes mechanical | M |
+| 1 | ~~`templates/` real skeleton dart files~~ | done (`templates/app/`, `templates/feature/`) | — |
+| 2 | ~~`scripts/new_app.sh`~~ | done (verified: analyze clean + tests pass) | — |
+| 3 | ~~`scripts/new_feature.sh <name>`~~ | done (all layers, codegen, endpoint constant, route snippet) | — |
 | 4 | ~~testing reference~~ | done (`references/testing.md`) | — |
 | 5 | ~~CI/CD reference~~ | done (`references/ci-cd.md`) | — |
 | 6 | ~~chat/realtime reference~~ | done (`references/chat-realtime.md`) | — |
@@ -125,5 +130,6 @@ The symlink points at the clone, so `git pull` updates every agent at once. No r
 | 9 | `evals/` retrieval + pressure tests for the skill | proves compliance, not just presence | M |
 | 10 | Keep in sync with `fdev` releases (new commands) | CLI is the owner's daily driver | S |
 
-Priority if continuing: **1 → 2 → 3 → 9** (turns the skill from reference into a generator
-with proof it works).
+Priority if continuing: **9 → 10** (compliance evals + keep generators in sync with `fdev`).
+The generators are live: `new_app.sh` produces an analyze-clean app, `new_feature.sh`
+produces an analyze-clean feature with passing tests.
