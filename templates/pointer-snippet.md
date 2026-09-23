@@ -19,7 +19,9 @@ Before writing or changing any Flutter code, read and follow:
 - Load references on demand from `<PATH-TO-SKILL>/references/`
   (senior-mode, architecture, state-and-di, routing, networking-and-errors,
   models-and-storage, theme-and-design-system, app-bootstrap, playbooks, debugging,
-  testing, reviewing, auditing, ci-cd, chat-realtime, maps-location-health, ponytail, fdev).
+  testing, reviewing, auditing, performance, security, accessibility, localization,
+  dependencies, native, release, auth-social, store-release, fastlane-codemagic,
+  shorebird, ci-cd, chat-realtime, maps-location-health, ponytail, fdev).
 
 Non-negotiables: feature-first `data/domain/presentation` layers; `SafeCubit` + sealed or
 freezed states; `get_it` + `injectable` DI; `go_router` with `static path/routeName`;

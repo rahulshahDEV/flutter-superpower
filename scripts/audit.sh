@@ -18,11 +18,13 @@ usage() {
 APP_DIR=""
 RUN_TESTS=0
 STATIC_ONLY=0
+PERF=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --tests) RUN_TESTS=1 ;;
     --static) STATIC_ONLY=1 ;;
+    --perf) PERF=1 ;;
     -h|--help) usage ;;
     -*) echo "error: unknown option: $1" >&2; usage ;;
     *) APP_DIR="$1" ;;
@@ -131,6 +133,21 @@ if [ "$HTTP" = "0" ]; then ok "no plain http:// URLs in lib/"; else warn "$HTTP 
 section "Performance"
 LISTS="$(count_all 'ListView\(' || true)"
 if [ "$LISTS" = "0" ]; then ok "no unbounded ListView( — builders/slivers used"; else warn "$LISTS ListView( (non-builder) — confirm the list is short or switch to ListView.builder"; fi
+
+if [ "$PERF" -eq 1 ]; then
+  section "Performance (--perf)"
+  RAW_IMAGES="$(count_all 'Image\.network\(' || true)"
+  if [ "$RAW_IMAGES" = "0" ]; then ok "no raw Image.network — design-system renderer used"; else warn "$RAW_IMAGES raw Image.network call(s) — route through ImageRenderer/cached image"; fi
+
+  MQ="$(count_all 'MediaQuery\.of\(' || true)"
+  if [ "$MQ" = "0" ]; then ok "no MediaQuery.of( — sizeOf/paddingOf used"; else warn "$MQ MediaQuery.of( call(s) — prefer MediaQuery.sizeOf/paddingOf/viewInsetsOf"; fi
+
+  BIG_ASSETS="$(find "$APP_DIR/assets" -type f -size +500k 2>/dev/null | sed "s|$APP_DIR/||" | head -5)"
+  if [ -z "$BIG_ASSETS" ]; then ok "no asset over 500KB"; else warn "large assets (check format/compression):"; printf '%s\n' "$BIG_ASSETS" | sed 's/^/     /'; fi
+
+  SB="$(count_all 'shrinkWrap: true' || true)"
+  if [ "$SB" = "0" ]; then ok "no shrinkWrap: true"; else warn "$SB shrinkWrap: true — nested scrollables get expensive"; fi
+fi
 
 section "Testing"
 if [ -d "$APP_DIR/test" ]; then

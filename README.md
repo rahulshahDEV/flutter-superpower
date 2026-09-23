@@ -27,8 +27,24 @@ The skill operates as the senior engineer who owns the task end to end:
   config — without asking about trivia.
 - **Definition of Done + evidence report** (Implemented / Files changed / Verification /
   Not verified / Notes) — never "Done." without proof.
-- **Audit capability** — `scripts/audit.sh <app>` mechanical pass + agent review per
-  `references/auditing.md`.
+- **Audit capability** — `scripts/audit.sh <app> [--perf]` mechanical pass + agent review per
+  `references/auditing.md`; release readiness via `scripts/release-check.sh <app>`.
+- **Full lifecycle coverage** — auth (Google/Apple), performance, security, accessibility,
+  localization, dependencies, native config, releases, store submission, fastlane/Codemagic,
+  and Shorebird OTA updates.
+
+### What happens when you ask for a feature
+
+```
+"Implement order history with pagination"
+  → profile the project (architecture, state, routing, DI, net, design system)
+  → find the closest existing feature and mirror it
+  → plan: entity → repo → model → data source → use case → state → cubit → UI → route → tests
+  → implement all states (loading/error/empty/success) + edge cases
+  → self-review the diff (layers, reuse, scope, security, regression)
+  → verify: dart format · fdev gen · flutter analyze · flutter test
+  → report: Implemented / Files changed / Verification / Not verified / Notes
+```
 
 ## What it enforces
 
@@ -54,6 +70,9 @@ flutter-superpower/
 ├── CHANGELOG.md
 ├── AGENTS.md                        ← guidance for agents editing this skill
 ├── INSTALL.md                       ← agent-executable install instructions
+├── evals/                           ← 20 behavior cases + protocol for an agent under test
+├── tests/                           ← consistency.sh (fast) + run.sh (Flutter regression)
+├── .github/workflows/ci.yml         ← consistency + regression on every push/PR
 ├── scripts/
 │   ├── setup.sh                     ← one-command remote setup (curl | sh)
 │   ├── install.ps1                  ← Windows installer
@@ -82,6 +101,17 @@ flutter-superpower/
     ├── reviewing.md                 ← two-axis diff review: Standards + Spec
     ├── senior-mode.md               ← senior engineer behavior: profile, modes, DoD, reports
     ├── auditing.md                  ← project audit dimensions + report format
+    ├── performance.md               ← rebuilds, lists, images, startup, memory
+    ├── security.md                  ← secrets, log redaction, storage, transport, hardening
+    ├── accessibility.md             ← semantics, targets, text scaling, contrast, focus
+    ├── localization.md              ← StringConstants vs ARB, plurals, intl, RTL
+    ├── dependencies.md              ← add/remove discipline and evaluation
+    ├── native.md                    ← Android/iOS triage, flavors, signing, pods
+    ├── release.md                   ← release checklist + release-check.sh
+    ├── auth-social.md               ← Google & Apple sign-in end to end
+    ├── store-release.md             ← Play + App Store submission and rejections
+    ├── fastlane-codemagic.md        ← fastlane lanes + codemagic.yaml
+    ├── shorebird.md                 ← OTA code push: patchability, tracks, compliance
     ├── ponytail.md                  ← scope discipline / anti-over-engineering
     └── fdev.md                      ← owner's fdev CLI command map
 ```
@@ -167,7 +197,7 @@ The symlink points at the clone, so `git pull` updates every agent at once. No r
 | 6 | ~~chat/realtime reference~~ | done (`references/chat-realtime.md`) | — |
 | 7 | ~~maps/location/health reference~~ | done (`references/maps-location-health.md`) | — |
 | 8 | ~~payments reference~~ | covered by presigned upload + `fdev` docs; add gateway detail if needed | S |
-| 9 | `evals/` retrieval + pressure tests for the skill | proves compliance, not just presence | M |
+| 9 | ~~`evals/` behavior cases + regression suite + CI~~ | done (`evals/`, `tests/`, `.github/workflows/ci.yml`) | — |
 | 11 | ~~senior-developer behavior + audit capability~~ | done (`senior-mode.md`, `auditing.md`, `audit.sh`) | — |
 | 10 | Keep in sync with `fdev` releases (new commands) | CLI is the owner's daily driver | S |
 

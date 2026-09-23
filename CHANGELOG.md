@@ -1,5 +1,44 @@
 # Changelog
 
+## 2.0.0
+
+Senior Flutter Developer upgrade — behavior, engineering intelligence, tooling, and evals.
+Existing architecture, laws, templates, generators, and quality gates unchanged.
+
+**Senior behavior**
+- `senior-mode.md`: project profile, greenfield/existing/migration modes, requirement→task,
+  layer ownership, change-impact analysis with LOW/MEDIUM/HIGH risk, edge-case engine,
+  Step 6 self-review (11 axes), Definition of Done, evidence report, ownership rules.
+- SKILL.md: Senior mode section; workflow entries for existing app, audit, migration.
+
+**Engineering intelligence (new references)**
+- `performance.md` (evidence-first: rebuilds, lists, images, startup, memory)
+- `security.md` (secrets, log redaction, storage, transport, deep links, release hardening)
+- `accessibility.md` (semantics, targets, text scaling, contrast, focus, motion)
+- `localization.md` (StringConstants vs ARB, plurals, intl, RTL)
+- `dependencies.md` (ladder, evaluation, add/remove, house-pinned choices)
+- `native.md` (Android/iOS triage, flavors, signing, pods, parity checklist)
+- `release.md` (release checklist) + `store-release.md` (Play Console + App Store Connect,
+  review rejections, honest limits)
+- `auth-social.md` (Google + Apple sign-in end to end: platform setup, token exchange,
+  session, failure mapping, common errors)
+- `fastlane-codemagic.md` (fastlane lanes + signing + actions; codemagic.yaml workflows,
+  secrets, caching, publishing; failure modes)
+- `shorebird.md` (OTA code push: patchability rules, releases/patches, tracks, CI tokens,
+  store compliance, failure modes)
+
+**Tooling**
+- `scripts/audit.sh` gains `--perf` (raw images, MediaQuery.of, shrinkWrap, large assets).
+- `scripts/release-check.sh` — read-only release readiness with explicit "cannot verify" list.
+- `tests/consistency.sh` — links, version sync, placeholders, script syntax, README index.
+- `tests/run.sh` — installer + scaffold + generator + audit regression (Flutter).
+- `evals/` — 20 behavior cases + protocol.
+- `.github/workflows/ci.yml` — consistency + regression jobs.
+
+**Docs**
+- README: senior behavior, "what happens when you ask for a feature", full reference index.
+- AGENTS.md: eval/regression rules and the fdev sync procedure.
+
 ## 1.5.0
 
 - Senior developer behavior: `references/senior-mode.md` — project profile, three modes

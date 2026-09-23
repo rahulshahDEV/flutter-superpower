@@ -91,11 +91,13 @@ Commit a `.env.sample` documenting every key. Never echo secret contents in logs
 
 ## Release flow
 
-1. Bump `version: X.Y.Z+N` in `pubspec.yaml`.
-2. `fdev release-notes --notes "..."` → fastlane changelog (or manual).
-3. Tag `vX.Y.Z`; CI builds release flavors.
-4. `fdev appbundle prod -t lib/main_prod.dart` (or `flutter build appbundle ...`).
-5. iOS: `fdev ios prod -t lib/main_prod.dart`, then archive/upload in Xcode.
+The full release checklist lives in `release.md`; the mechanical pass is
+`scripts/release-check.sh <app>`. CI's part:
+
+1. `release-check.sh` runs on the release branch/tag (fails on hard blockers).
+2. Tag `vX.Y.Z`; CI builds the release flavors.
+3. `fdev appbundle prod -t lib/main_prod.dart` (or `flutter build appbundle ...`).
+4. iOS: `fdev ios prod -t lib/main_prod.dart`, then archive/upload in Xcode.
 
 ## House CI rules
 

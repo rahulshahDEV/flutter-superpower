@@ -32,6 +32,27 @@ grep -rn "references/" SKILL.md | wc -l
 
 Then read the diff for contradictions, commit with a changelog entry, push.
 
+## Evals & regression
+
+- `tests/consistency.sh` — fast: script syntax, reference links, README index, version sync,
+  template placeholders. Run before every commit.
+- `tests/run.sh` — Flutter regression: installer (copy + project mode), `new_app.sh` scaffold
+  (format/analyze/test clean), `new_feature.sh` (all layers, codegen, endpoint, analyze/test),
+  forbidden patterns, audit + release-check execute. Run before every release.
+- `evals/` — behavior cases for an agent under test (manual protocol, objective checks). If a
+  change alters expected behavior, update the affected eval case in the same commit.
+- CI (`.github/workflows/ci.yml`) runs consistency + regression on every push/PR.
+
+## fdev sync
+
+`fdev` is the owner's CLI and ships faster than this repo. On each fdev release:
+
+1. `fdev --help` and `fdev <cmd> --help` — confirm every command documented in
+   `references/fdev.md` still exists with the same flags.
+2. Update `references/fdev.md`, and any command mentioned in SKILL.md, playbooks, README.
+3. Never document a removed command; add new commands with one-line examples.
+4. Note the sync in CHANGELOG.
+
 ## Release
 
 1. Bump `metadata.version` in SKILL.md and add a `CHANGELOG.md` section (both must match).

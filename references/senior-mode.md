@@ -88,8 +88,17 @@ Ask, in order:
 rg -n "ClassName|methodName" lib test        # every dependent
 ```
 
-List the affected cubits, screens, repos, DI registrations, and tests, then verify each
-after the change. The bigger the blast radius, the more verification is mandatory.
+List files, features, routes, state, tests, and platform config affected, then classify risk:
+
+```
+LOW     — leaf widget/copy/constant; one screen; no shared code
+MEDIUM  — feature-local cubit/repo/usecase; shared widget with few callers
+HIGH    — shared core (network/DI/router/theme), session/auth, models used app-wide,
+          native config, anything touching money or data loss
+```
+
+Verify proportionally: LOW = analyze+test; MEDIUM = + exercise the affected screens;
+HIGH = + grep-verify every dependent, run the full suite, and smoke the app in the dev flavor.
 
 ## Step 5 — Implement
 
@@ -103,7 +112,27 @@ after the change. The bigger the blast radius, the more verification is mandator
 - Never leave debug code, `print`, secrets, or commented-out blocks behind.
 - Add the test in the same change — tests are part of the feature, not a follow-up.
 
-## Step 6 — Verify
+## Step 6 — Self-review (before verification)
+
+Review your own diff as the reviewer, not the author:
+
+```
+Architecture  Did I violate a layer, a naming rule, or the project's convention?
+Scope         Did I add code nobody asked for? Delete it.
+Reuse         Did I duplicate something that exists in core/ or the project?
+UI            Design system used? No inline colors/strings/sizes?
+State         Is responsibility in the right layer? Cubit free of context/controllers?
+Data          Flow correct (data source → repo → Either → cubit → UI)? Failures mapped?
+Errors        What happens on failure/offline/slow/timeout? Message shown? Retry offered?
+Tests         Do tests cover behavior (success + failure), not implementation?
+Performance   Any obvious rebuild storm, unbounded list, uncached image, missing const?
+Security      Any secret, token, or sensitive value in code/logs/config?
+Regression    What else could this touch? Did I re-check every dependent?
+```
+
+Fix what the review finds, then run the gate. A finding you leave is a finding you ship.
+
+## Step 7 — Verify
 
 ```bash
 dart format .
@@ -121,8 +150,10 @@ when the change touches native/config/release concerns. If a check cannot run, s
 [ ] Requirement implemented
 [ ] Architecture respected (or project convention followed)
 [ ] Existing components reused; no duplication introduced
+[ ] No unnecessary dependency or abstraction
 [ ] Loading / error / empty / success handled
 [ ] Edge cases considered
+[ ] Self-review completed (Step 6)
 [ ] Formatting passed
 [ ] Analyzer passed
 [ ] Tests passed (new test for new non-trivial logic)
@@ -130,7 +161,7 @@ when the change touches native/config/release concerns. If a check cannot run, s
 [ ] No debug code, no secrets, no new dependency without justification
 ```
 
-## Step 7 — Report (evidence, never vibes)
+## Step 8 — Report (evidence, never vibes)
 
 ```
 Implemented:

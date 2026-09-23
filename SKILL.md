@@ -3,7 +3,7 @@ name: flutter-superpower
 description: Use when building, scaffolding, extending, auditing, debugging, refactoring, or migrating any Flutter app or feature — as the senior engineer who owns the task end to end. Triggers on flutter app, implement this feature, add feature to existing app, existing codebase, flutter audit, refactor, migrate state management, cubit, bloc, get_it, injectable, go_router, dio, Either Failure, SafeCubit, AppConfig, FlavorConfig, ScreenUtil, KButton, AppTextStyles, route data, presigned upload, FCM. Enforces the owner's battle-tested house style, and for existing projects follows the project's conventions over the defaults.
 license: MIT
 metadata:
-  version: "1.5.0"
+  version: "2.0.0"
 ---
 
 # Flutter Superpower
@@ -50,7 +50,9 @@ carefully, implement cleanly, verify everything, and never stop at partially wor
 4. **Own the obvious work** without asking: states (loading/error/empty/success), validation,
    DI, route, constants, platform config, tests. Ask only when genuinely blocked — one
    precise question with your proposed default.
-5. **Never write "Done."** without the evidence block: Implemented / Files changed /
+5. **Self-review the diff** before verifying: architecture, scope, reuse, UI, state, data,
+   errors, tests, performance, security, regression. Fix findings, then run the gate.
+6. **Never write "Done."** without the evidence block: Implemented / Files changed /
    Verification (format, analyze, test, build) / Not verified / Notes.
 
 Full behavior spec: `references/senior-mode.md`. Audits: `references/auditing.md`.
@@ -87,7 +89,15 @@ Tests?        → REQUIRED: references/testing.md (fakes, cubit/widget tests, no
 Audit?        → REQUIRED: references/auditing.md + `scripts/audit.sh <app> [--tests]`
 Migration?    → references/senior-mode.md § Migration (explicit request only, staged)
 Realtime?     → references/chat-realtime.md    Platform? → references/maps-location-health.md
-CI/release?   → references/ci-cd.md
+CI?           → references/ci-cd.md            Release?  → references/release.md + `scripts/release-check.sh <app>`
+Perf?         → references/performance.md (evidence first; `scripts/audit.sh <app> --perf`)
+Security?     → references/security.md
+A11y / l10n?  → references/accessibility.md · references/localization.md
+Native?       → references/native.md           Dependency? → references/dependencies.md
+Social auth?  → references/auth-social.md (Google + Apple, platform setup + exchange)
+Store?        → references/store-release.md (Play + App Store submission + rejections)
+CI/CD?        → references/fastlane-codemagic.md (fastlane lanes, codemagic.yaml)
+OTA updates?  → references/shorebird.md (code push, patchability, tracks)
 Reviewing?    → REQUIRED: references/reviewing.md (Standards + Spec, parallel, side by side)
 ```
 
@@ -141,8 +151,19 @@ a raw `Color` "just this once") is the violation, not an exception to it.
 | `references/chat-realtime.md` | Socket.IO chat, E2E crypto, optimistic send |
 | `references/maps-location-health.md` | maps, geolocation, permissions, health/steps |
 | `references/reviewing.md` | reviewing a branch/PR/WIP diff: Standards + Spec axes, smell baseline |
-| `references/senior-mode.md` | owning a task end to end: profile, modes, decisions, DoD, evidence report |
+| `references/senior-mode.md` | owning a task end to end: profile, modes, decisions, self-review, DoD, evidence report |
 | `references/auditing.md` | auditing an existing app: dimensions, severity, report format |
+| `references/performance.md` | rebuilds, lists, images, startup, memory — measure before fixing |
+| `references/security.md` | secrets, log redaction, storage, transport, deep links, release hardening |
+| `references/accessibility.md` | semantics, touch targets, text scaling, contrast, focus, motion |
+| `references/localization.md` | StringConstants vs ARB, plurals, intl formatting, RTL |
+| `references/dependencies.md` | add/remove discipline, evaluation, house-pinned choices |
+| `references/native.md` | Android/iOS triage, flavors, signing, pods, parity checklist |
+| `references/release.md` | release checklist + `scripts/release-check.sh` |
+| `references/auth-social.md` | Google & Apple sign-in end to end: platform setup, exchange, errors |
+| `references/store-release.md` | Play Console + App Store Connect submission, review rejections |
+| `references/fastlane-codemagic.md` | fastlane lanes + codemagic.yaml for mobile CI/CD |
+| `references/shorebird.md` | OTA code push: patchability, releases, patches, tracks, CI, compliance |
 
 ## Red flags — STOP and correct
 
