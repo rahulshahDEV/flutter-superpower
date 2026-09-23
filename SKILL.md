@@ -1,6 +1,7 @@
 ---
 name: flutter-superpower
-description: Use when building, scaffolding, or extending any Flutter app, project, feature, screen, cubit, repository, use case, API integration, theme, router, model, or Flutter architecture decision. Triggers on flutter app, new flutter project, feature-first clean architecture, cubit, bloc, get_it, injectable, go_router, dio, Either Failure, SafeCubit, AppConfig, FlavorConfig, ScreenUtil, KButton, KTextField, AppColors, AppTextStyles, route data, presigned upload, FCM. Enforces the owner's house style (proven across zoomies, found-you, meltdown) instead of generic Flutter advice.
+description: Use when building, scaffolding, or extending any Flutter app, project, feature, screen, cubit, repository, use case, API integration, theme, router, model, or Flutter architecture decision. Triggers on flutter app, new flutter project, feature-first clean architecture, cubit, bloc, get_it, injectable, go_router, dio, Either Failure, SafeCubit, AppConfig, FlavorConfig, ScreenUtil, KButton, KTextField, AppColors, AppTextStyles, route data, presigned upload, FCM. Enforces the owner's house style (battle-tested across multiple production Flutter apps) instead of generic Flutter advice.
+license: MIT
 ---
 
 # Flutter Superpower
@@ -9,9 +10,8 @@ Build any Flutter app the owner's way: **feature-first clean architecture,
 Cubits + GetIt/Injectable, GoRouter, Dio + Either, centralized theme/strings,
 ScreenUtil sizing, K-widget design system, dev/prod flavors.**
 
-Reference implementations: `/Volumes/mcoders/zoomies`,
-`/Volumes/mcoders/found-you-flutter`, `/Volumes/mcoders/meltdown/flutter-app`.
-When a detail is missing here, read the matching app instead of inventing.
+When a detail is missing here, read the closest existing feature in the app you're
+working in and mirror it instead of inventing.
 
 **Scope discipline (built in):** structure is non-negotiable, scope is lazy. Stop at
 the first ladder rung that holds — (1) does it need to exist? (2) already in this
@@ -19,6 +19,17 @@ codebase (`core/widgets`, `core/utils`)? (3) Flutter/Material SDK? (4) platform 
 (5) existing dependency? (6) one widget/one line? (7) only then: minimum working code.
 Never add a package, abstraction, cubit, or widget the feature doesn't use. Full rules:
 `references/ponytail.md`.
+
+## When NOT to use
+
+- Non-Flutter work (Dart server/CLI, React Native, native) — the structure is Flutter-specific.
+- A one-file throwaway script or code snippet with no app context.
+- Fixing a typo or a one-line copy change — just do it.
+- A repo that already documents a conflicting house style — follow the repo, not this skill
+  (unless the user asks to migrate it).
+
+When in doubt: if the task adds or changes app code, use the skill. If it only reads,
+explains, or reviews, use it as the rubric, not the scaffold.
 
 ## The 12 laws
 
@@ -38,18 +49,26 @@ Never add a package, abstraction, cubit, or widget the feature doesn't use. Full
 ## Workflow
 
 ```
-New app?      → references/playbooks.md § New App (order: create+clean → pubspec →
-                core foundations → di → bootstrap+shell → flavors → Firebase →
-                first feature → verify)
-New feature?  → references/playbooks.md § New Feature (bottom-up: entity → repo
-                contract → model → data source → repo impl → use case → state →
+New app?      → REQUIRED: references/playbooks.md § New App (order: create+clean →
+                pubspec → core foundations → di → bootstrap+shell → flavors →
+                Firebase → first feature → verify)
+New feature?  → REQUIRED: references/playbooks.md § New Feature (bottom-up: entity →
+                repo contract → model → data source → repo impl → use case → state →
                 cubit → widgets → screen → route → constants; wire route last)
 Editing?      → read the closest existing feature first, mirror it exactly
-Debugging?    → diagnose from the failure layer inward (UI ← cubit ← repo ← data source)
+Bug?          → REQUIRED: references/debugging.md (loop, symptom→layer table)
+Tests?        → REQUIRED: references/testing.md (fakes, cubit/widget tests, no mockito)
+Realtime?     → references/chat-realtime.md    Platform? → references/maps-location-health.md
+CI/release?   → references/ci-cd.md
+Reviewing?    → REQUIRED: references/reviewing.md (Standards + Spec, parallel, side by side)
 ```
 
 Every non-trivial unit ships with ONE runnable check (a small widget/unit test or
-fake-repo cubit test) — see `references/playbooks.md § Verify`.
+fake-repo cubit test) — see `references/testing.md` and `references/playbooks.md § Verify`.
+
+**Violating the letter of these rules is violating the spirit of them.** "It's basically
+the same thing" (a `Provider` instead of a cubit, `Navigator.push` instead of the router,
+a raw `Color` "just this once") is the violation, not an exception to it.
 
 ## Quick reference
 
@@ -62,7 +81,7 @@ fake-repo cubit test) — see `references/playbooks.md § Verify`.
 | Network | `DioClient` (`@lazySingleton`) with auth interceptor + pretty logger (dev only) |
 | Result | `FutureEither<T>` + `EitherX` (`valueOrNull`, `handle`) + `safeApiCall` mixin |
 | Errors to user | `AppSnackBar.showError(context, failure.message)` in `BlocListener` |
-| Theme | `AppColors` palette → `AppSemanticColors` ThemeExtension → `context.semanticColors` (or `AppColors` + `context.theme` for foundyou-style) |
+| Theme | `AppColors` palette → `AppSemanticColors` ThemeExtension → `context.semanticColors` (or `AppColors` + `context.theme`) |
 | Text | `AppTextStyles.x.copyWith(color: ...)` — never raw `TextStyle(fontSize:)` |
 | Storage | `LocalStorageService` (SharedPreferences) + `StorageKeys`; secrets → `flutter_secure_storage` |
 | Logging | `AppLogger.d/i/w/e` — dev-only, never `print` |
@@ -84,6 +103,54 @@ fake-repo cubit test) — see `references/playbooks.md § Verify`.
 | `references/playbooks.md` | building a new app or feature end-to-end + verification |
 | `references/ponytail.md` | scope discipline: what to skip, reuse, or delete; anti-over-engineering |
 | `references/fdev.md` | owner's `fdev` CLI: codegen, builds, clean, env, keystores, swagger models |
+| `references/debugging.md` | any bug, crash, wrong state, or "works in debug only" |
+| `references/testing.md` | writing any test; fakes, cubit/widget/model test patterns |
+| `references/ci-cd.md` | GitHub Actions, secrets, release flow |
+| `references/chat-realtime.md` | Socket.IO chat, E2E crypto, optimistic send |
+| `references/maps-location-health.md` | maps, geolocation, permissions, health/steps |
+| `references/reviewing.md` | reviewing a branch/PR/WIP diff: Standards + Spec axes, smell baseline |
+
+## Red flags — STOP and correct
+
+- Writing a widget before the state/cubit contract exists.
+- A new file that isn't in the layer table (`architecture.md`).
+- Inline `Color(0x...)`, inline user-visible string, inline route path.
+- `Navigator.push` / `context.go` raw instead of `context.goTo/pushRoute`.
+- `try/catch` that swallows, `!`, `dynamic`, `late` as a crutch.
+- Editing a generated file, or committing `.g.dart`/`.freezed.dart`/`injection.config.dart`.
+- "I'll add the test after" — after means never.
+- Claiming done without pasting analyzer/test output.
+- Two loaders, two snackbars, or a custom widget duplicating a `core/widgets` one.
+
+**All of these mean: stop, fix the root, re-run the gate.**
+
+## Rationalizations (and the reality)
+
+| Excuse | Reality |
+|---|---|
+| "This screen is simple, skip the layers" | Simple screens skip cubits only if state is local — decide by the rule in `state-and-di.md`, not by feel. |
+| "I'll refactor to the house style later" | Later never comes; the first version is what ships. |
+| "Tests slow me down" | One small cubit test takes minutes; debugging the regression takes hours. |
+| "The SDK package is basically the same as a new one" | Fewer dependencies, fewer upgrades, fewer CVEs — use the SDK. |
+| "Just this once" for an inline color/string | Every exception becomes the precedent; constants exist so this can't be a judgment call. |
+| "Provider/Riverpod is easier for this screen" | One state solution per app; mixing them doubles the mental model. |
+| "The analyzer is wrong" | The analyzer is the cheapest reviewer; fix the code or justify with a comment. |
+| "Works on my machine" | Check flavor, `.env`, device API level, release vs debug. |
+
+## Evidence before claiming done
+
+Run and paste the result (or summarize the exact output) — never assert success:
+
+```bash
+dart format .
+fdev gen          # only if annotations/generated code changed
+flutter analyze   # must be 0 issues
+flutter test      # must be all green
+```
+
+Then: the changed screen runs in the dev flavor, and every state (loading/empty/error/success)
+was exercised. If any step was skipped, say so explicitly — an unverified claim is a bug report
+against yourself.
 
 ## Common mistakes
 

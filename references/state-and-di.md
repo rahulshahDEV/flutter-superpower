@@ -17,7 +17,7 @@ Every cubit extends `SafeCubit` and calls `safeEmit`. Never raw `emit`.
 
 ## States — two accepted shapes
 
-**A. Sealed Equatable (zoomies style)** — no codegen:
+**A. Sealed Equatable** — no codegen:
 
 ```dart
 sealed class LoginState extends Equatable {
@@ -42,7 +42,7 @@ final class LoginFailure extends LoginState {
 }
 ```
 
-**B. Freezed union (foundyou/meltdown style)** — codegen, always 4 canonical variants:
+**B. Freezed union** — codegen, always 4 canonical variants:
 
 ```dart
 // presentation/cubit/orders/orders_state.dart — separate file, always

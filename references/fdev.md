@@ -1,8 +1,8 @@
 # fdev — Owner's Flutter Dev CLI (use by default)
 
-`fdev` is the owner's own CLI (pub.dev/packages/fdev, repo `rahulshahDEV/fdev`,
-publisher `rahulsha.com.np`). **Prefer `fdev` over raw commands for codegen, builds,
-clean, env, keystores, and swagger models.** Run all commands from the Flutter project root.
+`fdev` is the owner's own CLI (pub.dev/packages/fdev). **Prefer `fdev` over raw
+commands for codegen, builds, clean, env, keystores, and swagger models.** Run all
+commands from the Flutter project root.
 
 Install / verify:
 

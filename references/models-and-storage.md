@@ -101,7 +101,7 @@ class StorageKeys {
 }
 ```
 
-Meltdown variant: `CacheHelper` (async prefs writes) mirrors every write into an in-memory
+Variant: a `CacheHelper` (async prefs writes) mirrors every write into an in-memory
 `Cache.instance` singleton for synchronous reads in widgets. Adopt only if sync reads are
 genuinely needed.
 

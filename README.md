@@ -1,16 +1,19 @@
 # flutter-superpower
 
-One Claude/opencode skill that makes any Flutter app come out in the owner's
-structure — distilled from three real production apps plus the owner's own
-`fdev` CLI, with scope discipline (ponytail) built in.
+One agent skill that makes any Flutter app come out in the owner's structure —
+battle-tested across multiple production Flutter apps, with scope discipline built in
+and the owner's `fdev` CLI wired into the workflow.
 
-| App | Path | Signature traits |
-|---|---|---|
-| **zoomies** | `/Volumes/mcoders/zoomies` | 901 files · SafeCubit + sealed Equatable states · Dio + `ApiResponseHandler` · `AppSemanticColors` ThemeExtension · route-data classes · Socket.IO chat · presigned S3 uploads |
-| **foundyou** | `/Volumes/mcoders/found-you-flutter` | 530 files · freezed cubit states · UseCase classes · `CustomSnackBar` · `KButton` · StatefulShellRoute · X25519/AES chat crypto · secure storage |
-| **meltdown** | `/Volumes/mcoders/meltdown/flutter-app` | 1061 files · `http` + `http_interceptor` · `ErrorHandler` funnel · freezed states · `BaseScaffold` · ValueNotifier local state · Sentry + Amplitude · health/steps + QR |
+## How it works
 
-All three independently converged on the same house style. This repo is the skill.
+- The frontmatter `description` triggers the skill automatically on any Flutter task
+  (new app, feature, screen, cubit, API, theme, router, bug, test).
+- `SKILL.md` holds the 12 laws, workflow, red flags, rationalization table, and the
+  evidence-before-done gate. Heavy detail lives in `references/` and is loaded only when
+  the task needs it.
+- **Structure is non-negotiable; scope is lazy.** The ponytail ladder is built in, so the
+  skill enforces the house architecture while refusing unneeded packages, abstractions,
+  and widgets.
 
 ## What it enforces
 
@@ -25,18 +28,16 @@ All three independently converged on the same house style. This repo is the skil
 - Design system: `KButton`, `KTextField`, `ImageRenderer`, empty/error/loading, shimmer, custom snackbar
 - dev/prod flavors via `dotenv` + `AppConfig`/`FlavorConfig`
 - `AppLogger` dev-only; `flutter analyze` + `flutter test` + `dart format` gate
-- **Ponytail scope discipline** (built in): reuse before write, Material/SDK before
-  packages, local state before cubits, fewest files, smallest diff, one check per
-  non-trivial logic path
-- **`fdev` CLI** (pub.dev/packages/fdev): prefer it for codegen, builds, clean, env,
-  keystores, and Swagger model generation
+- `fdev` CLI for codegen, builds, clean, env, keystores, Swagger models
 
 ## Layout
 
 ```
 flutter-superpower/
 ├── README.md
-├── SKILL.md                         ← entry point: 12 laws, workflow, quick reference
+├── SKILL.md                         ← entry point: laws, workflow, red flags, evidence gate
+├── CHANGELOG.md
+├── AGENTS.md                        ← guidance for agents editing this skill
 └── references/
     ├── architecture.md              ← layers, folders, naming, feature template
     ├── state-and-di.md              ← cubits, states, injectable wiring
@@ -46,6 +47,12 @@ flutter-superpower/
     ├── theme-and-design-system.md   ← colors, text, sizing, K-widgets, strings
     ├── app-bootstrap.md             ← main(), flavors, DI boot, Firebase/FCM
     ├── playbooks.md                 ← new-app-from-zero + new-feature recipes
+    ├── debugging.md                 ← loop, symptom→layer, house failure modes
+    ├── testing.md                   ← fakes, cubit/widget/model tests, no mockito
+    ├── ci-cd.md                     ← GitHub Actions, secrets, release flow
+    ├── chat-realtime.md             ← Socket.IO, E2E crypto, optimistic send
+    ├── maps-location-health.md      ← maps, geolocation, permissions, steps
+    ├── reviewing.md                 ← two-axis diff review: Standards + Spec
     ├── ponytail.md                  ← scope discipline / anti-over-engineering
     └── fdev.md                      ← owner's fdev CLI command map
 ```
@@ -53,12 +60,27 @@ flutter-superpower/
 ## Install
 
 ```bash
-ln -sfn /Volumes/mcoders/fluttersuperpower ~/.claude/skills/flutter-superpower
-ln -sfn /Volumes/mcoders/fluttersuperpower ~/.agents/skills/flutter-superpower
+git clone https://github.com/rahulshahDEV/flutter-superpower.git
+ln -sfn "$PWD/flutter-superpower" ~/.claude/skills/flutter-superpower   # Claude Code
+ln -sfn "$PWD/flutter-superpower" ~/.agents/skills/flutter-superpower   # opencode / Codex / cross-runtime
 ```
 
-The skill folder name and the frontmatter `name: flutter-superpower` are what agents
-match on — no nested duplicate folder needed.
+The folder name and the frontmatter `name: flutter-superpower` are what agents match on —
+no nested duplicate folder. Verify the symlink resolves to this repo root.
+
+## Updating
+
+The symlink points at the clone, so `git pull` updates every agent at once. No reinstall.
+
+## When something goes wrong
+
+- **Skill didn't trigger** — check the symlink target, then the task wording: mention
+  "Flutter" + the artifact (screen/cubit/feature). Worst case, tell the agent to read
+  `SKILL.md` first.
+- **Agent skipped the house style** — quote the red-flags section back at it; the fix is
+  usually a missing REQUIRED reference (playbooks/testing/debugging).
+- **A reference contradicts reality** — the app in front of you wins; fix the reference in
+  the same PR (`AGENTS.md` has the rules).
 
 ## Roadmap — what can be added next
 
@@ -67,12 +89,13 @@ match on — no nested duplicate folder needed.
 | 1 | `templates/` real skeleton dart files | copy-paste speed instead of reading prose | S |
 | 2 | `scripts/new_app.sh` — scaffolds the whole core/ + di/ + flavors | zero-to-running in one command | M |
 | 3 | `scripts/new_feature.sh <name>` — generates the full feature tree + stubs | feature loop becomes mechanical | M |
-| 4 | `references/testing.md` — fake-repo pattern (no mocktail), cubit tests | all 3 apps test this way; currently spread across playbooks | S |
-| 5 | `references/ci-cd.md` — GitHub Actions: format → analyze → test → build flavors | repos reference CI expectations but no template | S |
-| 6 | `references/chat-realtime.md` — Socket.IO lifecycle + crypto key exchange | hardest cross-cutting feature to rebuild | M |
-| 7 | `references/maps-location-health.md` — geolocator/maps, steps, permissions matrix | platform-heavy, high re-discovery cost | M |
-| 8 | `references/payments.md` — eSewa/Khalti + presigned upload patterns | Nepal-specific, easy to forget details | S |
-| 9 | `tests/` — baseline pressure + retrieval tests per writing-skills TDD | proves an agent actually follows the house style | M |
+| 4 | ~~testing reference~~ | done (`references/testing.md`) | — |
+| 5 | ~~CI/CD reference~~ | done (`references/ci-cd.md`) | — |
+| 6 | ~~chat/realtime reference~~ | done (`references/chat-realtime.md`) | — |
+| 7 | ~~maps/location/health reference~~ | done (`references/maps-location-health.md`) | — |
+| 8 | ~~payments reference~~ | covered by presigned upload + `fdev` docs; add gateway detail if needed | S |
+| 9 | `evals/` retrieval + pressure tests for the skill | proves compliance, not just presence | M |
 | 10 | Keep in sync with `fdev` releases (new commands) | CLI is the owner's daily driver | S |
 
-Priority if continuing: **1 → 2 → 3 → 4** (turns the skill from reference into a generator).
+Priority if continuing: **1 → 2 → 3 → 9** (turns the skill from reference into a generator
+with proof it works).

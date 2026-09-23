@@ -5,7 +5,7 @@
 ```
 core/theme/
 ├── app_colors.dart        # raw palette only (private ctor, static const)
-├── app_semantic_colors.dart  # optional ThemeExtension layer (zoomies)
+├── app_semantic_colors.dart  # optional ThemeExtension layer
 ├── app_text_styles.dart   # static getters, no TextTheme wiring needed
 └── app_theme.dart         # lightTheme (+darkTheme if app supports it)
 ```
@@ -36,7 +36,7 @@ class AppColors {
 }
 ```
 
-Zoomies-style semantic layer for multi-surface apps: `@immutable class AppSemanticColors
+Optional semantic layer for multi-surface apps: `@immutable class AppSemanticColors
 extends ThemeExtension<AppSemanticColors>` with ~30 fields (`screenBackground`, `surface`,
 `primaryText`, `secondaryText`, `border`, ...), `copyWith` + `lerp`, registered via
 `ThemeData(extensions: [semanticColors])`, read as `context.semanticColors`.
@@ -75,7 +75,7 @@ Rules:
 class AppSizes {
   AppSizes._();
 
-  static const Size designSize = Size(390, 844); // foundyou uses 375x812 — match the app
+  static const Size designSize = Size(390, 844); // some apps use 375x812 — match the app
 
   static double get xs => 4.w;
   static double get sm => 8.w;
@@ -149,8 +149,8 @@ Loading rules:
 
 ## Strings
 
-All copy in `core/constants/string_constants.dart` (foundyou/meltdown) or
-`core/constants/text/<feature>_text.dart` (zoomies), section-commented. Parameterized copy
+All copy in `core/constants/string_constants.dart` or
+`core/constants/text/<feature>_text.dart`, section-commented. Parameterized copy
 is a static function. Widgets never contain string literals for user-visible text.
 
 ## Screen composition conventions

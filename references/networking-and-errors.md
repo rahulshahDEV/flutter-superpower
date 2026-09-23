@@ -144,8 +144,8 @@ mixin ApiExceptionHandler {
 `_handleDioException` extracts the backend `message` (from `{message}` or `{data:{message}}`)
 then falls back to an `ApiErrorMessages` code→string map, then to the status message.
 
-Meltdown variant funnels everything through `ErrorHandler.errorHandler(future)` which also
-calls `Sentry.captureException` for unknown errors and force-logs-out on `UnauthenticatedException`.
+A stricter variant funnels everything through a single `ErrorHandler.errorHandler(future)`
+that also reports unknown errors to crash reporting and force-logs-out on `UnauthenticatedException`.
 
 ## Use case contract
 
@@ -166,8 +166,8 @@ One class per file in `domain/usecases/`, `@lazySingleton`, one-line body delega
 
 ## Showing errors
 
-- UI: `AppSnackBar.showError(context, failure.message)` (zoomies) /
-  `CustomSnackBar.showError(context, message: ...)` (foundyou) / `showErrorInfo(context, msg)` (meltdown).
+- UI: `AppSnackBar.showError(context, failure.message)` or the app's equivalent
+  (`CustomSnackBar.showError(context, message: ...)`, `showErrorInfo(context, msg)`).
 - Never show raw exception text; failures already carry user-safe messages.
 - Retry affordances: `ErrorStateWidget(onRetry: () => cubit.load())`.
 - Logging: `AppLogger.d/i/w/e(message, name: 'ClassName', error: e, stackTrace: st)` —

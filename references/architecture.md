@@ -72,7 +72,7 @@ create empty layers "for later" — a screen with no API call does not need data
 
 | Kind | Suffix | Example |
 |---|---|---|
-| Screen/page | `_screen.dart` (foundyou: `_page.dart` — match the app you're in) | `profile_screen.dart` → `ProfileScreen` |
+| Screen/page | `_screen.dart` (some apps use `_page.dart` — match the app you're in) | `profile_screen.dart` → `ProfileScreen` |
 | Reusable widget | `_widget.dart` | `profile_card_widget.dart` |
 | Bottom sheet | `_bottom_sheet.dart` | `add_pet_bottom_sheet.dart` |
 | Modal sheet | `_sheet.dart` | `logout_sheet.dart` |

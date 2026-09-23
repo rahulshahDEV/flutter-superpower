@@ -141,10 +141,10 @@ Screens call `context.goTo(OrdersScreen.path)` — never raw `context.go(...)` o
 
 Two accepted approaches:
 
-1. **IndexedStack shell (zoomies)** — one `Scaffold` + custom bottom bar; tab
+1. **IndexedStack shell** — one `Scaffold` + custom bottom bar; tab
    destinations are `GoRoute`s with `redirect:` that change the tab index and return the
    shell path.
-2. **StatefulShellRoute.indexedStack (foundyou)** — 3 branches with per-tab
+2. **StatefulShellRoute.indexedStack** — 3 branches with per-tab
    `NavigatorKey`s, so each tab keeps its own stack. Use when tabs need independent
    push history.
 
