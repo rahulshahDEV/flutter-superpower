@@ -32,6 +32,18 @@ grep -rn "references/" SKILL.md | wc -l
 
 Then read the diff for contradictions, commit with a changelog entry, push.
 
+## Release
+
+1. Bump `metadata.version` in SKILL.md and add a `CHANGELOG.md` section (both must match).
+2. Commit and push.
+3. Tag and release:
+   ```bash
+   git tag -a vX.Y.Z -m "vX.Y.Z"
+   git push origin main --tags
+   gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <(sed -n '/^## X.Y.Z/,/^## /p' CHANGELOG.md | head -n -1)
+   ```
+4. Never move or delete a published tag; cut a new patch version instead.
+
 ## Install (for agents testing the skill)
 
 ```bash
