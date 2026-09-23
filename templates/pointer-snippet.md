@@ -17,9 +17,9 @@ Before writing or changing any Flutter code, read and follow:
 
 - Entry point: `<PATH-TO-SKILL>/SKILL.md`
 - Load references on demand from `<PATH-TO-SKILL>/references/`
-  (architecture, state-and-di, routing, networking-and-errors, models-and-storage,
-  theme-and-design-system, app-bootstrap, playbooks, debugging, testing, reviewing,
-  ci-cd, chat-realtime, maps-location-health, ponytail, fdev).
+  (senior-mode, architecture, state-and-di, routing, networking-and-errors,
+  models-and-storage, theme-and-design-system, app-bootstrap, playbooks, debugging,
+  testing, reviewing, auditing, ci-cd, chat-realtime, maps-location-health, ponytail, fdev).
 
 Non-negotiables: feature-first `data/domain/presentation` layers; `SafeCubit` + sealed or
 freezed states; `get_it` + `injectable` DI; `go_router` with `static path/routeName`;

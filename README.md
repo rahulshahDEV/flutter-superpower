@@ -15,6 +15,21 @@ and the owner's `fdev` CLI wired into the workflow.
   skill enforces the house architecture while refusing unneeded packages, abstractions,
   and widgets.
 
+## Senior developer behavior (built in)
+
+The skill operates as the senior engineer who owns the task end to end:
+
+- **Profile before changing** — architecture, state, routing, DI, networking, models, tests,
+  design system, mode — then plan.
+- **Existing project conventions > skill defaults > generic preference.** Greenfield uses the
+  defaults; existing projects are mirrored, not rewritten; migrations only on request, staged.
+- **Owns the obvious work** — states, validation, DI, routes, constants, tests, platform
+  config — without asking about trivia.
+- **Definition of Done + evidence report** (Implemented / Files changed / Verification /
+  Not verified / Notes) — never "Done." without proof.
+- **Audit capability** — `scripts/audit.sh <app>` mechanical pass + agent review per
+  `references/auditing.md`.
+
 ## What it enforces
 
 - Feature-first clean architecture: `lib/features/<x>/{data,domain,presentation}` + `lib/core/` + `lib/di/`
@@ -43,6 +58,7 @@ flutter-superpower/
 │   ├── setup.sh                     ← one-command remote setup (curl | sh)
 │   ├── install.ps1                  ← Windows installer
 │   ├── install.sh                   ← cross-agent installer
+│   ├── audit.sh                     ← read-only project audit (mechanical report)
 │   ├── new_app.sh                   ← scaffold a full app skeleton (analyze-clean)
 │   └── new_feature.sh               ← generate a feature: all layers + codegen + route snippet
 ├── templates/
@@ -64,6 +80,8 @@ flutter-superpower/
     ├── chat-realtime.md             ← Socket.IO, E2E crypto, optimistic send
     ├── maps-location-health.md      ← maps, geolocation, permissions, steps
     ├── reviewing.md                 ← two-axis diff review: Standards + Spec
+    ├── senior-mode.md               ← senior engineer behavior: profile, modes, DoD, reports
+    ├── auditing.md                  ← project audit dimensions + report format
     ├── ponytail.md                  ← scope discipline / anti-over-engineering
     └── fdev.md                      ← owner's fdev CLI command map
 ```
@@ -150,6 +168,7 @@ The symlink points at the clone, so `git pull` updates every agent at once. No r
 | 7 | ~~maps/location/health reference~~ | done (`references/maps-location-health.md`) | — |
 | 8 | ~~payments reference~~ | covered by presigned upload + `fdev` docs; add gateway detail if needed | S |
 | 9 | `evals/` retrieval + pressure tests for the skill | proves compliance, not just presence | M |
+| 11 | ~~senior-developer behavior + audit capability~~ | done (`senior-mode.md`, `auditing.md`, `audit.sh`) | — |
 | 10 | Keep in sync with `fdev` releases (new commands) | CLI is the owner's daily driver | S |
 
 Priority if continuing: **9 → 10** (compliance evals + keep generators in sync with `fdev`).

@@ -73,7 +73,9 @@ Same playbook, applied per screen:
 
 ## Editing an existing app
 
-Before writing code:
+**Existing project conventions beat this playbook** — profile first per
+`senior-mode.md`, then:
+
 1. Find the closest existing feature to what you're building and read it top-to-bottom.
 2. Mirror its file names, state style (sealed vs freezed), snackbar, theming, and sizing exactly.
 3. Only then write — consistency with the app in front of you beats this document when they differ.

@@ -1,9 +1,9 @@
 ---
 name: flutter-superpower
-description: Use when building, scaffolding, or extending any Flutter app, project, feature, screen, cubit, repository, use case, API integration, theme, router, model, or Flutter architecture decision. Triggers on flutter app, new flutter project, feature-first clean architecture, cubit, bloc, get_it, injectable, go_router, dio, Either Failure, SafeCubit, AppConfig, FlavorConfig, ScreenUtil, KButton, KTextField, AppColors, AppTextStyles, route data, presigned upload, FCM. Enforces the owner's house style (battle-tested across multiple production Flutter apps) instead of generic Flutter advice.
+description: Use when building, scaffolding, extending, auditing, debugging, refactoring, or migrating any Flutter app or feature — as the senior engineer who owns the task end to end. Triggers on flutter app, implement this feature, add feature to existing app, existing codebase, flutter audit, refactor, migrate state management, cubit, bloc, get_it, injectable, go_router, dio, Either Failure, SafeCubit, AppConfig, FlavorConfig, ScreenUtil, KButton, AppTextStyles, route data, presigned upload, FCM. Enforces the owner's battle-tested house style, and for existing projects follows the project's conventions over the defaults.
 license: MIT
 metadata:
-  version: "1.4.0"
+  version: "1.5.0"
 ---
 
 # Flutter Superpower
@@ -33,6 +33,28 @@ Never add a package, abstraction, cubit, or widget the feature doesn't use. Full
 When in doubt: if the task adds or changes app code, use the skill. If it only reads,
 explains, or reviews, use it as the rubric, not the scaffold.
 
+## Senior mode — own the task
+
+You are the senior engineer on this codebase, not a code generator. Inspect first, decide
+carefully, implement cleanly, verify everything, and never stop at partially working code.
+
+1. **Profile before changing** — inspect pubspec, `lib/`, routing, DI, state, networking,
+   models, widgets, theme, tests, platform config, env. State the profile (architecture,
+   state, routing, DI, net, models, tests, design system, mode) before you plan.
+2. **Priority order:** existing project conventions > this skill's defaults > generic
+   preference. Greenfield → use the defaults. Existing project → mirror the project and
+   improve incrementally. Migration → only when explicitly requested, staged, verified
+   after each stage.
+3. **Decide before coding:** which layer owns it, what already exists to reuse, what the
+   blast radius is (`rg` every dependent of shared code before editing).
+4. **Own the obvious work** without asking: states (loading/error/empty/success), validation,
+   DI, route, constants, platform config, tests. Ask only when genuinely blocked — one
+   precise question with your proposed default.
+5. **Never write "Done."** without the evidence block: Implemented / Files changed /
+   Verification (format, analyze, test, build) / Not verified / Notes.
+
+Full behavior spec: `references/senior-mode.md`. Audits: `references/auditing.md`.
+
 ## The 12 laws
 
 1. Feature-first: `lib/features/<feature>/{data,domain,presentation}`. `core/` never imports `features/`.
@@ -57,9 +79,13 @@ New app?      → scripts/new_app.sh <name> (scaffolds core/di/theme/router + sp
 New feature?  → scripts/new_feature.sh <name> --app <dir> (generates all layers + codegen
                 + endpoint constant, prints the GoRoute). Manual order in
                 references/playbooks.md § New Feature (wire the route last).
+Existing app? → REQUIRED: references/senior-mode.md (profile first; project conventions
+                beat these defaults), then the closest existing feature
 Editing?      → read the closest existing feature first, mirror it exactly
 Bug?          → REQUIRED: references/debugging.md (loop, symptom→layer table)
 Tests?        → REQUIRED: references/testing.md (fakes, cubit/widget tests, no mockito)
+Audit?        → REQUIRED: references/auditing.md + `scripts/audit.sh <app> [--tests]`
+Migration?    → references/senior-mode.md § Migration (explicit request only, staged)
 Realtime?     → references/chat-realtime.md    Platform? → references/maps-location-health.md
 CI/release?   → references/ci-cd.md
 Reviewing?    → REQUIRED: references/reviewing.md (Standards + Spec, parallel, side by side)
@@ -91,6 +117,9 @@ a raw `Color` "just this once") is the violation, not an exception to it.
 | Uploads | presigned URL client, never multipart through the auth client |
 | Simplest solution | climb the ladder in `references/ponytail.md` before writing anything new |
 | Scaffolding | `scripts/new_app.sh <name>` / `scripts/new_feature.sh <name> --app <dir>` (templates in `templates/`) |
+| Existing project | profile first; project conventions win; improve incrementally (`references/senior-mode.md`) |
+| Audit | `scripts/audit.sh <app> [--tests] [--static]` + agent review per `references/auditing.md` |
+| Blocked? | report: Blocked / Evidence / Needs / Default I would use |
 
 ## References
 
@@ -112,6 +141,8 @@ a raw `Color` "just this once") is the violation, not an exception to it.
 | `references/chat-realtime.md` | Socket.IO chat, E2E crypto, optimistic send |
 | `references/maps-location-health.md` | maps, geolocation, permissions, health/steps |
 | `references/reviewing.md` | reviewing a branch/PR/WIP diff: Standards + Spec axes, smell baseline |
+| `references/senior-mode.md` | owning a task end to end: profile, modes, decisions, DoD, evidence report |
+| `references/auditing.md` | auditing an existing app: dimensions, severity, report format |
 
 ## Red flags — STOP and correct
 

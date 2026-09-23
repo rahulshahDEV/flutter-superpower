@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.5.0
+
+- Senior developer behavior: `references/senior-mode.md` — project profile, three modes
+  (greenfield / existing / migration), requirement→task conversion, layer ownership and
+  change-impact analysis, Definition of Done, evidence report format, ownership rules,
+  blocked-report format. Existing project conventions explicitly outrank the defaults;
+  the existing architecture is never replaced.
+- Audit capability: `references/auditing.md` + `scripts/audit.sh` (read-only mechanical
+  audit: stack profile, layer leaks, file sizes, print/TODO/ignore smells, inline colors,
+  secrets, unbounded lists, test coverage signal, format/analyze/test). Verified on a
+  generated app (all green) and validated on a large production codebase.
+- SKILL.md: Senior mode section, workflow entries (existing app, audit, migration),
+  updated description triggers. Pointer snippet reference list updated.
+
 ## 1.4.0
 
 - Easy setup for any agent: `INSTALL.md` (agent-executable instructions),
