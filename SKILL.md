@@ -2,6 +2,8 @@
 name: flutter-superpower
 description: Use when building, scaffolding, or extending any Flutter app, project, feature, screen, cubit, repository, use case, API integration, theme, router, model, or Flutter architecture decision. Triggers on flutter app, new flutter project, feature-first clean architecture, cubit, bloc, get_it, injectable, go_router, dio, Either Failure, SafeCubit, AppConfig, FlavorConfig, ScreenUtil, KButton, KTextField, AppColors, AppTextStyles, route data, presigned upload, FCM. Enforces the owner's house style (battle-tested across multiple production Flutter apps) instead of generic Flutter advice.
 license: MIT
+metadata:
+  version: "1.2.0"
 ---
 
 # Flutter Superpower

@@ -38,6 +38,8 @@ flutter-superpower/
 ├── SKILL.md                         ← entry point: laws, workflow, red flags, evidence gate
 ├── CHANGELOG.md
 ├── AGENTS.md                        ← guidance for agents editing this skill
+├── scripts/install.sh               ← cross-agent installer
+├── templates/pointer-snippet.md     ← AGENTS.md / Cursor-rule pointer for non-skill agents
 └── references/
     ├── architecture.md              ← layers, folders, naming, feature template
     ├── state-and-di.md              ← cubits, states, injectable wiring
@@ -57,16 +59,41 @@ flutter-superpower/
     └── fdev.md                      ← owner's fdev CLI command map
 ```
 
-## Install
+## Install (any agent)
+
+One script installs into every known Agent Skills location:
 
 ```bash
 git clone https://github.com/rahulshahDEV/flutter-superpower.git
-ln -sfn "$PWD/flutter-superpower" ~/.claude/skills/flutter-superpower   # Claude Code
-ln -sfn "$PWD/flutter-superpower" ~/.agents/skills/flutter-superpower   # opencode / Codex / cross-runtime
+cd flutter-superpower
+./scripts/install.sh          # install where an agent is detected
+./scripts/install.sh --all    # also create dirs for agents not yet installed
+./scripts/install.sh --copy   # copy instead of symlink (Windows / no-symlink setups)
+./scripts/install.sh --project /path/to/flutter/app   # project-level for one app
 ```
 
-The folder name and the frontmatter `name: flutter-superpower` are what agents match on —
-no nested duplicate folder. Verify the symlink resolves to this repo root.
+| Agent | Global location(s) installed |
+|---|---|
+| Claude Code | `~/.claude/skills/flutter-superpower` |
+| opencode | `~/.config/opencode/skills/…` + `~/.claude/skills/…` + `~/.agents/skills/…` |
+| Codex | `~/.agents/skills/…` + `~/.codex/skills/…` |
+| Gemini CLI | `~/.gemini/skills/…` + `~/.agents/skills/…` |
+| GitHub Copilot CLI | `~/.copilot/skills/…` + `~/.agents/skills/…` |
+| Cursor | `~/.cursor/skills/…` (or project `.cursor/skills/…`) |
+| Antigravity | `~/.gemini/antigravity/skills/…` |
+
+Project-level targets: `.claude/skills`, `.agents/skills`, `.opencode/skills`, `.cursor/skills`.
+
+Rules that keep every harness happy:
+
+- The skill **directory must be named `flutter-superpower`** — the frontmatter `name` matches it.
+- Frontmatter uses only portable fields: `name`, `description`, `license`, `metadata`.
+  `description` is under 1024 chars (the spec limit).
+- Body is plain markdown — no agent-specific syntax or tools.
+
+**Agents without skill support** (older Cursor, Windsurf, plain chat): paste
+`templates/pointer-snippet.md` into the project's `AGENTS.md` / `CLAUDE.md`, or save it as a
+`.cursor/rules/flutter-superpower.mdc` rule.
 
 ## Updating
 
@@ -87,6 +114,7 @@ The symlink points at the clone, so `git pull` updates every agent at once. No r
 | # | Addition | Why | Effort |
 |---|---|---|---|
 | 1 | `templates/` real skeleton dart files | copy-paste speed instead of reading prose | S |
+| 0 | ~~cross-agent installer + pointer snippet~~ | done (`scripts/install.sh`, `templates/`) | — |
 | 2 | `scripts/new_app.sh` — scaffolds the whole core/ + di/ + flavors | zero-to-running in one command | M |
 | 3 | `scripts/new_feature.sh <name>` — generates the full feature tree + stubs | feature loop becomes mechanical | M |
 | 4 | ~~testing reference~~ | done (`references/testing.md`) | — |

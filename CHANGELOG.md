@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0
+
+- Cross-agent compatibility: `scripts/install.sh` (Claude Code, opencode, Codex, Gemini CLI,
+  Copilot CLI, Cursor, Antigravity; `--all`, `--copy`, `--project` modes).
+- `templates/pointer-snippet.md` for agents without native skill support
+  (AGENTS.md / CLAUDE.md / Cursor rule).
+- SKILL.md frontmatter now declares `license` + portable `metadata.version`;
+  body verified agent-neutral.
+
 ## 1.1.0
 
 - Added `references/debugging.md`, `references/testing.md`, `references/ci-cd.md`,
