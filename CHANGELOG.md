@@ -3,7 +3,7 @@
 ## 2.3.1
 
 - Evals: baseline-comparison protocol added (run a case without the skill and record the
-  verdict); coverage table added to  (7/20 pass, 13 unrun, 0 baselines).
+  verdict); coverage table added to `evals/RESULTS.md` (7/20 pass, 13 unrun, 0 baselines).
 
 ## 2.3.0
 
