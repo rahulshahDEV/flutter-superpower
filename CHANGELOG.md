@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.0
+
+- README: "Before / after (measured)" section — real timings (scaffold 19.1 s → 46 files,
+  feature 9.8 s → 10 files, audit of a 530-file app 0.9 s, verify 8.2 s) with the manual
+  baseline clearly labeled as an estimate; reproducible commands included.
+- README: removed the roadmap table (all items shipped or automated).
+
 ## 2.2.0
 
 - `references/app-optimization.md` — level-wise optimization playbook (Level 0 baseline →

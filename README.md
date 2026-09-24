@@ -60,6 +60,33 @@ See `CONTRIBUTING.md` to propose changes.
   → report: Implemented / Files changed / Verification / Not verified / Notes
 ```
 
+## Before / after (measured)
+
+Real run on this machine — macOS · Flutter 3.38.9 · Dart 3.10.8 · warm caches · 2026-09-24.
+The "typical manual" column is a conservative **estimate** for producing the same verified
+result by hand; it is not a controlled study. The measured column is reproducible with the
+commands below.
+
+| Task | Typical manual (estimate) | With flutter-superpower (measured) |
+|---|---|---|
+| New app skeleton — 46 Dart files: layers, DI, theme, router, constants, design system, tests | 2–4 h | **19.1 s** — `scripts/new_app.sh` |
+| New feature — 10 files across data/domain/presentation + codegen + endpoint constant + route snippet | 1–2 h | **9.8 s** — `scripts/new_feature.sh` |
+| Architecture audit of a 530-file production app | 1–2 h of manual review | **0.9 s** mechanical pass + agent review |
+| Verify a change (format → analyze → test) | minutes, easy to skip | **8.2 s** — enforced by the evidence gate |
+| Behavior compliance | — | **7/7 eval cases passed**, 40+ tests generated |
+
+```
+Measured pipeline timings (seconds, same machine)
+scaffold app        ████████████████████ 19.1
+generate feature    ██████████ 9.8
+flutter test        ██████ 5.8
+flutter analyze     ███ 2.5
+audit (530 files)   █ 0.9
+```
+
+Reproduce: `scripts/new_app.sh bench --dir /tmp/bench` · `scripts/new_feature.sh orders --app /tmp/bench` ·
+`scripts/audit.sh /path/to/app --static` · `tests/run.sh`.
+
 ## What it enforces
 
 - Feature-first clean architecture: `lib/features/<x>/{data,domain,presentation}` + `lib/core/` + `lib/di/`
@@ -201,25 +228,17 @@ The symlink points at the clone, so `git pull` updates every agent at once. No r
 - **A reference contradicts reality** — the app in front of you wins; fix the reference in
   the same PR (`AGENTS.md` has the rules).
 
-## Roadmap — what can be added next
+## Versioning & releases
 
-| # | Addition | Why | Effort |
-|---|---|---|---|
-| 1 | ~~`templates/` real skeleton dart files~~ | done (`templates/app/`, `templates/feature/`) | — |
-| 2 | ~~`scripts/new_app.sh`~~ | done (verified: analyze clean + tests pass) | — |
-| 3 | ~~`scripts/new_feature.sh <name>`~~ | done (all layers, codegen, endpoint constant, route snippet) | — |
-| 4 | ~~testing reference~~ | done (`references/testing.md`) | — |
-| 5 | ~~CI/CD reference~~ | done (`references/ci-cd.md`) | — |
-| 6 | ~~chat/realtime reference~~ | done (`references/chat-realtime.md`) | — |
-| 7 | ~~maps/location/health reference~~ | done (`references/maps-location-health.md`) | — |
-| 8 | ~~payments reference~~ | covered by presigned upload + `fdev` docs; add gateway detail if needed | S |
-| 9 | ~~`evals/` behavior cases + regression suite~~ | done (`evals/`, `tests/`; run locally — no CI by design) | — |
-| 11 | ~~senior-developer behavior + audit capability~~ | done (`senior-mode.md`, `auditing.md`, `audit.sh`) | — |
-| 10 | Keep in sync with `fdev` releases (new commands) | CLI is the owner's daily driver | S |
-
-Priority if continuing: **9 → 10** (compliance evals + keep generators in sync with `fdev`).
-The generators are live: `new_app.sh` produces an analyze-clean app, `new_feature.sh`
-produces an analyze-clean feature with passing tests.
+- Version lives in three places, kept in sync: `SKILL.md` → `metadata.version`,
+  `CHANGELOG.md`, and the git tag `vX.Y.Z`.
+- Release flow: bump the three, commit, then tag and publish:
+  ```bash
+  git tag -a vX.Y.Z -m "vX.Y.Z"
+  git push origin main --tags
+  gh release create vX.Y.Z --title "vX.Y.Z" \
+    --notes-file <(sed -n '/^## X.Y.Z/,/^## /p' CHANGELOG.md | sed '$d')
+  ```
 
 ## License
 
