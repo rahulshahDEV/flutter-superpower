@@ -62,6 +62,33 @@ for s in "$ROOT"/scripts/*.sh; do
   [ -x "$s" ] && ok "executable: ${s#"$ROOT"/}" || bad "not executable: ${s#"$ROOT"/}"
 done
 
+# 8. Size budgets: SKILL.md stays scannable, references stay single-topic
+SKILL_WORDS="$(wc -w < "$ROOT/SKILL.md" | tr -d ' ')"
+if [ "$SKILL_WORDS" -le 1900 ]; then
+  ok "SKILL.md budget: $SKILL_WORDS words (max 1900)"
+else
+  bad "SKILL.md over budget: $SKILL_WORDS words (max 1900) — push detail to references"
+fi
+
+OVER=""
+for f in "$ROOT"/references/*.md; do
+  LINES="$(wc -l < "$f" | tr -d ' ')"
+  [ "$LINES" -gt 240 ] && OVER="$OVER $(basename "$f")($LINES)"
+done
+if [ -z "$OVER" ]; then ok "reference size budget: all under 240 lines"; else bad "references over 240 lines:$OVER"; fi
+
+# 9. fdev command sync (when the CLI is installed)
+if command -v fdev >/dev/null 2>&1; then
+  HELP="$(fdev --help 2>/dev/null || true)"
+  MISSING=""
+  for cmd in $(grep -oE '`fdev [a-z][a-z-]*' "$ROOT/references/fdev.md" | sed 's/`fdev //' | sort -u); do
+    case "$HELP" in *"$cmd"*) : ;; *) MISSING="$MISSING $cmd" ;; esac
+  done
+  if [ -z "$MISSING" ]; then ok "fdev commands documented exist in --help"; else bad "fdev commands not in --help:$MISSING"; fi
+else
+  ok "fdev not installed — command sync skipped"
+fi
+
 printf '\n'
 if [ "$FAIL" -eq 0 ]; then
   printf '\033[32mCONSISTENCY PASS\033[0m\n'

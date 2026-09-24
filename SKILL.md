@@ -3,7 +3,7 @@ name: flutter-superpower
 description: Use when building, scaffolding, extending, auditing, debugging, refactoring, or migrating any Flutter app or feature — as the senior engineer who owns the task end to end. Triggers on flutter app, implement this feature, add feature to existing app, existing codebase, flutter audit, refactor, migrate state management, cubit, bloc, get_it, injectable, go_router, dio, Either Failure, SafeCubit, AppConfig, FlavorConfig, ScreenUtil, KButton, AppTextStyles, route data, presigned upload, FCM. Enforces the owner's battle-tested house style, and for existing projects follows the project's conventions over the defaults.
 license: MIT
 metadata:
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Flutter Superpower
@@ -15,23 +15,19 @@ ScreenUtil sizing, K-widget design system, dev/prod flavors.**
 When a detail is missing here, read the closest existing feature in the app you're
 working in and mirror it instead of inventing.
 
-**Scope discipline (built in):** structure is non-negotiable, scope is lazy. Stop at
-the first ladder rung that holds — (1) does it need to exist? (2) already in this
-codebase (`core/widgets`, `core/utils`)? (3) Flutter/Material SDK? (4) platform feature?
-(5) existing dependency? (6) one widget/one line? (7) only then: minimum working code.
-Never add a package, abstraction, cubit, or widget the feature doesn't use. Full rules:
+**Scope discipline (built in):** structure is non-negotiable, scope is lazy. Climb the
+ladder — need it at all? already in `core/`? SDK? platform? existing dependency? one
+line? — then write the minimum. Never add what the feature doesn't use. Full rules:
 `references/ponytail.md`.
 
 ## When NOT to use
 
-- Non-Flutter work (Dart server/CLI, React Native, native) — the structure is Flutter-specific.
-- A one-file throwaway script or code snippet with no app context.
-- Fixing a typo or a one-line copy change — just do it.
-- A repo that already documents a conflicting house style — follow the repo, not this skill
-  (unless the user asks to migrate it).
+- Non-Flutter work (Dart CLI, React Native, native) — the structure is Flutter-specific.
+- Throwaway snippets with no app context; typo/one-line copy fixes.
+- A repo with a conflicting documented house style — follow the repo (unless asked to migrate).
 
-When in doubt: if the task adds or changes app code, use the skill. If it only reads,
-explains, or reviews, use it as the rubric, not the scaffold.
+Task adds or changes app code → use the skill. Task only reads/explains/reviews → use it as
+the rubric, not the scaffold.
 
 ## Senior mode — own the task
 
@@ -75,31 +71,22 @@ Full behavior spec: `references/senior-mode.md`. Audits: `references/auditing.md
 ## Workflow
 
 ```
-New app?      → scripts/new_app.sh <name> (scaffolds core/di/theme/router + splash/home,
-                verified: analyze clean). Then references/playbooks.md § New App for
-                flavors, Firebase, and the manual path.
-New feature?  → scripts/new_feature.sh <name> --app <dir> (generates all layers + codegen
-                + endpoint constant, prints the GoRoute). Manual order in
-                references/playbooks.md § New Feature (wire the route last).
+New app?      → scripts/new_app.sh <name>; then references/playbooks.md § New App
+                (flavors, Firebase, manual path)
+New feature?  → scripts/new_feature.sh <name> --app <dir> (all layers + codegen + route
+                snippet); manual order in references/playbooks.md § New Feature
 Existing app? → REQUIRED: references/senior-mode.md (profile first; project conventions
-                beat these defaults), then the closest existing feature
-Editing?      → read the closest existing feature first, mirror it exactly
-Bug?          → REQUIRED: references/debugging.md (loop, symptom→layer table)
-Tests?        → REQUIRED: references/testing.md (fakes, cubit/widget tests, no mockito)
-Audit?        → REQUIRED: references/auditing.md + `scripts/audit.sh <app> [--tests]`
+                beat these defaults), then mirror the closest existing feature
+Bug?          → REQUIRED: references/debugging.md
+Tests?        → REQUIRED: references/testing.md
+Audit?        → REQUIRED: references/auditing.md + scripts/audit.sh <app> [--tests] [--perf]
+Reviewing?    → REQUIRED: references/reviewing.md
 Migration?    → references/senior-mode.md § Migration (explicit request only, staged)
-Realtime?     → references/chat-realtime.md    Platform? → references/maps-location-health.md
-CI?           → references/ci-cd.md            Release?  → references/release.md + `scripts/release-check.sh <app>`
-Perf?         → references/performance.md (evidence first; `scripts/audit.sh <app> --perf`)
-Security?     → references/security.md
-A11y / l10n?  → references/accessibility.md · references/localization.md
-Native?       → references/native.md           Dependency? → references/dependencies.md
-Social auth?  → references/auth-social.md (Google + Apple, platform setup + exchange)
-Store?        → references/store-release.md (Play + App Store submission + rejections)
-CI/CD?        → references/fastlane-codemagic.md (fastlane lanes, codemagic.yaml)
-OTA updates?  → references/shorebird.md (code push, patchability, tracks)
-Reviewing?    → REQUIRED: references/reviewing.md (Standards + Spec, parallel, side by side)
+Optimize?     → references/app-optimization.md (level-wise; implement / plan / skip)
 ```
+
+Everything else routes through the References table below (release, stores, auth, native,
+CI/CD, Shorebird, security, a11y, l10n, performance, dependencies, chat, maps/health).
 
 Every non-trivial unit ships with ONE runnable check (a small widget/unit test or
 fake-repo cubit test) — see `references/testing.md` and `references/playbooks.md § Verify`.
@@ -112,11 +99,7 @@ a raw `Color` "just this once") is the violation, not an exception to it.
 
 | Concern | Decision |
 |---|---|
-| State | `SafeCubit<State>` + sealed/freezed state, `BlocProvider(create: (_) => getIt<XCubit>())` |
 | Screen with args | `XProvider` wrapper in `presentation/widgets/<flow>_provider.dart`; `getIt<XCubit>()..init(args)` in `create`; simple screens call `..load()` directly in the screen's own `BlocProvider` |
-| DI | `@injectable` / `@lazySingleton` / `@LazySingleton(as:)` / `@module` + `@preResolve` |
-| Routing | `GoRoute(path: XScreen.path, name: XScreen.routeName, builder: ...)` |
-| Network | `DioClient` (`@lazySingleton`) with auth interceptor + pretty logger (dev only) |
 | Result | `FutureEither<T>` + `EitherX` (`valueOrNull`, `handle`) + `safeApiCall` mixin |
 | Errors to user | `AppSnackBar.showError(context, failure.message)` in `BlocListener` |
 | Theme | `AppColors` palette → `AppSemanticColors` ThemeExtension → `context.semanticColors` (or `AppColors` + `context.theme`) |
@@ -150,32 +133,32 @@ a raw `Color` "just this once") is the violation, not an exception to it.
 | `references/ci-cd.md` | GitHub Actions, secrets, release flow |
 | `references/chat-realtime.md` | Socket.IO chat, E2E crypto, optimistic send |
 | `references/maps-location-health.md` | maps, geolocation, permissions, health/steps |
-| `references/reviewing.md` | reviewing a branch/PR/WIP diff: Standards + Spec axes, smell baseline |
-| `references/senior-mode.md` | owning a task end to end: profile, modes, decisions, self-review, DoD, evidence report |
+| `references/reviewing.md` | reviewing a diff: Standards + Spec axes, smell baseline |
+| `references/senior-mode.md` | task ownership: profile, modes, decisions, self-review, DoD, evidence report |
 | `references/auditing.md` | auditing an existing app: dimensions, severity, report format |
 | `references/performance.md` | rebuilds, lists, images, startup, memory — measure before fixing |
-| `references/security.md` | secrets, log redaction, storage, transport, deep links, release hardening |
+| `references/app-optimization.md` | level-wise optimization plan with implement/plan/skip calls |
+| `references/security.md` | secrets, log redaction, storage, transport, release hardening |
 | `references/accessibility.md` | semantics, touch targets, text scaling, contrast, focus, motion |
 | `references/localization.md` | StringConstants vs ARB, plurals, intl formatting, RTL |
 | `references/dependencies.md` | add/remove discipline, evaluation, house-pinned choices |
-| `references/native.md` | Android/iOS triage, flavors, signing, pods, parity checklist |
+| `references/native.md` | Android/iOS triage, flavors, signing, pods |
 | `references/release.md` | release checklist + `scripts/release-check.sh` |
 | `references/auth-social.md` | Google & Apple sign-in end to end: platform setup, exchange, errors |
-| `references/store-release.md` | Play Console + App Store Connect submission, review rejections |
-| `references/fastlane-codemagic.md` | fastlane lanes + codemagic.yaml for mobile CI/CD |
-| `references/shorebird.md` | OTA code push: patchability, releases, patches, tracks, CI, compliance |
+| `references/store-release.md` | Play + App Store submission, review rejections |
+| `references/fastlane-codemagic.md` | fastlane + codemagic.yaml |
+| `references/shorebird.md` | OTA code push: patchability, tracks, CI, compliance |
 
 ## Red flags — STOP and correct
 
 - Writing a widget before the state/cubit contract exists.
 - A new file that isn't in the layer table (`architecture.md`).
-- Inline `Color(0x...)`, inline user-visible string, inline route path.
-- `Navigator.push` / `context.go` raw instead of `context.goTo/pushRoute`.
+- Inline color, user-visible string, or route path.
+- `Navigator.push` / raw `context.go` instead of `context.goTo/pushRoute`.
 - `try/catch` that swallows, `!`, `dynamic`, `late` as a crutch.
 - Editing a generated file, or committing `.g.dart`/`.freezed.dart`/`injection.config.dart`.
 - "I'll add the test after" — after means never.
 - Claiming done without pasting analyzer/test output.
-- Two loaders, two snackbars, or a custom widget duplicating a `core/widgets` one.
 
 **All of these mean: stop, fix the root, re-run the gate.**
 
@@ -204,21 +187,9 @@ flutter analyze   # must be 0 issues
 flutter test      # must be all green
 ```
 
-Then: the changed screen runs in the dev flavor, and every state (loading/empty/error/success)
-was exercised. If any step was skipped, say so explicitly — an unverified claim is a bug report
-against yourself.
+Then exercise the changed screen in the dev flavor. Skipped steps go under "Not verified" —
+an unverified claim is a bug report against yourself.
 
-## Common mistakes
-
-| Mistake | Fix |
-|---|---|
-| `BlocProvider` at app root for a screen cubit | create it in the route builder / provider widget |
-| Business logic in widget | move to cubit; widget only reads state + calls methods |
-| Raw hex color / inline string | constants file |
-| New package for what core already has | search `core/widgets`, `core/utils` first |
-| `extra as MyArgs` unchecked | route-data class with `fromExtra` + fallback screen |
-| Editing `.g.dart` / `injection.config.dart` | change the source + run build_runner |
-| Nested `FutureBuilder` for API state | cubit state machine |
-| Relative imports in feature code | absolute `package:<app>/...` imports |
-| `!` non-null assertions | required fields, `case final x?`, early return |
-| `print()` | `AppLogger` |
+Fixes for the common failures live with their topic: state/DI (`state-and-di.md`), routing
+(`routing.md`), network/errors (`networking-and-errors.md`), UI/constants
+(`theme-and-design-system.md`), models/storage (`models-and-storage.md`).

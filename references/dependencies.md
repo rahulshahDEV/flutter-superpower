@@ -42,6 +42,9 @@ flutter analyze && flutter test
 ```
 
 - Pin a major (`^x.y.z`); avoid `any`.
+- Constraint-only bumps (raising an existing package's caret bound to the version already in
+  the lockfile) are allowed to clear analyzer/pub warnings — no new dependency, no lock change.
+  Still report them under Files changed.
 - If the package needs native setup (permissions, pods, gradle), do that in the same change —
   see `native.md`.
 - Update the PR/report with the one-sentence justification.

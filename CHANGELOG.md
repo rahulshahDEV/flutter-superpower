@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.2.0
+
+- `references/app-optimization.md` — level-wise optimization playbook (Level 0 baseline →
+  Level 4 advanced), each technique with cost, gain, and a skip-when condition, plus a
+  decision matrix (implement / plan / skip) and a plan template to hand to the user.
+- `evals/setup.sh` — reproducible eval setups (base feature + case defect).
+- Eval batch 2 run and recorded (`evals/RESULTS.md`): cases 04, 07, 08, 15, 17 all PASS,
+  independently re-verified.
+- `tests/consistency.sh`: SKILL.md word budget, reference line budget, and `fdev` command
+  sync (documented commands must exist in `fdev --help`).
+- `dependencies.md`: constraint-only bumps clarified (allowed, reported, no lock change).
+
 ## 2.1.0
 
 - Repo hygiene: `CODE_OF_CONDUCT.md` (Contributor Covenant 3.0), `CONTRIBUTING.md`,

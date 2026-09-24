@@ -117,6 +117,7 @@ flutter-superpower/
     ├── senior-mode.md               ← senior engineer behavior: profile, modes, DoD, reports
     ├── auditing.md                  ← project audit dimensions + report format
     ├── performance.md               ← rebuilds, lists, images, startup, memory
+    ├── app-optimization.md          ← level-wise optimization plan (implement/plan/skip)
     ├── security.md                  ← secrets, log redaction, storage, transport, hardening
     ├── accessibility.md             ← semantics, targets, text scaling, contrast, focus
     ├── localization.md              ← StringConstants vs ARB, plurals, intl, RTL
