@@ -1,3 +1,5 @@
+![Flutter Superpower](assets/banner.png)
+
 # flutter-superpower
 
 One agent skill that makes any Flutter app come out in the owner's structure —
@@ -70,6 +72,7 @@ flutter-superpower/
 ├── CHANGELOG.md
 ├── AGENTS.md                        ← guidance for agents editing this skill
 ├── INSTALL.md                       ← agent-executable install instructions
+├── assets/                          ← banner and media assets
 ├── evals/                           ← 20 behavior cases + protocol for an agent under test
 ├── tests/                           ← consistency.sh (fast) + run.sh (Flutter regression)
 ├── .github/workflows/ci.yml         ← consistency + regression on every push/PR
@@ -204,18 +207,6 @@ The symlink points at the clone, so `git pull` updates every agent at once. No r
 Priority if continuing: **9 → 10** (compliance evals + keep generators in sync with `fdev`).
 The generators are live: `new_app.sh` produces an analyze-clean app, `new_feature.sh`
 produces an analyze-clean feature with passing tests.
-
-## Versioning & releases
-
-- Version lives in three places, kept in sync: `SKILL.md` → `metadata.version`,
-  `CHANGELOG.md`, and the git tag `vX.Y.Z`.
-- Release flow: bump the three, commit, then tag and publish:
-  ```bash
-  git tag -a vX.Y.Z -m "vX.Y.Z"
-  git push origin main --tags
-  gh release create vX.Y.Z --title "vX.Y.Z" \
-    --notes-file <(sed -n '/^## X.Y.Z/,/^## /p' CHANGELOG.md | sed '$d')
-  ```
 
 ## License
 
