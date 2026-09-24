@@ -40,8 +40,9 @@ Then read the diff for contradictions, commit with a changelog entry, push.
   (format/analyze/test clean), `new_feature.sh` (all layers, codegen, endpoint, analyze/test),
   forbidden patterns, audit + release-check execute. Run before every release.
 - `evals/` — behavior cases for an agent under test (manual protocol, objective checks). If a
-  change alters expected behavior, update the affected eval case in the same commit.
-- CI (`.github/workflows/ci.yml`) runs consistency + regression on every push/PR.
+  change alters expected behavior, update the affected eval case in the same commit. Record
+  runs in `evals/RESULTS.md`.
+- There is no CI: run the two scripts locally before every commit/release. Keep them green.
 
 ## fdev sync
 

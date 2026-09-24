@@ -1,0 +1,14 @@
+# Normalize line endings; shell scripts must stay LF to run everywhere.
+* text=auto eol=lf
+
+*.sh text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.dart text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.zip binary

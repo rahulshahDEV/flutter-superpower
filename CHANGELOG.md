@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0
+
+- Repo hygiene: `CODE_OF_CONDUCT.md` (Contributor Covenant 3.0), `CONTRIBUTING.md`,
+  `SECURITY.md`, `.gitattributes`, PR template, bug/feature issue templates.
+- Removed GitHub Actions CI — the tests run locally by design; `tests/consistency.sh` and
+  `tests/run.sh` must be green before commit/release. Docs updated accordingly.
+- Added `evals/RESULTS.md` with recorded behavior-eval runs.
+
 ## 2.0.0
 
 Senior Flutter Developer upgrade — behavior, engineering intelligence, tooling, and evals.

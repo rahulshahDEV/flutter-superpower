@@ -35,6 +35,18 @@ The skill operates as the senior engineer who owns the task end to end:
   localization, dependencies, native config, releases, store submission, fastlane/Codemagic,
   and Shorebird OTA updates.
 
+### Verify it yourself
+
+```bash
+tests/consistency.sh   # links, version sync, placeholders, script syntax (seconds)
+tests/run.sh           # installer + scaffold + feature generator + audits (needs Flutter)
+```
+
+Behavior cases live in `evals/` (protocol in `evals/README.md`, results in `evals/RESULTS.md`).
+There is no CI by design — the tests run locally, and they must be green before a release.
+
+See `CONTRIBUTING.md` to propose changes.
+
 ### What happens when you ask for a feature
 
 ```
@@ -72,10 +84,10 @@ flutter-superpower/
 ├── CHANGELOG.md
 ├── AGENTS.md                        ← guidance for agents editing this skill
 ├── INSTALL.md                       ← agent-executable install instructions
+├── CODE_OF_CONDUCT.md · CONTRIBUTING.md · SECURITY.md · LICENSE
 ├── assets/                          ← banner and media assets
-├── evals/                           ← 20 behavior cases + protocol for an agent under test
+├── evals/                           ← 20 behavior cases + protocol + recorded results
 ├── tests/                           ← consistency.sh (fast) + run.sh (Flutter regression)
-├── .github/workflows/ci.yml         ← consistency + regression on every push/PR
 ├── scripts/
 │   ├── setup.sh                     ← one-command remote setup (curl | sh)
 │   ├── install.ps1                  ← Windows installer
@@ -200,7 +212,7 @@ The symlink points at the clone, so `git pull` updates every agent at once. No r
 | 6 | ~~chat/realtime reference~~ | done (`references/chat-realtime.md`) | — |
 | 7 | ~~maps/location/health reference~~ | done (`references/maps-location-health.md`) | — |
 | 8 | ~~payments reference~~ | covered by presigned upload + `fdev` docs; add gateway detail if needed | S |
-| 9 | ~~`evals/` behavior cases + regression suite + CI~~ | done (`evals/`, `tests/`, `.github/workflows/ci.yml`) | — |
+| 9 | ~~`evals/` behavior cases + regression suite~~ | done (`evals/`, `tests/`; run locally — no CI by design) | — |
 | 11 | ~~senior-developer behavior + audit capability~~ | done (`senior-mode.md`, `auditing.md`, `audit.sh`) | — |
 | 10 | Keep in sync with `fdev` releases (new commands) | CLI is the owner's daily driver | S |
 
