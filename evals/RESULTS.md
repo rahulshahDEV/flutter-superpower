@@ -3,6 +3,18 @@
 Protocol: `README.md`. Cases: `cases.md`. Verdicts were checked independently of the agent's
 own report (analyze/test re-run, Must/Must-not inspected in the diff).
 
+## Coverage
+
+| Status | Cases |
+|---|---|
+| ✅ PASS with skill (independently verified) | 01, 04, 07, 08, 15, 17, 18 (7/20) |
+| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20 (13/20) |
+| 🔬 Baseline (no skill) run | none yet — required for at least one case per batch from now on |
+
+Baselines are the known rigor gap: the current results prove the agent *can* produce correct
+work with the skill, not yet that the skill is what caused it. Next batch must include a
+baseline run per `README.md` step 6.
+
 ## 2026-09-24 — skill v2.2.0 (batch 2)
 
 Environment: macOS · Flutter 3.38.9 · Dart 3.10.8 · fdev 0.1.6

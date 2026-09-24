@@ -31,6 +31,20 @@ commands pass.
 5. **Record** — case id, date, model, pass/fail, and the exact violation when failing.
    Failures are skill bugs: fix the reference the agent should have followed, then re-run.
 
+6. **Baseline comparison (what makes a result meaningful)** — for at least one case per batch,
+   run the same setup and task **without the skill** (agent has no access to `SKILL.md` or
+   `references/`). Record the baseline verdict next to the skill verdict.
+
+   | Baseline | With skill | Reading |
+   |---|---|---|
+   | FAIL | PASS | The skill changed the outcome — strongest evidence |
+   | PASS, lower quality (no tests, inline strings, wrong layer) | PASS | Skill improves quality, not just success |
+   | PASS, same quality | PASS | Case is too easy — harden it or drop it |
+
+   A case that the baseline also passes at the same quality proves nothing about the skill;
+   treat it as a candidate for hardening (more states, stricter Must-not, shared-code change).
+   Baselines are run manually and recorded in `RESULTS.md` — do not skip this for new cases.
+
 ## Case index
 
 | # | Case | Primary reference under test |

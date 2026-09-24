@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.1
+
+- Evals: baseline-comparison protocol added (run a case without the skill and record the
+  verdict); coverage table added to  (7/20 pass, 13 unrun, 0 baselines).
+
 ## 2.3.0
 
 - README: "Before / after (measured)" section — real timings (scaffold 19.1 s → 46 files,
