@@ -3,7 +3,7 @@ name: flutter-superpower
 description: Use when building, scaffolding, extending, auditing, debugging, refactoring, or migrating any Flutter app or feature — as the senior engineer who owns the task end to end. Triggers on flutter app, implement this feature, add feature to existing app, existing codebase, flutter audit, refactor, migrate state management, cubit, bloc, get_it, injectable, go_router, dio, Either Failure, SafeCubit, AppConfig, FlavorConfig, ScreenUtil, KButton, AppTextStyles, route data, presigned upload, FCM. Enforces the owner's battle-tested house style, and for existing projects follows the project's conventions over the defaults.
 license: MIT
 metadata:
-  version: "2.3.1"
+  version: "2.4.0"
 ---
 
 # Flutter Superpower
@@ -85,15 +85,10 @@ Migration?    → references/senior-mode.md § Migration (explicit request only,
 Optimize?     → references/app-optimization.md (level-wise; implement / plan / skip)
 ```
 
-Everything else routes through the References table below (release, stores, auth, native,
-CI/CD, Shorebird, security, a11y, l10n, performance, dependencies, chat, maps/health).
+For other tasks, load the matching reference below.
 
 Every non-trivial unit ships with ONE runnable check (a small widget/unit test or
 fake-repo cubit test) — see `references/testing.md` and `references/playbooks.md § Verify`.
-
-**Violating the letter of these rules is violating the spirit of them.** "It's basically
-the same thing" (a `Provider` instead of a cubit, `Navigator.push` instead of the router,
-a raw `Color` "just this once") is the violation, not an exception to it.
 
 ## Quick reference
 
@@ -138,6 +133,12 @@ a raw `Color` "just this once") is the violation, not an exception to it.
 | `references/auditing.md` | auditing an existing app: dimensions, severity, report format |
 | `references/performance.md` | rebuilds, lists, images, startup, memory — measure before fixing |
 | `references/app-optimization.md` | level-wise optimization plan with implement/plan/skip calls |
+| `references/async-safety.md` | callback failures, mounted checks, cleanup |
+| `references/forms-and-input.md` | validation, focus, controllers, keyboard |
+| `references/adaptive-layout.md` | layouts by available width |
+| `references/value-objects.md` | money, units, dates, and time |
+| `references/data-export-and-restore.md` | versioned backups, safe imports, exports |
+| `references/design-review.md` | visual and accessibility review before release |
 | `references/security.md` | secrets, log redaction, storage, transport, release hardening |
 | `references/accessibility.md` | semantics, touch targets, text scaling, contrast, focus, motion |
 | `references/localization.md` | StringConstants vs ARB, plurals, intl formatting, RTL |
@@ -159,8 +160,6 @@ a raw `Color` "just this once") is the violation, not an exception to it.
 - Editing a generated file, or committing `.g.dart`/`.freezed.dart`/`injection.config.dart`.
 - "I'll add the test after" — after means never.
 - Claiming done without pasting analyzer/test output.
-
-**All of these mean: stop, fix the root, re-run the gate.**
 
 ## Rationalizations (and the reality)
 

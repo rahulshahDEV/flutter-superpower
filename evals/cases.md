@@ -172,6 +172,54 @@ date formatted with `intl` locale-aware.
 
 **Task:** "The orders screen is unusable on tablets — fix the layout."
 **Must:** responsive layout via constraints (`LayoutBuilder`/`Flexible`/grid) using existing
-`AppSizes`/ScreenUtil tokens; no overflow at 320pt and tablet width; text scaling 2.0× intact.
+`AppSizes`/ScreenUtil tokens; choose structure from available width, not platform identity;
+no overflow at 320pt and tablet width; text scaling 2.0× intact.
 **Must-not:** hardcoded device checks (`Platform.isIOS`); separate screen for tablets.
 **Verify:** `flutter analyze` · `flutter test` · manual: resize/rotate.
+
+## 21 — Form validation and async submission
+
+**Task:** "Add an account form with a remote email-availability check and keyboard submit."
+**Must:** controllers and focus nodes stay in the screen and are disposed; synchronous
+validation is localized and performs no I/O; remote validation runs through the feature
+Cubit's state with stale-result protection; keyboard submit uses the same validated action as
+the button; duplicate submissions are prevented; failure is visible and recoverable.
+**Must-not:** controllers in the Cubit; async/network work inside a field validator; an
+unobserved Future or context use after an unguarded await; a new form package.
+**Verify:** `flutter analyze` · `flutter test` (validation, submit, and failure behavior).
+
+## 22 — Exact money and unit handling
+
+**Task:** "Split an order total between participants and support currencies with different
+minor-unit exponents."
+**Must:** money stays integer minor units paired with a currency; each currency's exponent is
+explicit; unknown currencies fail as typed errors; rounding is performed at one defined
+boundary; allocated parts sum exactly to the original total; unit conversion happens at the
+display edge.
+**Must-not:** `double` money, hardcoded `* 100`, silent default currency, or repeated
+independent rounding.
+**Verify:** `flutter analyze` · `flutter test` (currency, rounding, and sum invariants).
+
+## 23 — Backup and restore without data loss
+
+**Task:** "Add a user-triggered backup export and restore from a selected file."
+**Must:** backup format is versioned and distinct from human-facing exports; selected files
+are size/version/integrity validated before writes; restore stages or transacts the complete
+import and preserves existing data on failure; merge/replace policy is stated before
+confirmation; tests cover round-trip and a corrupt/truncated file.
+**Must-not:** clearing live data before validation; accepting CSV/PDF as a backup; implicitly
+uploading a file; claiming a checksum encrypts or authenticates data.
+**Verify:** `flutter analyze` · `flutter test` (round-trip and failed-restore preservation).
+
+## 24 — Visual review before shipping
+
+**Task:** "Prepare the new account flow for release and report any visual or accessibility
+issues."
+**Must:** inspect reachable loading, error, and success states at supported narrow/wide sizes,
+themes, text scale, and directions/locales; identify concrete findings with reproduction
+conditions; treat accessibility-floor violations as blockers; report untested combinations
+and re-check affected states after fixes.
+**Must-not:** claim a complete pass from analyzer output or one screenshot; redesign unrelated
+screens; mark color-only status or clipped large text as a cosmetic note.
+**Verify:** `flutter analyze` · `flutter test` · manual screenshots/device inspection for
+the supported combinations.

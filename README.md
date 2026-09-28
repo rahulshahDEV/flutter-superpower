@@ -32,8 +32,8 @@ The skill operates as the senior engineer who owns the task end to end:
 - **Audit capability** — `scripts/audit.sh <app> [--perf]` mechanical pass + agent review per
   `references/auditing.md`; release readiness via `scripts/release-check.sh <app>`.
 - **Full lifecycle coverage** — auth (Google/Apple), performance, security, accessibility,
-  localization, dependencies, native config, releases, store submission, fastlane/Codemagic,
-  and Shorebird OTA updates.
+  localization, adaptive layouts, forms, data portability, dependencies, native config,
+  visual release review, store submission, fastlane/Codemagic, and Shorebird OTA updates.
 
 ### Verify it yourself
 
@@ -42,7 +42,8 @@ tests/consistency.sh   # links, version sync, placeholders, script syntax (secon
 tests/run.sh           # installer + scaffold + feature generator + audits (needs Flutter)
 ```
 
-Behavior cases live in `evals/` (protocol in `evals/README.md`, results in `evals/RESULTS.md`).
+Behavior cases live in `evals/` (24 cases; protocol in `evals/README.md`, results in
+`evals/RESULTS.md`).
 There is no CI by design — the tests run locally, and they must be green before a release.
 
 See `CONTRIBUTING.md` to propose changes.
@@ -113,7 +114,7 @@ flutter-superpower/
 ├── INSTALL.md                       ← agent-executable install instructions
 ├── CODE_OF_CONDUCT.md · CONTRIBUTING.md · SECURITY.md · LICENSE
 ├── assets/                          ← banner and media assets
-├── evals/                           ← 20 behavior cases + protocol + recorded results
+├── evals/                           ← 24 behavior cases + protocol + recorded results
 ├── tests/                           ← consistency.sh (fast) + run.sh (Flutter regression)
 ├── scripts/
 │   ├── setup.sh                     ← one-command remote setup (curl | sh)
@@ -145,6 +146,12 @@ flutter-superpower/
     ├── auditing.md                  ← project audit dimensions + report format
     ├── performance.md               ← rebuilds, lists, images, startup, memory
     ├── app-optimization.md          ← level-wise optimization plan (implement/plan/skip)
+    ├── async-safety.md              ← async callback errors, mounted checks, resource cleanup
+    ├── forms-and-input.md           ← validation, focus, controllers, keyboard behavior
+    ├── adaptive-layout.md           ← constraint-based layouts across window sizes
+    ├── value-objects.md              ← canonical money, units, dates, deterministic time
+    ├── data-export-and-restore.md   ← portable backups, safe imports, spreadsheet exports
+    ├── design-review.md             ← scoped visual and accessibility review before shipping
     ├── security.md                  ← secrets, log redaction, storage, transport, hardening
     ├── accessibility.md             ← semantics, targets, text scaling, contrast, focus
     ├── localization.md              ← StringConstants vs ARB, plurals, intl, RTL

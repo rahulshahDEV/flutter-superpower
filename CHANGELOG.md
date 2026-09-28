@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.4.0
+
+- Added focused guides for async lifecycle safety, forms and keyboard behavior, adaptive
+  layouts, canonical domain values, safe data export/restore, and visual design review.
+- Routed matching tasks to the new guides and updated the README reference index.
+- Expanded behavior evals for async forms, money/unit invariants, data portability, and
+  visual review; updated the existing responsive-layout case to exercise adaptive guidance.
+- Kept the existing Cubit/GetIt, ScreenUtil, and storage conventions. Cross-stack advice was
+  reconciled to the house style instead of adding another state or persistence stack.
+
 ## 2.3.1
 
 - Evals: baseline-comparison protocol added (run a case without the skill and record the

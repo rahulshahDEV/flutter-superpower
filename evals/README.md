@@ -68,7 +68,11 @@ commands pass.
 | 17 | Optimize a slow screen | performance |
 | 18 | Reject an unnecessary dependency | dependencies, ponytail |
 | 19 | Implement localization | localization |
-| 20 | Tablet/responsive layout | accessibility, performance |
+| 20 | Tablet/responsive layout | adaptive-layout, accessibility, performance |
+| 21 | Form validation and async submission | forms-and-input, async-safety |
+| 22 | Exact money and unit handling | value-objects |
+| 23 | Backup and restore without data loss | data-export-and-restore |
+| 24 | Visual review before shipping | design-review, accessibility |
 
 ## Honest limits
 
