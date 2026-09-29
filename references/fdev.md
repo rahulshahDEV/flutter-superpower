@@ -33,6 +33,19 @@ fdev doctor
 | Graphify + Caveman agent setup | `fdev init [--agents cursor,claude-code,codex,antigravity]` | manual setup |
 | Self-update | `fdev upgrade` | re-activating |
 
+## Agent setup and this skill
+
+`fdev init [--agents cursor,claude-code,codex,antigravity]` sets up Graphify project
+integration and the Caveman skill for the selected agents. It generates the project graph,
+updates `.gitignore`, and commits setup files when run inside a Git repository. It needs
+`graphify` and `npx` on `PATH`; without `--agents`, it selects Cursor, Claude Code, Codex, and
+Antigravity.
+
+This is separate from installing **Flutter Superpower**: `fdev init` does not install or
+update this skill. Use this repository's `scripts/install.sh` (add `--project <app>` for a
+project-level install). Run `fdev init` only when Graphify/Caveman setup is requested, after
+checking the target project's Git state; it can create a commit.
+
 ## Notes for generated code
 
 - `fdev swagger` emits **dependency-free** Dart models with manual `fromJson`/`toJson`

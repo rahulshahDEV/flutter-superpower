@@ -6,24 +6,27 @@ independent axes:
 - **Standards** — does the code follow this skill's house style?
 - **Spec** — does the code do what was actually asked?
 
-Run the two axes as parallel sub-agents so neither pollutes the other, then report both
-side by side. Never merge or rerank findings across axes: code can pass one and fail the
-other, and the separation is what stops one masking the other.
+When the editor provides sub-agents, run the two axes concurrently as separate reviewers so
+neither pollutes the other. If it does not, run them as separate passes and keep their
+findings independent. Never merge or rerank findings across axes: code can pass one and fail
+the other. See `agent-delegation.md` for task sizing, evidence, and integration rules.
 
 ## Process
 
 1. **Pin the fixed point.** `git rev-parse <ref>` first; capture
-   `git diff <ref>...HEAD` and `git log <ref>..HEAD --oneline`. Empty diff or bad ref fails
-   here, not inside two sub-agents.
+   `git diff <ref>...HEAD` and `git log <ref>..HEAD --oneline`. Resolve an empty diff or bad
+   ref before dispatching reviewers.
 2. **Find the spec.** Issue references in commits → a path the user passed → a spec file
-   under `docs/`, `specs/`, `.scratch/`. If none, the Spec agent reports "no spec available".
-3. **Spawn both sub-agents in parallel.**
+   under `docs/`, `specs/`, `.scratch/`. If none, the Spec reviewer reports "no spec available".
+3. **Review both axes independently.** Dispatch one Standards reviewer and one Spec reviewer
+   in parallel when sub-agents are available. Give each only the material that axis needs.
 4. **Aggregate** under `## Standards` and `## Spec`, then a one-line summary: findings per
-   axis, worst issue per axis. No cross-axis winner.
+   axis, worst issue per axis. The lead reviewer checks cited hunks before reporting; no
+   cross-axis winner.
 
 ## Standards axis — house-style checklist
 
-Paste this checklist into the Standards sub-agent (it has no other access):
+Give this checklist to the Standards reviewer, without the Spec reviewer's conclusions:
 
 **Hard violations** (documented rules):
 - Layer breach: `core/` importing `features/`; widget calling a data source/Dio directly.

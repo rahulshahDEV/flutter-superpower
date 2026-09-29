@@ -7,8 +7,8 @@ own report (analyze/test re-run, Must/Must-not inspected in the diff).
 
 | Status | Cases |
 |---|---|
-| ✅ PASS with skill (independently verified) | 01, 04, 07, 08, 15, 17, 18 (7/24) |
-| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24 (17/24) |
+| ✅ PASS with skill (independently verified) | 01, 04, 07, 08, 15, 17, 18 (7/26) |
+| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 26 (19/26) |
 | 🔬 Baseline (no skill) run | none yet — required for at least one case per batch from now on |
 
 Baselines are the known rigor gap: the current results prove the agent *can* produce correct

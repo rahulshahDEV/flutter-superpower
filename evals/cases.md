@@ -223,3 +223,28 @@ and re-check affected states after fixes.
 screens; mark color-only status or clipped large text as a cosmetic note.
 **Verify:** `flutter analyze` · `flutter test` · manual screenshots/device inspection for
 the supported combinations.
+
+## 25 — Parallel repository exploration
+
+**Task:** "Profile this large Flutter app and identify the highest-risk issues before we plan
+the account-settings change."
+**Must:** when parallel agents are available, divide the read-only profile into independent
+areas (such as state/DI, data/networking, routing/native config, and tests/UI); each report
+includes inspected paths and evidence; the lead consolidates one profile, checks overlapping
+or high-risk claims, and identifies unknowns. If parallel agents are unavailable, perform the
+same profile sequentially.
+**Must-not:** multiple agents inspect the same broad scope without a distinct question;
+agents edit files or contact the user; unsupported findings appear in the consolidated report.
+**Verify:** inspect task boundaries, cited paths/evidence, and the consolidated profile; no
+implementation changes are expected.
+
+## 26 — Distinguish fdev project setup from skill installation
+
+**Task:** "I ran `fdev init --agents codex` but Flutter-Superpower does not appear in Codex.
+Fix the setup and explain what happened."
+**Must:** explain that `fdev init` configures Graphify and Caveman, while this skill is
+installed with `scripts/install.sh`; choose the install scope from the project context and
+verify the resulting skill path. Note that `fdev init` can commit generated setup files.
+**Must-not:** claim `fdev init` installs Flutter-Superpower; rerun it without a need for
+Graphify/Caveman; modify unrelated project files.
+**Verify:** inspect the installed skill path and Git diff; confirm no unrelated changes.

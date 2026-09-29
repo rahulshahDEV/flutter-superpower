@@ -43,6 +43,9 @@ Mode:           existing project | greenfield | migration
 ```
 
 If a project deviates from the defaults, record the deviation and follow the project.
+For a large repository, split this read-only profile across independent agents when the
+host supports them; the lead agent reconciles the evidence into one profile. See
+`agent-delegation.md`.
 
 ## Step 2 — Mode
 

@@ -16,12 +16,11 @@ For agents without native skill support (or as a project-level guarantee):
 Before writing or changing any Flutter code, read and follow:
 
 - Entry point: `<PATH-TO-SKILL>/SKILL.md`
-- Load references on demand from `<PATH-TO-SKILL>/references/`
-  (senior-mode, architecture, state-and-di, routing, networking-and-errors,
-  models-and-storage, theme-and-design-system, app-bootstrap, playbooks, debugging,
-  testing, reviewing, auditing, performance, app-optimization, security, accessibility, localization,
-  dependencies, native, release, auth-social, store-release, fastlane-codemagic,
-  shorebird, ci-cd, chat-realtime, maps-location-health, ponytail, fdev).
+- Load references on demand from `<PATH-TO-SKILL>/references/` — one file per topic
+  (architecture, state/DI, routing, networking, models, design system, testing, debugging,
+  senior behavior, reviews, audits, performance, security, accessibility, localization,
+  dependencies, native, releases, stores, auth, CI/CD, Shorebird, and more). The full,
+  current index is the References table in `<PATH-TO-SKILL>/SKILL.md`.
 
 Non-negotiables: feature-first `data/domain/presentation` layers; `SafeCubit` + sealed or
 freezed states; `get_it` + `injectable` DI; `go_router` with `static path/routeName`;

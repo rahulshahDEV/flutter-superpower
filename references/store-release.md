@@ -1,7 +1,8 @@
 # Store Release — Google Play & App Store
 
-Everything here happens after `release.md`'s checklist is green. A script cannot submit for
-you; this is the full manual path with the common rejection causes.
+Everything here happens after `release.md`'s checklist is green. This is the manual path
+with the common rejection causes; to drive it through the user's logged-in browser
+instead, see `play-console.md`.
 
 ## Pre-flight (both stores)
 

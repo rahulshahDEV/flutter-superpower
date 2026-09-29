@@ -3,7 +3,7 @@ name: flutter-superpower
 description: Use when building, scaffolding, extending, auditing, debugging, refactoring, or migrating any Flutter app or feature — as the senior engineer who owns the task end to end. Triggers on flutter app, implement this feature, add feature to existing app, existing codebase, flutter audit, refactor, migrate state management, cubit, bloc, get_it, injectable, go_router, dio, Either Failure, SafeCubit, AppConfig, FlavorConfig, ScreenUtil, KButton, AppTextStyles, route data, presigned upload, FCM. Enforces the owner's battle-tested house style, and for existing projects follows the project's conventions over the defaults.
 license: MIT
 metadata:
-  version: "2.4.0"
+  version: "2.7.0"
 ---
 
 # Flutter Superpower
@@ -26,8 +26,7 @@ line? — then write the minimum. Never add what the feature doesn't use. Full r
 - Throwaway snippets with no app context; typo/one-line copy fixes.
 - A repo with a conflicting documented house style — follow the repo (unless asked to migrate).
 
-Task adds or changes app code → use the skill. Task only reads/explains/reviews → use it as
-the rubric, not the scaffold.
+Code changes → use the skill. Reads/reviews → use it as the rubric.
 
 ## Senior mode — own the task
 
@@ -35,14 +34,14 @@ You are the senior engineer on this codebase, not a code generator. Inspect firs
 carefully, implement cleanly, verify everything, and never stop at partially working code.
 
 1. **Profile before changing** — inspect pubspec, `lib/`, routing, DI, state, networking,
-   models, widgets, theme, tests, platform config, env. State the profile (architecture,
-   state, routing, DI, net, models, tests, design system, mode) before you plan.
+   models, widgets, theme, tests, platform config, env. State the profile
+   (`senior-mode.md` has the template) before planning.
 2. **Priority order:** existing project conventions > this skill's defaults > generic
    preference. Greenfield → use the defaults. Existing project → mirror the project and
    improve incrementally. Migration → only when explicitly requested, staged, verified
    after each stage.
-3. **Decide before coding:** which layer owns it, what already exists to reuse, what the
-   blast radius is (`rg` every dependent of shared code before editing).
+3. **Decide before coding:** layer ownership, reuse, blast radius (`rg` dependents before
+   editing shared code).
 4. **Own the obvious work** without asking: states (loading/error/empty/success), validation,
    DI, route, constants, platform config, tests. Ask only when genuinely blocked — one
    precise question with your proposed default.
@@ -51,7 +50,7 @@ carefully, implement cleanly, verify everything, and never stop at partially wor
 6. **Never write "Done."** without the evidence block: Implemented / Files changed /
    Verification (format, analyze, test, build) / Not verified / Notes.
 
-Full behavior spec: `references/senior-mode.md`. Audits: `references/auditing.md`.
+Behavior: `references/senior-mode.md`. Audits: `references/auditing.md`.
 
 ## The 12 laws
 
@@ -81,7 +80,10 @@ Bug?          → REQUIRED: references/debugging.md
 Tests?        → REQUIRED: references/testing.md
 Audit?        → REQUIRED: references/auditing.md + scripts/audit.sh <app> [--tests] [--perf]
 Reviewing?    → REQUIRED: references/reviewing.md
+Large exploration/review? → REQUIRED: references/agent-delegation.md
 Migration?    → references/senior-mode.md § Migration (explicit request only, staged)
+Ship to a store?   → REQUIRED: references/play-console.md (Play) or
+                appstore-console.md (Apple)
 Optimize?     → references/app-optimization.md (level-wise; implement / plan / skip)
 ```
 
@@ -103,7 +105,7 @@ fake-repo cubit test) — see `references/testing.md` and `references/playbooks.
 | Logging | `AppLogger.d/i/w/e` — dev-only, never `print` |
 | Firebase | Core + Messaging only (unless app needs more). `FcmService` + `@pragma('vm:entry-point')` background handler |
 | Uploads | presigned URL client, never multipart through the auth client |
-| Simplest solution | climb the ladder in `references/ponytail.md` before writing anything new |
+| Simplest solution | climb the `ponytail.md` ladder first |
 | Scaffolding | `scripts/new_app.sh <name>` / `scripts/new_feature.sh <name> --app <dir>` (templates in `templates/`) |
 | Existing project | profile first; project conventions win; improve incrementally (`references/senior-mode.md`) |
 | Audit | `scripts/audit.sh <app> [--tests] [--static]` + agent review per `references/auditing.md` |
@@ -139,6 +141,7 @@ fake-repo cubit test) — see `references/testing.md` and `references/playbooks.
 | `references/value-objects.md` | money, units, dates, and time |
 | `references/data-export-and-restore.md` | versioned backups, safe imports, exports |
 | `references/design-review.md` | visual and accessibility review before release |
+| `references/agent-delegation.md` | parallel, read-only exploration and review when agents are available |
 | `references/security.md` | secrets, log redaction, storage, transport, release hardening |
 | `references/accessibility.md` | semantics, touch targets, text scaling, contrast, focus, motion |
 | `references/localization.md` | StringConstants vs ARB, plurals, intl formatting, RTL |
@@ -147,6 +150,8 @@ fake-repo cubit test) — see `references/testing.md` and `references/playbooks.
 | `references/release.md` | release checklist + `scripts/release-check.sh` |
 | `references/auth-social.md` | Google & Apple sign-in end to end: platform setup, exchange, errors |
 | `references/store-release.md` | Play + App Store submission, review rejections |
+| `references/play-console.md` | Play Console in-browser: setup-to-production via user browser |
+| `references/appstore-console.md` | App Store Connect in-browser: TestFlight-to-release |
 | `references/fastlane-codemagic.md` | fastlane + codemagic.yaml |
 | `references/shorebird.md` | OTA code push: patchability, tracks, CI, compliance |
 

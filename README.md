@@ -42,7 +42,7 @@ tests/consistency.sh   # links, version sync, placeholders, script syntax (secon
 tests/run.sh           # installer + scaffold + feature generator + audits (needs Flutter)
 ```
 
-Behavior cases live in `evals/` (24 cases; protocol in `evals/README.md`, results in
+Behavior cases live in `evals/` (26 cases; protocol in `evals/README.md`, results in
 `evals/RESULTS.md`).
 There is no CI by design — the tests run locally, and they must be green before a release.
 
@@ -114,7 +114,7 @@ flutter-superpower/
 ├── INSTALL.md                       ← agent-executable install instructions
 ├── CODE_OF_CONDUCT.md · CONTRIBUTING.md · SECURITY.md · LICENSE
 ├── assets/                          ← banner and media assets
-├── evals/                           ← 24 behavior cases + protocol + recorded results
+├── evals/                           ← 26 behavior cases + protocol + recorded results
 ├── tests/                           ← consistency.sh (fast) + run.sh (Flutter regression)
 ├── scripts/
 │   ├── setup.sh                     ← one-command remote setup (curl | sh)
@@ -152,6 +152,7 @@ flutter-superpower/
     ├── value-objects.md              ← canonical money, units, dates, deterministic time
     ├── data-export-and-restore.md   ← portable backups, safe imports, spreadsheet exports
     ├── design-review.md             ← scoped visual and accessibility review before shipping
+    ├── agent-delegation.md          ← parallel exploration/review, evidence, and integration
     ├── security.md                  ← secrets, log redaction, storage, transport, hardening
     ├── accessibility.md             ← semantics, targets, text scaling, contrast, focus
     ├── localization.md              ← StringConstants vs ARB, plurals, intl, RTL
@@ -160,6 +161,8 @@ flutter-superpower/
     ├── release.md                   ← release checklist + release-check.sh
     ├── auth-social.md               ← Google & Apple sign-in end to end
     ├── store-release.md             ← Play + App Store submission and rejections
+    ├── play-console.md              ← Play Console in-browser: setup-to-production
+    ├── appstore-console.md          ← App Store Connect in-browser: TestFlight-to-release
     ├── fastlane-codemagic.md        ← fastlane lanes + codemagic.yaml
     ├── shorebird.md                 ← OTA code push: patchability, tracks, compliance
     ├── ponytail.md                  ← scope discipline / anti-over-engineering
@@ -209,6 +212,11 @@ Restart the agent session after installing — skills are discovered at session 
 | Antigravity | `~/.gemini/antigravity/skills/…` |
 
 Project-level targets: `.claude/skills`, `.agents/skills`, `.opencode/skills`, `.cursor/skills`.
+
+The skill installer and `fdev init` do different jobs: `scripts/install.sh` installs
+Flutter-Superpower. `fdev init [--agents ...]` configures Graphify and Caveman for selected
+agents in a Flutter project; it does not install this skill and commits its setup files when
+run inside a Git repository. Use `fdev init` only when that project tooling is requested.
 
 Rules that keep every harness happy:
 

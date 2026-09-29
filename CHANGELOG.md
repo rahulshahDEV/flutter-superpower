@@ -1,5 +1,33 @@
 # Changelog
 
+## 2.7.0
+
+- Added `references/appstore-console.md`: App Store Connect in-browser playbook mirroring
+  the Play flow — logged-in browser attach, TestFlight-first discipline, App Privacy labels,
+  age rating, review submission and the common rejection codes.
+- Added zero-invocation contract to `references/play-console.md`: any "ship it" trigger runs
+  release checklist → browser attach via Playwright MCP → sections → tracks, with the manual
+  path as fallback when no browser tool exists.
+- Generalized the SKILL.md shipping entry to cover both stores; stayed in word budget.
+
+## 2.6.0
+
+- Added `references/play-console.md`: drive the user's own logged-in browser (Brave/Chrome
+  over CDP) through Play Console setup to production — section order, form-fighting rules,
+  versionCode/AAB gates, internal-testing release + tester lists, evidence format.
+- Scoped `references/store-release.md` as the manual path and cross-linked the automation
+  playbook; routed Play Console shipping tasks to the new guide in SKILL.md.
+- Trimmed SKILL.md wording to stay within the scannability word budget.
+- Added `references/agent-delegation.md` with editor-neutral guidance for parallel repository
+  exploration and review: bounded independent tasks, read-only ownership, evidence, and lead
+  integration.
+- Updated senior-mode profiling and two-axis change review to use available sub-agents in
+  parallel, with a separate-pass fallback when the host does not support them.
+- Clarified how `fdev init` project-level Graphify/Caveman setup differs from installing this
+  skill, including its automatic commit behavior.
+- Added behavior evals for delegated exploration and fdev/skill installation boundaries, and
+  updated the eval coverage count.
+
 ## 2.4.0
 
 - Added focused guides for async lifecycle safety, forms and keyboard behavior, adaptive

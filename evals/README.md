@@ -73,6 +73,8 @@ commands pass.
 | 22 | Exact money and unit handling | value-objects |
 | 23 | Backup and restore without data loss | data-export-and-restore |
 | 24 | Visual review before shipping | design-review, accessibility |
+| 25 | Parallel repository exploration | agent-delegation, senior-mode |
+| 26 | fdev project setup vs skill installation | fdev, installation |
 
 ## Honest limits
 
