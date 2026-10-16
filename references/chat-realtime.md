@@ -57,6 +57,8 @@ Rules:
   `POST /messages` fallback when the socket is down.
 - Repo returns entities; cubit merges socket events into the loaded list (dedupe by
   message id, keep ordering by `createdAt`).
+- Past ~500 lines, split the conversation cubit by concern (`runtime/`, `timeline/`,
+  `socket_session/`, `message_mapper/`) instead of one giant cubit file.
 - Optimistic send: add a local `pending` message with a temp id, replace on ack, mark
   `failed` with retry if the socket throws or times out.
 

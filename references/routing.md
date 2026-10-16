@@ -178,7 +178,9 @@ class AppRouteGuard {
 ```
 
 A startup coordinator (`resolveLaunchDestination()`) decides intro → onboarding → auth →
-main for splash.
+main for splash. The splash screen shows branding only — never `Timer` or
+`Future.delayed` plus `go()`; the guard and coordinator own the first route,
+so there is no flash of the wrong screen and no mis-route on slow storage.
 
 ## Deep links & FCM taps
 

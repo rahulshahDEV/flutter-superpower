@@ -47,6 +47,9 @@ class OrderModel extends Order {
 
 Conventions:
 - `@JsonSerializable(explicitToJson: true)` when nested; `@JsonKey(name: 'phoneNumber')` for renames; `@JsonKey(defaultValue: '')` for required-with-default.
+- Tolerate backend shape drift with an explicit fallback order: alternate key spellings
+  (`onBoardedAt` vs `onboardedAt`), flat vs nested user objects. Generated models stay
+  strict; the fallback lives in one documented factory, not scattered null-checks.
 - Enums: `@JsonEnum(valueField: 'apiValue')` or `@JsonKey(fromJson: _xFromJson, toJson: _xToJson)`.
 - Request payloads: omit nulls with Dart 3 patterns, not manual maps:
 

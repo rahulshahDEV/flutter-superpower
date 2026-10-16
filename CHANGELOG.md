@@ -1,6 +1,19 @@
 # Changelog
 
-## 2.8.0
+## 2.8.1
+
+- Added the missing `templates/app/lib/core/error/api_response_handler.dart`: the envelope
+  unwrapper documented in `networking-and-errors.md` now exists in the scaffold (both
+  production apps profiled carry this file; the reference described it, the template did
+  not). Verified through the scaffold regression (`flutter analyze` clean).
+- Production-app adoptions from zoomies and found-you-flutter profiles: splash screens show
+  branding only (guard + startup coordinator own the first route, no `Timer` + `go()`);
+  explicit auth-path whitelist so login/OTP 401s never trigger refresh or force-logout;
+  suspension messages passed through to sign-in; local file-size validation before
+  presigned-URL upload requests; documented backend shape-drift fallback order (alternate
+  key spellings, flat vs nested user); split conversation cubits by concern past ~500 lines.
+- Both profiles otherwise confirm the house style (SafeCubit, injectable DI, typed extras,
+  `Either` + `safeApiCall`, constants, ScreenUtil) — no structural changes needed.
 
 - Added `references/design-quality.md`: Flutter/Material 3 taste rules distilled from
   Impeccable (anti-pattern tells, motion tokens, critique checklist, shape-before-build)

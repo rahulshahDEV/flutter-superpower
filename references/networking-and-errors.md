@@ -57,11 +57,15 @@ class DioClient {
 Interceptor duties:
 - **Request**: inject `Authorization: Bearer <accessToken>` from `LocalStorageService` unless already present.
 - **401** on non-auth paths → single-flight `POST /auth/refresh` with `x-refresh-token`, persist new tokens, retry original once (`extra['auth_retry'] = true`).
+  Keep an explicit whitelist of auth paths (`/auth/login`, `/auth/otp`, `/auth/refresh`):
+  their 401s are login failures, never triggers for refresh or force-logout.
 - **403 account inactive / refresh failure** → single-flight force logout: clear session service, `getIt<AppRouter>().router.go(SignInScreen.path)`.
+  Pass suspension messages through to the sign-in screen; never strand the user on a dead session.
 - Connectivity errors → trigger `ConnectivityWrapper.triggerCheck()`.
 
 Never construct a bare `Dio()` in a feature. Uploads use `PresignedUploadClient`
 (raw client bypassing auth interceptors for S3/CDN `PUT`/`POST` with progress callbacks).
+Validate file size against `maxUploadBytes` locally before requesting the presigned URL.
 
 ## Envelope parsing
 
