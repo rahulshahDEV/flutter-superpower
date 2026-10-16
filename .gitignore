@@ -1,1 +1,32 @@
 .DS_Store
+# Flutter / Dart — build outputs, machine files, generated code
+**/.dart_tool/
+**/build/
+**/.flutter-plugins*
+**/Pods/
+**/.symlinks/
+**/Generated.xcconfig
+**/flutter_export_environment.sh
+**/local.properties
+**/key.properties
+**/*.jks
+**/*.keystore
+**/*.p8
+**/*.p12
+**/*.mobileprovision
+**/ExportOptions.plist
+**/*.g.dart
+**/*.freezed.dart
+**/injection.config.dart
+**/.env.dev
+**/.env.prod
+**/firebase_options*.dart
+**/google-services.json
+**/GoogleService-Info.plist
+pubspec.lock
+# Python
+**/__pycache__/
+**/*.pyc
+.venv/
+# Factory runtime (release journals, local metadata exports, staging)
+**/.factory/

@@ -1,0 +1,66 @@
+schema_version: 1
+app:
+  name: Example App
+  slug: app_one
+  version: 1.0.0
+  build_number: 1
+android:
+  application_id: com.example.appone
+  signing_reference: app_one_android
+ios:
+  bundle_id: com.example.appone
+  team_id: REPLACE_ME
+  signing_reference: app_one_ios
+flavors:
+  dev:
+    android_application_id: com.example.appone.dev
+    ios_bundle_id: com.example.appone.dev
+    api_url: ''
+    firebase_project: ''
+  prod:
+    android_application_id: com.example.appone
+    ios_bundle_id: com.example.appone
+    api_url: ''
+    firebase_project: ''
+feature_flags: {}
+monetization:
+  admob: false
+  android_app_id: ''
+  ios_app_id: ''
+  units:
+    android:
+      banner: ''
+      interstitial: ''
+      rewarded: ''
+    ios:
+      banner: ''
+      interstitial: ''
+      rewarded: ''
+firebase:
+  enabled: false
+  analytics: false
+  crashlytics: false
+platforms:
+  android: true
+  ios: true
+deployment:
+  provider: codemagic
+  codemagic_app_id: REPLACE_ME
+  branch: main
+  environment_groups:
+    dev: app_one_dev
+    prod: app_one_prod
+  app_store_connect_integration: REPLACE_ME
+  play_credentials_variable: GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+  apple_app_id: REPLACE_ME
+  notification_emails: []
+privacy:
+  policy_url: ''
+  android_permissions: []
+  ios_usage_descriptions: {}
+  admob_reviewed: false
+  store_declarations_reviewed: false
+assets:
+  icon: assets/branding/icon.png
+  splash: assets/branding/splash.png
+  reviewed: false

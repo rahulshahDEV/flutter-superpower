@@ -1,0 +1,66 @@
+schema_version: 1
+app:
+  name: Battery Analyzer
+  slug: battery_analyzer
+  version: 1.2.0
+  build_number: 12
+android:
+  application_id: com.example.batteryanalyzer
+  signing_reference: battery_analyzer_android
+ios:
+  bundle_id: com.example.batteryanalyzer
+  team_id: REPLACE_ME
+  signing_reference: battery_analyzer_ios
+flavors:
+  dev:
+    android_application_id: com.example.batteryanalyzer.dev
+    ios_bundle_id: com.example.batteryanalyzer.dev
+    api_url: ''
+    firebase_project: ''
+  prod:
+    android_application_id: com.example.batteryanalyzer
+    ios_bundle_id: com.example.batteryanalyzer
+    api_url: ''
+    firebase_project: ''
+feature_flags: {}
+monetization:
+  admob: true
+  android_app_id: ''
+  ios_app_id: ''
+  units:
+    android:
+      banner: ''
+      interstitial: ''
+      rewarded: ''
+    ios:
+      banner: ''
+      interstitial: ''
+      rewarded: ''
+firebase:
+  enabled: false
+  analytics: false
+  crashlytics: false
+platforms:
+  android: true
+  ios: true
+deployment:
+  provider: codemagic
+  codemagic_app_id: REPLACE_ME
+  branch: main
+  environment_groups:
+    dev: battery_analyzer_dev
+    prod: battery_analyzer_prod
+  app_store_connect_integration: REPLACE_ME
+  play_credentials_variable: GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+  apple_app_id: REPLACE_ME
+  notification_emails: []
+privacy:
+  policy_url: ''
+  android_permissions: []
+  ios_usage_descriptions: {}
+  admob_reviewed: false
+  store_declarations_reviewed: false
+assets:
+  icon: assets/branding/icon.png
+  splash: assets/branding/splash.png
+  reviewed: false

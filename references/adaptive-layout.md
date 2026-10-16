@@ -12,7 +12,8 @@ two-pane layout, navigation rail, or grid.
   content's minimum usable width and test near each boundary; do not copy breakpoint numbers
   without checking the project's design.
 - Let narrow layouts stack or navigate between list and detail. Use a split view only when
-  both panes remain readable at the available width.
+  both panes remain readable at the available width. Never ship a stretched phone UI on a
+  tablet — wide windows earn master-detail, rail, or grid structure.
 - Cap long-form content with a maximum width. Use `Expanded`, `Flexible`, and grids for
   flexible regions instead of fixed screen widths.
 - Keep row and control heights content-driven so accessibility text scaling can expand them.

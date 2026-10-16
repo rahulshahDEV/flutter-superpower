@@ -152,6 +152,7 @@ flutter-superpower/
     ├── value-objects.md              ← canonical money, units, dates, deterministic time
     ├── data-export-and-restore.md   ← portable backups, safe imports, spreadsheet exports
     ├── design-review.md             ← scoped visual and accessibility review before shipping
+    ├── design-quality.md            ← anti-pattern tells, motion tokens, critique checklist
     ├── agent-delegation.md          ← parallel exploration/review, evidence, and integration
     ├── security.md                  ← secrets, log redaction, storage, transport, hardening
     ├── accessibility.md             ← semantics, targets, text scaling, contrast, focus

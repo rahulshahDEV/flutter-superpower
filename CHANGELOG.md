@@ -1,6 +1,20 @@
 # Changelog
 
-## 2.7.0
+## 2.8.0
+
+- Added `references/design-quality.md`: Flutter/Material 3 taste rules distilled from
+  Impeccable (anti-pattern tells, motion tokens, critique checklist, shape-before-build)
+  and UI-UX-Pro-Max (resilient text, chips/badges, touch/focus/motion floors), filtered
+  to the house style — no web-only, engine, or state-management imports.
+- Linked the new reference from SKILL.md and README; stayed within the word budget.
+- Extended `theme-and-design-system.md` (tinted neutrals, one-accent rule),
+  `design-review.md` (fix triage order), `accessibility.md` (chip/badge semantics,
+  atomic announcements), and `adaptive-layout.md` (no stretched phone UI on tablets).
+- Synced the factory's `flutter-ui-builder` skill with the same quality bar (self-
+  contained, no cross-repo links so starter export keeps working).
+- Added root `.gitignore` coverage for Flutter/Dart/Python build outputs and
+  committed the previously untracked `flutter-app-factory/` starter (docs, skills,
+  automation, templates, packages, sample apps).
 
 - Added `references/appstore-console.md`: App Store Connect in-browser playbook mirroring
   the Play flow — logged-in browser attach, TestFlight-first discipline, App Privacy labels,

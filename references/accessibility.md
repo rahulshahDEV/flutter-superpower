@@ -12,8 +12,11 @@ Integrate it into the existing design system — never build a parallel "accessi
 - Buttons expose their role: use real buttons (`KButton`, `FilledButton`), not `GestureDetector`
   on a `Container`.
 - Async results (form errors, saved toast) should be announced: use the app's snackbar
-  (already announced) or `Semantics(liveRegion: true)` for inline updates.
+  (already announced) or `Semantics(liveRegion: true)` for inline updates. Announce
+  counts atomically (`3 items in cart` in one live region), not a bare number.
 - Don't duplicate labels — if the visible text says it, the semantics shouldn't repeat it.
+- Badges carry static state; interactive chips are real controls with visible focus and
+  keyboard support. Mark purely decorative icons excluded so they stay silent.
 
 ## Touch targets & interaction
 

@@ -43,6 +43,10 @@ extends ThemeExtension<AppSemanticColors>` with ~30 fields (`screenBackground`, 
 
 Widgets never use raw `Color(0x...)`. Either `AppColors.x` or `context.semanticColors.x`.
 
+Quality floor: tinted neutrals (never pure black or pure gray), one accent
+spent on action/selection/status only, no nested cards, no gray text on
+colored surfaces. Full list: `design-quality.md`.
+
 ## Typography
 
 ```dart

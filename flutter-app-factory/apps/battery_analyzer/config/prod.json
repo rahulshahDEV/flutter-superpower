@@ -1,0 +1,13 @@
+{
+  "FLAVOR": "prod",
+  "APP_NAME": "Battery Analyzer",
+  "API_URL": "",
+  "ADMOB_ENABLED": "true",
+  "FEATURE_FLAGS": "{}",
+  "ADMOB_ANDROID_BANNER": "",
+  "ADMOB_ANDROID_INTERSTITIAL": "",
+  "ADMOB_ANDROID_REWARDED": "",
+  "ADMOB_IOS_BANNER": "",
+  "ADMOB_IOS_INTERSTITIAL": "",
+  "ADMOB_IOS_REWARDED": ""
+}

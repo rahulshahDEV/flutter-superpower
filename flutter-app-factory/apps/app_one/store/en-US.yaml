@@ -1,0 +1,22 @@
+locale: en-US
+android:
+  title: Example App
+  short_description: ''
+  full_description: ''
+  release_notes: ''
+ios:
+  name: Example App
+  subtitle: ''
+  keywords: ''
+  description: ''
+  promotional_text: ''
+  release_notes: ''
+  support_url: ''
+  marketing_url: ''
+screenshots:
+  android: []
+  ios: []
+research:
+  verified_metrics: []
+  estimated_opportunities: []
+  sources: []

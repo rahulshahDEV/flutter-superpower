@@ -1,0 +1,22 @@
+locale: en-US
+android:
+  title: Battery Analyzer
+  short_description: ''
+  full_description: ''
+  release_notes: ''
+ios:
+  name: Battery Analyzer
+  subtitle: ''
+  keywords: ''
+  description: ''
+  promotional_text: ''
+  release_notes: ''
+  support_url: ''
+  marketing_url: ''
+screenshots:
+  android: []
+  ios: []
+research:
+  verified_metrics: []
+  estimated_opportunities: []
+  sources: []

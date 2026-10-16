@@ -23,8 +23,12 @@ Verify that:
 - loading, empty, and error states feel consistent with the successful state.
 
 Read `accessibility.md`, `localization.md`, and `adaptive-layout.md` for the specific floors.
-Automated widget/golden tests complement this inspection; they do not prove behavior on a
-device or prove every supported combination is correct.
+Apply the anti-pattern tells, motion tokens, and critique checklist in
+`design-quality.md`. Fix in triage order: blockers and misleading or
+inaccessible states first, then missing loading/empty/error/success states,
+then flow and hierarchy drift, then visual inconsistencies; keep the cosmetic
+tail short. Automated widget/golden tests complement this inspection; they do
+not prove behavior on a device or prove every supported combination is correct.
 
 ## Findings and follow-through
 
