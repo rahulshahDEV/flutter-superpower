@@ -10,7 +10,7 @@
 
 set -eu
 
-SRC="$(cd "$(dirname "$0")/.." && pwd)"
+SRC="$(cd "$(dirname "$0")/.." && pwd -P)"
 NAME="flutter-superpower"
 MODE="detect"
 COPY=0
@@ -36,6 +36,60 @@ while [ $# -gt 0 ]; do
   shift
 done
 
+# Resolve existing ancestors physically without creating missing directories.
+canonical_dir() (
+  path=$1
+  if [ -d "$path" ]; then
+    cd -P "$path" && pwd -P
+  elif [ -e "$path" ] || [ -L "$path" ]; then
+    echo "error: not a directory: $path" >&2
+    exit 1
+  else
+    base=$(basename "$path")
+    ancestor=$(canonical_dir "$(dirname "$path")") || exit 1
+    case "$base" in
+      .) printf '%s\n' "$ancestor" ;;
+      ..) dirname "$ancestor" ;;
+      *) printf '%s/%s\n' "${ancestor%/}" "$base" ;;
+    esac
+  fi
+)
+
+copy_payload() {
+  # Root allowlist: never copy repository history, local projects, or test workspaces.
+  # tar preserves binary bytes and executable modes; caches are excluded at any depth.
+  set --
+  for entry in SKILL.md README.md INSTALL.md IMPROVEMENT_PLAN.md LICENSE CHANGELOG.md SECURITY.md \
+    CONTRIBUTING.md CODE_OF_CONDUCT.md AGENTS.md .gitattributes .gitignore \
+    references templates scripts tests evals assets; do
+    [ ! -e "$SRC/$entry" ] || set -- "$@" "$entry"
+  done
+  archive=$(mktemp "${TMPDIR:-/tmp}/flutter-superpower-install.XXXXXX")
+  if ! (cd "$SRC" && tar -cf "$archive" \
+    --exclude=.git --exclude=.dart_tool --exclude=build --exclude=Pods \
+    --exclude=.symlinks --exclude=node_modules --exclude=__pycache__ \
+    --exclude=.venv --exclude=.factory --exclude=.DS_Store \
+    --exclude=.cache --exclude=.gradle --exclude=.pub-cache --exclude=.packages \
+    --exclude=coverage --exclude=dist \
+    --exclude='*.apk' --exclude='*.aab' --exclude='*.ipa' --exclude='*.lock' --exclude='.flutter-plugins*' --exclude='*.pyc' \
+    --exclude='*.g.dart' --exclude='*.freezed.dart' --exclude=injection.config.dart \
+    --exclude=Generated.xcconfig --exclude=flutter_export_environment.sh \
+    --exclude=local.properties --exclude=key.properties --exclude='*.jks' \
+    --exclude='*.keystore' --exclude='*.p8' --exclude='*.p12' \
+    --exclude='*.mobileprovision' --exclude=ExportOptions.plist \
+    --exclude='firebase_options*.dart' --exclude=google-services.json \
+    --exclude=GoogleService-Info.plist "$@"); then
+    rm -f "$archive"
+    return 1
+  fi
+  mkdir -p "$target"
+  if ! tar -xf "$archive" -C "$target"; then
+    rm -f "$archive"
+    return 1
+  fi
+  rm -f "$archive"
+}
+
 install_into() {
   parent="$1"
   target="$parent/$NAME"
@@ -45,6 +99,15 @@ install_into() {
     return 0
   fi
 
+  resolved_parent=$(canonical_dir "$parent") || return 1
+  resolved_target="${resolved_parent%/}/$NAME"
+  case "$resolved_target" in
+    "$SRC"|"$SRC"/*)
+      echo "error: installation target is inside skill source: $target" >&2
+      return 1
+      ;;
+  esac
+
   mkdir -p "$parent"
 
   if [ -L "$target" ]; then
@@ -53,13 +116,13 @@ install_into() {
       return 0
     fi
     rm "$target"
-  elif [ -d "$target" ]; then
-    echo "SKIP     $target (real directory exists; remove it manually)"
+  elif [ -e "$target" ]; then
+    echo "SKIP     $target (existing path; remove it manually)"
     return 0
   fi
 
   if [ "$COPY" -eq 1 ]; then
-    cp -R "$SRC" "$target"
+    copy_payload
     echo "copied   $target"
   else
     ln -s "$SRC" "$target"

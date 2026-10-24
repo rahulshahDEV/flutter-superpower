@@ -1,46 +1,22 @@
 # Chat & Realtime (Socket.IO + E2E crypto)
 
-Hardest cross-cutting feature to rebuild — build it in this order: transport → REST
-history → crypto → UI → notifications.
+Implement only the requested chat capabilities: transport and history first, then any
+required encryption, UI and notifications. Reuse the app's existing protocol and infrastructure.
 
 ## 1. Transport service
 
 `features/chat/data/services/chat_socket_service.dart` — `@lazySingleton`:
 
-```dart
-@lazySingleton
-class ChatSocketService {
-  IO.Socket? _socket;
-  int _retainCount = 0;                     // connect/disconnect by demand
-  final _events = StreamController<ChatSocketEvent>.broadcast();
-  Stream<ChatSocketEvent> get events => _events.stream;
+Constructor-inject the client configuration and the existing secure session boundary.
+Read the current token there, not from SharedPreferences or a service locator inside connect.
+Expose typed domain events with a defined parsing/error path. Keep the Socket.IO client and
+its callback types inside the data service. Services never navigate or hold BuildContext.
 
-  Future<void> connect() async {
-    _retainCount++;
-    if (_socket?.connected ?? false) return;
-    final token = getIt<LocalStorageService>().getString(StorageKeys.accessToken);
-    _socket = IO.io(AppConfig.instance.baseUrl, IO.OptionBuilder()
-        .setTransports(['websocket'])
-        .setAuth({'token': token})
-        .disableAutoConnect()
-        .build());
-    _socket!
-      ..onConnect((_) => _debug('connected'))
-      ..on('message:new', (data) => _emit(ChatMessageReceived.fromJson(data)))
-      ..on('message:read', (data) => _emit(ChatReadUpdated.fromJson(data)))
-      ..onDisconnect((_) => _debug('disconnected'));
-    _socket!.connect();
-  }
-
-  void disconnect() {
-    _retainCount = (_retainCount - 1).clamp(0, 1 << 31);
-    if (_retainCount == 0) _socket?.dispose();
-  }
-
-  void sendMessage(String conversationId, Map<String, dynamic> payload) =>
-      _socket?.emit('message:send', {'conversationId': conversationId, ...payload});
-}
-```
+One owner manages connection demand, lifecycle and retries. A retain count measures active
+consumers, not reconnect attempts; don't increment it again on every resume. Single-flight
+connect, dispose old sockets/listeners before replacement, reauthenticate safely after token
+refresh, and reject late events from a previous user/session. Clear the active socket reference
+when disposed so the next demand can create a usable client. Close owned stream controllers.
 
 Rules:
 - **Retain-count** connect/disconnect — multiple screens (list + thread) hold the socket.
@@ -62,19 +38,22 @@ Rules:
 - Optimistic send: add a local `pending` message with a temp id, replace on ack, mark
   `failed` with retry if the socket throws or times out.
 
-## 3. E2E crypto (device identity + conversation keys)
+## 3. Encryption when required
 
-- **Device identity**: generate an X25519 keypair on first login, store the private key
-  in `flutter_secure_storage` (`DeviceKeyStore`), register the public key with the backend
-  (`PATCH /notifications/devices/:deviceUid/public-key`).
-- **Conversation key**: AES-256 key generated per conversation; wrapped for every
-  participant device with their X25519 public key (sealed box); stored via
-  `ConversationKeyStore` (secure storage). New device → backend appends its wrapped key;
-  clients re-fetch on key-version change.
-- **Message payload**: AES-256-GCM — `{ciphertext, nonce, mac, keyVersion}`; the server
-  stores ciphertext only.
-- Never log keys, plaintext, or wrapped keys. Crypto code lives in `core/crypto/`, pure
-  Dart, unit-tested with known vectors (see `testing.md`).
+Use a reviewed protocol and maintained implementation that fits the product's identity,
+multi-device, recovery and threat model. Do not invent a production messaging protocol from
+an X25519/AES recipe. Key agreement alone does not authenticate a participant/device; nonce
+management, identity verification, forward secrecy, replay handling and key rotation are
+protocol concerns that need explicit design and tests.
+
+Private keys belong in the existing secure key store; never logs, preferences or push payloads.
+Define membership/device changes, lost-key behavior, backup/recovery and unreadable historical
+messages before implementing UI. Verify known vectors and error/tamper paths using the chosen
+protocol's specification. Do not claim E2E properties from a symmetric-encryption smoke test.
+Read [Signal protocol specifications](https://signal.org/docs/) and the selected library's
+[authenticated-encryption constraints](https://doc.libsodium.org/secret-key_cryptography/aead)
+when evaluating these requirements. These sources are design references, not automatic
+instructions to add a new crypto stack to ordinary chat.
 
 ## 4. UI
 

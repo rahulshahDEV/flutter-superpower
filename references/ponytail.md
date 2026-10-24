@@ -1,6 +1,6 @@
 # Ponytail — Scope Discipline (built into this skill)
 
-Structure is non-negotiable; **scope is lazy**. Apply this to every task in this skill.
+Project conventions and explicit requirements govern structure; **scope is deliberate**. Apply this to every task in this skill.
 Lazy = efficient, not careless. The best widget tree is the one never built.
 
 ## The Flutter ladder
@@ -22,9 +22,9 @@ screen + its cubit first, trace the data flow, then climb.
 
 - **Local state before global state.** `setState`/`ValueNotifier` for toggles, controllers, expansion, scroll — a cubit is for async/shared/navigation-surviving state only (see `state-and-di.md § Local UI state`).
 - **No wrapper widgets that just forward params.** If `MyCard` only passes props to `Card`, delete it. Extract when it adds layout, defaults, or logic.
-- **No abstraction with one implementation.** The house-style seam (repo/use case) is required structure; a *new* interface/factory/generic over one concrete class is not.
+- **Add a seam for a reason.** A single-implementation interface can provide a useful plugin, repository, test or lifecycle boundary. Skip interfaces that only duplicate a concrete API without that benefit.
 - **No speculative features:** pagination, caching, offline mode, analytics events, feature flags, settings screens — only when asked or when the API forces it.
-- **Fewest files.** A private `_buildSection()` method beats a new widget file. A widget file beats a folder.
+- **Fewest files.** Use a private widget for a meaningful layout/rebuild responsibility; a tiny pure helper need not become a new file. A widget file beats a folder.
 - **`const` everywhere it compiles; `ListView.builder`/`SliverList` for lists; `RepaintBoundary` only with evidence.**
 - **No new package if the SDK covers it.** If a package is genuinely needed, the smallest maintained one, and say why in one line.
 - **No `!`, no `dynamic`, no `late` as a state-management tool.**
@@ -42,9 +42,9 @@ screen + its cubit first, trace the data flow, then climb.
 | Smell | Lazy fix |
 |---|---|
 | Cubit for a counter/checkbox/tab | `setState` / `ValueNotifier` |
-| New package for pull-to-refresh, date pick, share, fade | SDK: `RefreshIndicator`, `showDatePicker`, `Share.share`, `AnimatedOpacity` |
+| New package for an already-covered effect/action | SDK for refresh/date/fade; existing sharing plugin/native bridge for sharing |
 | `MyCustomButton` wrapping `KButton` to change one padding | pass the param, or add it to `KButton` |
-| Repository + use case + service for one GET | repository only; use case when logic/params exist |
+| Extra service/interface for a simple GET | keep the app's repository/use-case seam; add no unused layer |
 | Global provider for screen-only state | create in route builder |
 | Custom JSON parsing package for 3 fields | `jsonDecode` + `as`/patterns |
 | 5 files for a static info screen | 1 file |
@@ -53,8 +53,8 @@ screen + its cubit first, trace the data flow, then climb.
 
 ## Output
 
-Code first. Then at most three short lines: what was skipped, when to add it.
-`[code] → skipped: [X], add when [Y].` No design essays.
+Keep scope notes brief. Preserve the Implemented / Files changed / Verification / Not verified
+evidence required by senior-mode.md; brevity never removes test results or limitations.
 
 ## Intensity
 
@@ -65,6 +65,6 @@ Code first. Then at most three short lines: what was skipped, when to add it.
 | **ultra** | YAGNI extremist. Deletion before addition. Ship the one-liner and challenge the requirement. |
 
 Example: "Add a custom animated loading button."
-- lite: "Done. FYI: `KButton(isLoading: true)` already animates this."
+- lite: reuse KButton loading behavior; report the actual checks and remaining gaps.
 - full: "`KButton(isLoading: isLoading)` — skipped custom widget, add when the design diverges."
 - ultra: "No new button. `KButton(isLoading:)` exists; a custom one is a maintenance tax with a spinner."

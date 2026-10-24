@@ -2,18 +2,18 @@
 
 # flutter-superpower
 
-One agent skill that makes any Flutter app come out in the owner's structure —
-battle-tested across multiple production Flutter apps, with scope discipline built in
-and the owner's `fdev` CLI wired into the workflow.
+Flutter implementation and review guidance with tested scaffolding, feature ownership,
+UI/platform workflows and evidence-based verification. Existing project conventions take
+priority over the greenfield defaults; fdev has raw-command fallbacks.
 
 ## How it works
 
 - The frontmatter `description` triggers the skill automatically on any Flutter task
   (new app, feature, screen, cubit, API, theme, router, bug, test).
-- `SKILL.md` holds the 12 laws, workflow, red flags, rationalization table, and the
+- `SKILL.md` holds the 12 laws, workflow, red flags, and the
   evidence-before-done gate. Heavy detail lives in `references/` and is loaded only when
   the task needs it.
-- **Structure is non-negotiable; scope is lazy.** The ponytail ladder is built in, so the
+- **Project conventions govern structure; scope stays deliberate.** The ponytail ladder is built in, so the
   skill enforces the house architecture while refusing unneeded packages, abstractions,
   and widgets.
 
@@ -88,6 +88,8 @@ audit (530 files)   █ 0.9
 Reproduce: `scripts/new_app.sh bench --dir /tmp/bench` · `scripts/new_feature.sh orders --app /tmp/bench` ·
 `scripts/audit.sh /path/to/app --static` · `tests/run.sh`.
 
+Audit findings and the completed improvement plan: [IMPROVEMENT_PLAN.md](IMPROVEMENT_PLAN.md).
+
 ## What it enforces
 
 - Feature-first clean architecture: `lib/features/<x>/{data,domain,presentation}` + `lib/core/` + `lib/di/`
@@ -95,9 +97,9 @@ Reproduce: `scripts/new_app.sh bench --dir /tmp/bench` · `scripts/new_feature.s
 - `get_it` + `injectable` DI (`@injectable` cubits, `@LazySingleton(as:)` repos)
 - `go_router` with `static const path/routeName` per screen + typed route-data
 - `dio` + `Either<Failure, T>` + `safeApiCall`/`ErrorHandler`
-- `json_serializable` models extending Equatable entities
+- `json_serializable` models extending Equatable entities by default, with explicit DTO mapping for richer invariants
 - Centralized constants: colors, text styles, strings, API paths, storage keys
-- `flutter_screenutil` (390×844 / 375×812) + `AppSizes` tokens
+- Constraint-driven layouts, bounded design scaling, `AppSizes` tokens, preserved user text scaling
 - Design system: `KButton`, `KTextField`, `ImageRenderer`, empty/error/loading, shimmer, custom snackbar
 - dev/prod flavors via `dotenv` + `AppConfig`/`FlavorConfig`
 - `AppLogger` dev-only; `flutter analyze` + `flutter test` + `dart format` gate
@@ -120,7 +122,7 @@ flutter-superpower/
 │   ├── setup.sh                     ← one-command remote setup (curl | sh)
 │   ├── install.ps1                  ← Windows installer
 │   ├── install.sh                   ← cross-agent installer
-│   ├── audit.sh                     ← read-only project audit (mechanical report)
+│   ├── audit.sh                     ← static scan/toolchain audit with blocker exit codes
 │   ├── new_app.sh                   ← scaffold a full app skeleton (analyze-clean)
 │   └── new_feature.sh               ← generate a feature: all layers + codegen + route snippet
 ├── templates/
@@ -134,13 +136,22 @@ flutter-superpower/
     ├── networking-and-errors.md     ← DioClient, interceptors, Either, logging
     ├── models-and-storage.md        ← entities/models/json, prefs, secure storage
     ├── theme-and-design-system.md   ← colors, text, sizing, K-widgets, strings
-    ├── app-bootstrap.md             ← main(), flavors, DI boot, Firebase/FCM
+    ├── app-bootstrap.md             ← startup ordering/failure, flavors, optional Firebase/FCM
+    ├── platform-ui.md               ← orientation, edge-to-edge, system bars, insets
+    ├── fonts.md                     ← font delivery, Google Fonts, offline behavior, licensing
+    ├── ui-workflow.md               ← screen brief, states, implementation, visual evidence
     ├── playbooks.md                 ← new-app-from-zero + new-feature recipes
     ├── debugging.md                 ← loop, symptom→layer, house failure modes
-    ├── testing.md                   ← fakes, cubit/widget/model tests, no mockito
+    ├── testing.md                   ← test boundaries, fakes, deterministic UI/async checks
+    ├── integration-testing.md       ← device journeys, bootstrap, runners, evidence
+    ├── component-previews.md        ← SDK preview support, state matrix, runtime limits
     ├── ci-cd.md                     ← GitHub Actions, secrets, release flow
     ├── chat-realtime.md             ← Socket.IO, E2E crypto, optimistic send
-    ├── maps-location-health.md      ← maps, geolocation, permissions, steps
+    ├── maps-location-health.md      ← maps and platform-data guide routing
+    ├── mobile-permissions.md        ← prompt/status UX, settings recovery, lifecycle ownership
+    ├── permission-capabilities.md   ← camera/photos, notifications, Bluetooth, files, other grants
+    ├── location-services.md         ← GPS enablement, precision, fresh fixes, timeout/cleanup
+    ├── health-data.md               ← health scopes/privacy, steps aggregation, refresh
     ├── reviewing.md                 ← two-axis diff review: Standards + Spec
     ├── senior-mode.md               ← senior engineer behavior: profile, modes, DoD, reports
     ├── auditing.md                  ← project audit dimensions + report format
@@ -158,13 +169,20 @@ flutter-superpower/
     ├── accessibility.md             ← semantics, targets, text scaling, contrast, focus
     ├── localization.md              ← StringConstants vs ARB, plurals, intl, RTL
     ├── dependencies.md              ← add/remove discipline and evaluation
-    ├── native.md                    ← Android/iOS triage, flavors, signing, pods
+    ├── native.md                    ← Android/iOS toolchains, flavors, signing, native features
+    ├── native-diagnostics.md        ← logs, crash symbols, ANRs, performance traces
+    ├── platform-channels.md         ← Kotlin/Swift bridges, threading, lifecycle
+    ├── device-tooling.md            ← MCP/Inspector, optional flutter_skill, regression tests
     ├── release.md                   ← release checklist + release-check.sh
     ├── auth-social.md               ← Google & Apple sign-in end to end
     ├── store-release.md             ← Play + App Store submission and rejections
     ├── play-console.md              ← Play Console in-browser: setup-to-production
     ├── appstore-console.md          ← App Store Connect in-browser: TestFlight-to-release
-    ├── fastlane-codemagic.md        ← fastlane lanes + codemagic.yaml
+    ├── fastlane-codemagic.md        ← delivery workflow routing
+    ├── codemagic-setup.md            ← account/repository, signing identities, secret groups
+    ├── codemagic-workflows.md        ← YAML checks, builds, publishing, version allocation
+    ├── fastlane.md                  ← Bundler, signing, upload lanes, recovery
+    ├── shorebird-ci.md              ← CI release/patch validation and staged publication
     ├── shorebird.md                 ← OTA code push: patchability, tracks, compliance
     ├── ponytail.md                  ← scope discipline / anti-over-engineering
     └── fdev.md                      ← owner's fdev CLI command map

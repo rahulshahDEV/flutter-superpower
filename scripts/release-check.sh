@@ -9,16 +9,18 @@
 
 set -u
 
+FAIL=0
+
 usage() {
   sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'
-  exit 0
+  exit "${1:-0}"
 }
 
 APP_DIR=""
 while [ $# -gt 0 ]; do
   case "$1" in
     -h|--help) usage ;;
-    -*) echo "error: unknown option: $1" >&2; usage ;;
+    -*) echo "error: unknown option: $1" >&2; usage 1 ;;
     *) APP_DIR="$1" ;;
   esac
   shift
@@ -28,7 +30,7 @@ APP_DIR="${APP_DIR:-$(pwd)}"
 
 ok() { printf '  \033[32m✅\033[0m %s\n' "$1"; }
 warn() { printf '  \033[33m⚠\033[0m  %s\n' "$1"; }
-bad() { printf '  \033[31m❌\033[0m %s\n' "$1"; }
+bad() { printf '  \033[31m❌\033[0m %s\n' "$1"; FAIL=1; }
 info() { printf '  ℹ  %s\n' "$1"; }
 section() { printf '\n%s\n' "$1"; }
 
@@ -106,3 +108,5 @@ info "Real device install + smoke test of the store build"
 info "Push delivery end-to-end on a physical device"
 
 printf '\nChecklist: references/release.md. Nothing was modified.\n'
+
+exit "$FAIL"

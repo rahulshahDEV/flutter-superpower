@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
 import 'package:__APP_NAME__/core/constants/api_constants.dart';
@@ -20,20 +19,19 @@ class __FEATURE_CLASS__RemoteDataSourceImpl
 
   @override
   Future<List<__ENTITY_CLASS__Model>> get__FEATURE_CLASS__() async {
-    try {
-      final response =
-          await _dioClient.get<dynamic>(ApiConstants.__FEATURE__);
-      final raw = response.data;
-      final list = raw is Map<String, dynamic> ? raw['data'] : raw;
-      if (list is! List) {
-        throw const ServerException(ErrorConstants.serverError);
-      }
-      return list
-          .whereType<Map<String, dynamic>>()
-          .map(__ENTITY_CLASS__Model.fromJson)
-          .toList(growable: false);
-    } on DioException catch (e) {
-      throw ServerException(e.message ?? ErrorConstants.serverError);
+    final response = await _dioClient.get<Object?>(ApiConstants.__FEATURE__);
+    final raw = response.data;
+    final list = raw is Map<String, dynamic> ? raw['data'] : raw;
+    if (list is! List) {
+      throw const ServerException(ErrorConstants.serverError);
     }
+    return list
+        .map((item) {
+          if (item is! Map<String, dynamic>) {
+            throw const ServerException(ErrorConstants.serverError);
+          }
+          return __ENTITY_CLASS__Model.fromJson(item);
+        })
+        .toList(growable: false);
   }
 }

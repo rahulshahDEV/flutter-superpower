@@ -1,235 +1,97 @@
-# App Bootstrap, Flavors, Firebase
+# App Bootstrap and Flavors
 
-## Entry points
+Use the runnable `templates/app/` as the source of truth; do not copy a second,
+version-pinned pubspec from prose. Existing applications keep their bootstrap conventions.
 
-```dart
-// lib/main_dev.dart
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env.dev');
-  AppConfig.initialize(flavor: Flavor.dev);
-  await app.main(); // lib/app.dart's main
-}
-```
+## Startup contract
 
-`main_prod.dart` is identical with `.env.prod` / `Flavor.prod`.
+Keep flavor entry points thin: `main_dev.dart` and `main_prod.dart` delegate to
+`bootstrap(flavor:, envFile:)` in `app.dart`. Default `main.dart` selects dev.
 
-```dart
-// lib/app.dart  — real bootstrap
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  if (!AppConfig.isInitialized) {
-    await dotenv.load(fileName: '.env.dev');
-    AppConfig.initialize(flavor: Flavor.dev);
-  }
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+Order: binding → load/validate config → platform UI policy → required local dependencies
+→ router/root. Await each dependency before its consumer; never resolve GetIt before
+`configureDependencies()` finishes. Keep binding initialization and `runApp` in the same
+zone. Do not add `runZonedGuarded` around only half of startup.
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+Classify each startup task:
 
-  await configureDependencies();          // get_it + injectable
-  await getIt<FcmService>().initialize(); // after DI, before runApp
+| Kind | Treatment |
+|---|---|
+| Required local config/storage/DI | Await, fail visibly if unavailable; don't run a half-initialized app |
+| Session restoration | Resolve before protected navigation; use an explicit startup state if slow |
+| Remote refresh, analytics, optional sync | After first frame, with timeout/error handling and lifecycle ownership |
+| Permissions | Follow mobile-permissions.md; request at the relevant user action, not boot |
 
-  runApp(const App());
-}
-```
+A remote outage must not produce an endless splash. Preserve usable cached state where
+supported. No artificial splash delay. The minimal scaffold opens home directly; add a
+startup coordinator only when there are actual asynchronous routing decisions.
 
-Order is a real pitfall: **dotenv → AppConfig → Firebase → configureDependencies → FCM → runApp**.
-Never call `getIt<>()` before DI completes.
+Catch bootstrap failure at the entry boundary, report it without exposing config values,
+and render a small independent failure surface. It must work without DI, router, custom
+fonts, or loaded config. If offering retry, make initialization idempotent and reset partial
+DI registrations/subscriptions first. Don't blindly call configureDependencies twice.
 
-## App root widget
+For an app with crash reporting, preserve Flutter's error presentation when installing
+`FlutterError.onError`; route uncaught asynchronous errors via `PlatformDispatcher.onError`.
+Returning true means handled, so only do so after recording the error. Redact credentials
+and personal data. Test failures before config loads as well as after DI starts. Reporting
+is not recovery; never silently swallow startup exceptions.
 
-```dart
-class App extends StatefulWidget {
-  const App({super.key});
-  @override
-  State<App> createState() => _AppState();
-}
+## Platform UI and fonts
 
-class _AppState extends State<App> with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (Firebase.apps.isEmpty) return;
-      try {
-        getIt<FcmService>().markAppReady();
-      } on Object {
-        // best-effort; widget tests build without Firebase
-      }
-    });
-  }
+Read `platform-ui.md` for orientation, edge-to-edge, system bars, and safe areas.
+Read `fonts.md` before adding Google Fonts or shipping a custom family. The scaffold uses
+system fonts and needs no font HTTP request to show the first frame.
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) { /* best-effort syncs */ }
-  }
+## Configuration
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
+`AppConfig` holds non-secret flavor values validated at startup. `.env` files bundled as
+assets are readable by users; gitignore does not make them secret. Keep credentials on the
+server, auth tokens in secure storage, and only public configuration in assets. Commit a
+sample with keys and harmless example values. Validate URLs and required fields early.
 
-  @override
-  Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: AppSizes.designSize,
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (_, __) => MultiBlocProvider(
-        providers: [
-          BlocProvider(create: (_) => getIt<CurrentUserCubit>()..loadFromStorage()),
-          // only genuinely app-wide cubits here
-        ],
-        child: MaterialApp.router(
-          title: AppConfig.instance.appName,
-          debugShowCheckedModeBanner: AppConfig.instance.isDev,
-          theme: AppTheme.lightTheme,
-          // darkTheme + themeMode only if the app actually supports dark mode
-          routerConfig: getIt<AppRouter>().router,
-          builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
-            value: AppTheme.systemUiOverlayStyle,
-            child: ConnectivityWrapper(child: child!),
-          ),
-        ),
-      ),
-    );
-  }
-}
-```
+DI owns infrastructure lifetimes. Route providers own screen Cubits. App-wide subscriptions
+have a single owner and disposal path; don't start listeners from `build()`.
 
-## AppConfig / FlavorConfig
+## Native flavors
 
-```dart
-enum Flavor { dev, prod }
+Dart entry points alone do not create Android product flavors or iOS schemes.
 
-class AppConfig {
-  AppConfig._();
-  static AppConfig? _instance;
-  static AppConfig get instance => _instance!;
-  static bool get isInitialized => _instance != null;
+- Android: add an environment flavor dimension, dev/prod product flavors, and app labels.
+  Use a dev application ID suffix if both installs must coexist. Match Java/Kotlin and
+  desugaring requirements to the installed plugins, not a stale copied Gradle block.
+- iOS: create matching build configurations/schemes and xcconfig chains; verify the Podfile
+  maps them correctly. Set deployment targets from supported OS policy and plugin minimums.
+- Match Firebase registrations, deep links, signing, and app identifiers to each flavor.
+- Verify native launch screen colors in light/dark mode to prevent a startup flash.
 
-  static void initialize({required Flavor flavor}) {
-    _instance = AppConfig._internal(
-      flavor: flavor,
-      baseUrl: dotenv.env['BASE_URL'] ?? (throw StateError('BASE_URL missing')),
-      cdnBaseUrl: dotenv.env['S3_BASE_URL'] ?? '',
-      appName: 'MyApp',
-    );
-  }
+Prefer `fdev apk dev` for a dev APK; fallback:
+`flutter build apk --flavor dev -t lib/main_dev.dart`.
+Run with `flutter run --flavor dev -t lib/main_dev.dart` only after native flavors exist;
+the unconfigured scaffold runs with `flutter run`.
 
-  final Flavor flavor;
-  final String baseUrl;
-  final String cdnBaseUrl;
-  final String appName;
-  bool get isDev => flavor == Flavor.dev;
-  bool get isProd => flavor == Flavor.prod;
-}
-```
+## Firebase / FCM (only when required)
 
-Keep `.env.dev` / `.env.prod` as declared assets, plus a committed `.env.sample`
-documenting every key. Secrets (`key.properties`, `google-services.json`,
-`GoogleService-Info.plist`, `.env.*`) are gitignored.
+When needed: initialize Firebase with generated platform options before dependent DI
+registrations; then register the top-level `@pragma('vm:entry-point')` background handler.
+That isolate initializes Firebase itself and performs no navigation. Record failures;
+do not throw into platform callbacks or hide them with empty catches.
 
-## Pubspec starter (minimal baseline)
+The FCM service owns foreground/opened/token-refresh subscriptions and disposes them.
+Defer permission prompts to an explained UX moment. Register refreshed tokens with the
+backend through a feature use case. Queue cold-start taps until the router and session are
+ready, consume each once, and validate payloads. Never block first paint on permission or
+backend token registration. Add analytics/crash reporting only when required.
 
-```yaml
-name: my_app
-publish_to: "none"
-version: 1.0.0+1
-
-environment:
-  sdk: ^3.6.0
-
-dependencies:
-  flutter: {sdk: flutter}
-  cupertino_icons: ^1.0.8
-  flutter_bloc: ^9.1.1
-  get_it: ^8.0.3
-  injectable: ^2.5.0
-  go_router: ^14.8.0
-  dartz: ^0.10.1
-  equatable: ^2.0.7
-  dio: ^5.8.0+1
-  pretty_dio_logger: ^1.4.0
-  flutter_dotenv: ^6.0.0
-  flutter_screenutil: ^5.9.3
-  intl: ^0.20.2
-  shared_preferences: ^2.5.3
-  flutter_svg: ^2.2.0
-  cached_network_image: ^3.4.1
-  google_fonts: ^7.0.2
-  json_annotation: ^4.9.0
-  internet_connection_checker_plus: ^3.0.0
-  firebase_core: ^4.6.0
-  firebase_messaging: ^16.1.3
-  flutter_local_notifications: ^18.0.1
-
-dev_dependencies:
-  flutter_test: {sdk: flutter}
-  flutter_lints: ^5.0.0
-  build_runner: ^2.4.15
-  injectable_generator: ^2.7.0
-  json_serializable: ^6.9.4
-
-flutter:
-  uses-material-design: true
-  assets:
-    - .env.dev
-    - .env.prod
-    - assets/images/
-    - assets/icons/
-```
-
-Add `freezed_annotation`/`freezed` only if the app will use freezed states.
-Add per-feature packages (maps, health, video, crypto) when the feature lands — not before.
-
-`analysis_options.yaml`: `include: package:flutter_lints/flutter.yaml` + exclude
-`build/**`, `android/**`, `ios/**`. No custom rules; style is enforced by this skill.
-
-## Flavors — Android/iOS checklist
-
-Android (`android/app/build.gradle.kts`):
-- `flavorDimensions += "environment"`, `productFlavors { create("dev"); create("prod") }`
-- same `applicationId` for both (or `.dev` suffix if both must coexist)
-- `resValue("string", "app_name", "MyApp")` per flavor
-- `google-services` plugin + Java/Kotlin 17 + core library desugaring
-
-iOS:
-- xcconfig chain `Debug-dev/Release-prod` setting `FLUTTER_FLAVOR` + `FLUTTER_TARGET`
-- schemes `Dev` / `Prod`; `platform :ios, '15.0'` (or higher per app)
-
-VS Code `.vscode/launch.json`:
-
-```json
-{ "name": "Dev",  "type": "dart", "program": "lib/main_dev.dart",  "args": ["--flavor", "dev"] },
-{ "name": "Prod", "type": "dart", "program": "lib/main_prod.dart", "args": ["--flavor", "prod"] }
-```
-
-Run: `flutter run --flavor dev -t lib/main_dev.dart`.
-
-## Firebase / FCM
-
-Only `firebase_core` + `firebase_messaging` by default. Add analytics/crashlytics only when
-requested. FCM wiring:
-
-- `core/services/fcm_background_handler.dart` — top-level `@pragma('vm:entry-point')` fn; re-initializes Firebase in the background isolate; never rethrows.
-- `core/services/fcm_service.dart` — `@lazySingleton`; channel (`myapp_notifications`, icon, color), foreground presentation, `onMessage`/`onMessageOpenedApp`/`onTokenRefresh`, persists token via `LocalStorageService`, `markAppReady()` + `consumePendingNotificationRoute()` for cold-start deep links, `@disposeMethod dispose()`.
-- `fcm_tap_route_handler.dart` — maps payload data → route path/extra.
-- Token registration with backend happens in a feature use case, not inside FcmService.
-- iOS: request permission via `FirebaseMessaging.instance.requestPermission()` at the right UX moment (onboarding/notification prompt), not at cold start.
-
-## Verify (run before claiming done)
+## Verify
 
 ```bash
 dart format .
-fdev gen          # if annotations/generated code changed (fallback: dart run build_runner build --delete-conflicting-outputs)
-                  # build-hook error on Dart 3.10+? append: --force-jit
+fdev gen # if annotations changed; fallback: dart run build_runner build --delete-conflicting-outputs
 flutter analyze
 flutter test
-fdev apk dev      # or: flutter run --flavor dev -t lib/main_dev.dart (smoke test)
 ```
 
-Prefer the owner's `fdev` CLI for codegen/builds — full command map in `fdev.md`.
+Exercise cold and warm launch, missing config, storage failure, offline launch, resume, and
+any notification/deep-link entry points the app supports. Record actual startup timing in
+profile/release mode before optimizing it; analyzer output is not startup evidence.

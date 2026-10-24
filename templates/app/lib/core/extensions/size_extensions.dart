@@ -6,12 +6,14 @@ class AppSizes {
 
   static const Size designSize = Size(390, 844);
 
-  static double get xs => 4.w;
-  static double get sm => 8.w;
-  static double get md => 16.w;
-  static double get lg => 24.w;
-  static double get xl => 32.w;
-  static double get xxl => 48.w;
+  static double get _scale => ScreenUtil().scaleWidth.clamp(0.85, 1.15);
+
+  static double get xs => 4 * _scale;
+  static double get sm => 8 * _scale;
+  static double get md => 16 * _scale;
+  static double get lg => 24 * _scale;
+  static double get xl => 32 * _scale;
+  static double get xxl => 48 * _scale;
 
   static double get radiusSm => 4.r;
   static double get radiusMd => 8.r;
@@ -27,7 +29,7 @@ class VerticalSpace extends StatelessWidget {
   final double height;
 
   @override
-  Widget build(BuildContext context) => SizedBox(height: height.h);
+  Widget build(BuildContext context) => SizedBox(height: height);
 }
 
 class HorizontalSpace extends StatelessWidget {
@@ -36,5 +38,5 @@ class HorizontalSpace extends StatelessWidget {
   final double width;
 
   @override
-  Widget build(BuildContext context) => SizedBox(width: width.w);
+  Widget build(BuildContext context) => SizedBox(width: width);
 }

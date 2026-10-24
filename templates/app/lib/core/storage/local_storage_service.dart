@@ -3,8 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class StorageKeys {
   StorageKeys._();
 
-  static const String accessToken = 'access_token';
-  static const String refreshToken = 'refresh_token';
   static const String currentUser = 'current_user';
   static const String hasCompletedOnboarding = 'has_completed_onboarding';
 }

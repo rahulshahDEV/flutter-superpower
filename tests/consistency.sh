@@ -16,7 +16,7 @@ bad() { printf '  \033[31m❌\033[0m %s\n' "$1"; FAIL=1; }
 printf 'CONSISTENCY — %s\n' "$ROOT"
 
 # 1. Shell syntax for every script
-for s in "$ROOT"/scripts/*.sh "$ROOT"/tests/*.sh; do
+for s in "$ROOT"/scripts/*.sh "$ROOT"/tests/*.sh "$ROOT"/evals/*.sh; do
   [ -f "$s" ] || continue
   if sh -n "$s" 2>/dev/null; then ok "syntax: ${s#"$ROOT"/}"; else bad "syntax: ${s#"$ROOT"/}"; fi
 done

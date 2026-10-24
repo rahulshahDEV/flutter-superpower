@@ -1,84 +1,45 @@
-# Maps, Location, Health/Steps
+# Maps and Platform Data Routing
 
-Platform-heavy features. Wire permissions first, then providers, then UI. Test on a real
-device — emulators fake location and have no step data.
+Choose the matching focused guide before implementing a platform-data feature:
 
-## Permissions (permission_handler)
-
-| Feature | Android | iOS |
-|---|---|---|
-| Current location | `ACCESS_FINE_LOCATION` (+ `COARSE`) | `NSLocationWhenInUseUsageDescription` |
-| Background/geofence | `ACCESS_BACKGROUND_LOCATION` | `NSLocationAlwaysAndWhenInUseUsageDescription` |
-| Step counting | `ACTIVITY_RECOGNITION` (API 29+) | HealthKit entitlement + `NSHealthShareUsageDescription` |
-| Camera (QR/photo) | `CAMERA` | `NSCameraUsageDescription` |
-| Photos | `READ_MEDIA_IMAGES` (API 33+) | `NSPhotoLibraryUsageDescription` |
-
-Rules:
-- Ask in context (at the check-in tap, not cold start); explain the why in the dialog copy
-  (from `StringConstants`).
-- Handle `permanentlyDenied` with a settings redirect (`openAppSettings()`), never a dead end.
-- One `PermissionHandlerService` in `core/services/` wrapping `permission_handler`; features
-  call it, never the plugin directly.
-
-## Location provider selection (Android is the hard part)
-
-| Situation | Use |
+| Concern | Read |
 |---|---|
-| Default, Play Services available | `geolocator` with `LocationSettings(accuracy: LocationAccuracy.high)` (Fused) |
-| Play Services missing/outdated, or known OEM bugs | force Android `LocationManager` provider |
-| Battery-sensitive continuous tracking | medium accuracy + distance filter (e.g. 10–25 m) |
+| Prompt UX, statuses, settings return, lifecycle ownership | mobile-permissions.md |
+| Camera/photos/notifications/Bluetooth/files and other grants | permission-capabilities.md |
+| GPS/service enablement, fresh location, accuracy, providers | location-services.md |
+| HealthKit/Health Connect, sensor scope, step aggregation | health-data.md |
 
-Implement a small `LocationManagerUtil.shouldForceLocationManager()` (checks API level,
-Play Services availability via `google_api_availability`) and branch — do not hardcode one
-provider. iOS always uses CoreLocation via `geolocator`.
+Do not add every platform package/permission at app setup. Inspect the feature's concrete
+capability and the existing app first; follow dependencies.md and native.md.
 
-Patterns:
-- **Check-in geofence**: fetch target lat/lng, `Geolocator.distanceBetween` vs allowed radius
-  (server-configured, e.g. 100–200 m); show distance feedback before allowing check-in.
-- Location only on **user action or app resume** (and only when logged in); no background
-  stream unless the feature requires it. Always cancel subscriptions in `dispose`.
-- `geocoding` for reverse address display; cache results per coordinate.
-- Never block the UI thread on location: show a loader, timeout after ~15 s with a retry.
+## Maps
 
-## Google Maps
+Use the project's installed map provider. For Google Maps, native configuration and key
+restrictions must match each platform/flavor, package/bundle identifier and signing identity.
+Build-time configuration is public in a distributed client; protect the key with provider
+restrictions rather than treating dotenv as secrecy. Check installed plugin docs for native
+SDK minimums and the actual manifest/AppDelegate/xcconfig integration.
 
-- `google_maps_flutter`; API key injected at build time:
-  - Android: `manifestPlaceholders["GOOGLE_MAPS_API_KEY"]` read from `.env.<flavor>` by a
-    gradle helper (fallback: gradle property → env var → `local.properties`).
-  - iOS: key in `AppDelegate`/xcconfig from the same env value.
-- Render `Marker`s + `Circle` (geofence) from state; camera via `CameraPosition`.
-- Static map previews: use the Static Maps URL through `ImageRenderer` instead of a live map
-  when interaction isn't needed (cheaper, works offline in lists).
-- `maps_launcher`/`url_launcher` to open directions in the native app — don't rebuild navigation.
+A map can display a supplied coordinate without reading the user's location. Ask for location
+only when enabling a capability that needs it, such as the current-position layer or a
+nearby action. Denied permission should still allow usable map/browse/manual search where
+supported. Don't enable my-location controls until their grant is sufficient.
 
-## Health / steps
+Render markers, selection and radius from feature state; UI owns map-controller commands
+and cleanup. Use stable entity IDs and avoid resetting the camera on every unrelated state
+emission. A reverse-geocoding failure doesn't invalidate the coordinate. Long lists often
+need previews rather than multiple live map views; static map URLs still require network
+unless an image is explicitly cached under provider terms. Don't promise offline support
+from a static URL alone. Keep keys and coordinates out of diagnostic URLs/log dumps.
 
-- `health` package. Android → Health Connect (needs the Health Connect manifest
-  `androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE` + declared read types); iOS → HealthKit
-  with the entitlement.
-- Read **today's total steps** (`HealthDataType.STEPS`, `today` window) and **merge
-  conservatively**: when multiple sources report (phone + watch), take the higher count —
-  never sum (double counting).
-- Refresh on app resume only; step reads are expensive and permission-gated.
-- Cache the last value in `LocalStorageService` so the UI has something to show before the
-  async read completes; shimmer while loading.
-- Android activity-recognition permission denial → show inline explainer + retry, not a
-  blocking dialog loop.
-
-## Common failures
-
-| Symptom | Fix |
-|---|---|
-| Location works debug, not release | API key restricted to wrong package/SHA; add release SHA (`fdev sha`) |
-| `PlatformException(PERMISSION_DENIED)` after "Allow" | permission request raced with settings; re-check `Permission.location.status` |
-| Steps always 0 on emulator | no sensor data — test on device |
-| Health Connect "not available" | app not installed/updated, or manifest types missing |
-| Geofence check passes at desk | radius too large / mock location enabled — flag mock locations |
-| Battery drain complaints | high-accuracy stream left running; enforce distance filter + stop on pause |
+For directions, prefer an installed directions-launch capability or supported URI through
+the existing URL launcher, with an unavailable-app fallback. Building turn-by-turn navigation
+is a separate product/platform task. Validate coordinates/deep links at the boundary.
 
 ## Verification
 
-- Real device pass: grant → deny → permanently deny → settings grant flows.
-- Airplane mode: graceful failure message, retry path.
-- Background → resume: location/step refresh fires once, no duplicate calls.
-- Unit-test the pure parts (distance math, provider selection, step merge) — see `testing.md`.
+Test no-location browsing, permission denial/recovery, approximate position, unavailable map
+network/provider, selection/camera stability, route return and native configuration in the
+affected release flavor. API key/SHA problems and OS location permission failures are distinct.
+Verify signing metadata with fdev sha (fallback: keytool -list -v -keystore <file>); don't log
+or upload private key material. Use native-diagnostics.md for real device/provider failures.

@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-24",
+  "flutter": "3.38.9",
+  "dart": "3.10.8",
+  "device": "Android emulator, sdk_gphone16k_arm64",
+  "android_api": 37,
+  "android_version": "17",
+  "resolution": "1080x2400",
+  "density_dpi": 420,
+  "font_scale": 1.0,
+  "analyze": "PASS",
+  "unit_widget_tests": 18,
+  "debug_apk_build": "PASS",
+  "apk_sha256": "5d28c6c2c6b2f66bec3e8c8b19e92cde1c045fd6e44464eccbb5d4a91f105cd7",
+  "launch_status": "ok",
+  "am_start_total_time_ms": 2397,
+  "cold_launch_measurement_note": "am start total time, not Flutter first frame or product startup benchmark",
+  "portrait_home": "PASS",
+  "landscape_home": "PASS",
+  "same_process_alive_through_rotation": true,
+  "app_scoped_error_markers": "none observed",
+  "original_rotation_setting_restored": true,
+  "retry_note": "initial emulator launch exited; one retry online; Android automatically cold-booted after incompatible quickboot renderer state; no wipe/reset requested",
+  "not_tested": [
+    "native permission dialogs",
+    "GPS providers",
+    "physical devices",
+    "iOS",
+    "release signing",
+    "store distribution",
+    "live OTA"
+  ]
+}

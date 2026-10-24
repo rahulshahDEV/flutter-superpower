@@ -22,6 +22,10 @@ trap cleanup EXIT
 mkdir -p "$WORK"
 printf 'REGRESSION — workspace %s\n' "$WORK"
 
+section "Script failure and installer contracts"
+sh "$ROOT/tests/checks.sh" >/dev/null 2>&1 && ok "audit/release failure contracts" || bad "check script contracts failed"
+sh "$ROOT/tests/installer.sh" >/dev/null 2>&1 && ok "installer safety contracts" || bad "installer contracts failed"
+
 section "Installer (copy mode, fake HOME)"
 FAKE_HOME="$WORK/home"
 mkdir -p "$FAKE_HOME"
@@ -75,8 +79,14 @@ if [ -d "$APP" ]; then
     [ -f "$APP/$f" ] && ok "generated: ${f#lib/features/orders/}" || bad "missing: $f"
   done
   grep -q "static const String orders = '/orders';" "$APP/lib/core/constants/api_constants.dart" && ok "endpoint inserted into ApiConstants" || bad "endpoint not inserted"
+  cp "$ROOT/tests/fixtures/feature_regression_test.dart" "$APP/test/feature_regression_test.dart"
   (cd "$APP" && flutter analyze >/dev/null 2>&1) && ok "analyze clean with feature" || bad "analyze failed with feature"
-  (cd "$APP" && flutter test >/dev/null 2>&1) && ok "tests pass with feature" || bad "tests failed with feature"
+  if (cd "$APP" && flutter test --reporter expanded > "$WORK/feature-tests.log" 2>&1); then
+    ok "tests pass with feature"
+  else
+    bad "tests failed with feature"
+    cat "$WORK/feature-tests.log"
+  fi
 
   section "Forbidden patterns in generated code"
   PRINTS="$(grep -rE --include='*.dart' '(^|[^a-zA-Z])print\(' "$APP/lib" | wc -l | tr -d ' ')"

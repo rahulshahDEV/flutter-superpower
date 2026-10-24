@@ -6,13 +6,16 @@
 #   scripts/audit.sh /path/to/app --static    # no toolchain: greps + file sizes only
 #
 # Prints a mechanical report. Architecture/state judgment is the agent's review pass
-# (references/auditing.md). This script never modifies the project.
+# (references/auditing.md). Static mode is read-only. Toolchain checks do not edit
+# sources, but may write build/cache state; dependency resolution is disabled.
 
 set -u
 
+FAIL=0
+
 usage() {
   sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'
-  exit 0
+  exit "${1:-0}"
 }
 
 APP_DIR=""
@@ -26,7 +29,7 @@ while [ $# -gt 0 ]; do
     --static) STATIC_ONLY=1 ;;
     --perf) PERF=1 ;;
     -h|--help) usage ;;
-    -*) echo "error: unknown option: $1" >&2; usage ;;
+    -*) echo "error: unknown option: $1" >&2; usage 1 ;;
     *) APP_DIR="$1" ;;
   esac
   shift
@@ -46,7 +49,7 @@ examples() { grep -rEl --include='*.dart' $GEN_EXCLUDES "$1" "$LIB" 2>/dev/null 
 
 ok() { printf '  \033[32m✅\033[0m %s\n' "$1"; }
 warn() { printf '  \033[33m⚠\033[0m  %s\n' "$1"; }
-bad() { printf '  \033[31m❌\033[0m %s\n' "$1"; }
+bad() { printf '  \033[31m❌\033[0m %s\n' "$1"; FAIL=1; }
 section() { printf '\n%s\n' "$1"; }
 
 STATE="unknown"
@@ -86,9 +89,9 @@ printf 'Profile: state=%s · router=%s · di=%s · net=%s · models=%s · tests=
 
 section "Architecture"
 if [ -d "$LIB/core" ]; then
-  CORE_LEAK_FILES="$(grep -rEl --include='*.dart' $GEN_EXCLUDES "package:[a-z_]+/features/" "$LIB/core" 2>/dev/null | grep -v '/core/router/' || true)"
+  CORE_LEAK_FILES="$(grep -rEl --include='*.dart' $GEN_EXCLUDES '(package:[a-zA-Z0-9_]+/features/|[.][.]/([^[:space:]]*/)*features/)'  "$LIB/core" 2>/dev/null | grep -v '/core/router/' || true)"
   if [ -z "$CORE_LEAK_FILES" ]; then
-    ok "core/ does not import features/ (router excluded)"
+    ok "no matching core-to-feature imports detected (router excluded)"
   else
     warn "review: core/ imports features/ in $(printf '%s\n' "$CORE_LEAK_FILES" | wc -l | tr -d ' ') file(s) (router excluded)"
     printf '%s\n' "$CORE_LEAK_FILES" | sed "s|$APP_DIR/||" | head -3 | sed 's/^/     /'
@@ -168,31 +171,33 @@ if [ "$STATIC_ONLY" -eq 0 ]; then
     if (cd "$APP_DIR" && dart format --output=none --set-exit-if-changed lib test >/dev/null 2>&1); then
       ok "dart format clean"
     else
-      warn "dart format would change files — run: dart format ."
+      bad "dart format check failed — run: dart format ."
     fi
   else
-    warn "dart not on PATH — skipped format check"
+    bad "dart not on PATH — format check unavailable"
   fi
 
   if command -v flutter >/dev/null 2>&1; then
-    ANALYZE_OUT="$(cd "$APP_DIR" && flutter analyze 2>&1 | tail -1)"
-    case "$ANALYZE_OUT" in
-      *"No issues found"*) ok "flutter analyze clean" ;;
-      *) bad "flutter analyze: $ANALYZE_OUT" ;;
-    esac
+    if ANALYZE_OUT="$(cd "$APP_DIR" && flutter analyze --no-pub 2>&1)"; then
+      ok "flutter analyze clean"
+    else
+      bad "flutter analyze failed: $(printf '%s\n' "$ANALYZE_OUT" | tail -1)"
+    fi
 
     if [ "$RUN_TESTS" -eq 1 ]; then
-      TEST_OUT="$(cd "$APP_DIR" && flutter test 2>&1 | tail -1)"
-      case "$TEST_OUT" in
-        *"All tests passed"*) ok "flutter test green" ;;
-        *) bad "flutter test: $TEST_OUT" ;;
-      esac
+      if TEST_OUT="$(cd "$APP_DIR" && flutter test --no-pub 2>&1)"; then
+        ok "flutter test green"
+      else
+        bad "flutter test failed: $(printf '%s\n' "$TEST_OUT" | tail -1)"
+      fi
     else
       printf '  ℹ  tests not run (pass --tests)\n'
     fi
   else
-    warn "flutter not on PATH — skipped analyze/test"
+    bad "flutter not on PATH — analyze/test unavailable"
   fi
 fi
 
 printf '\nReport is mechanical. Architecture/state judgment: references/auditing.md.\n'
+
+exit "$FAIL"

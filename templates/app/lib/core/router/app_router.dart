@@ -9,19 +9,21 @@ import 'package:__APP_NAME__/features/splash/presentation/pages/splash_screen.da
 
 @singleton
 class AppRouter {
-  final GlobalKey<NavigatorState> _rootNavigatorKey =
-      GlobalKey<NavigatorState>(debugLabel: 'root');
+  final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
+    debugLabel: 'root',
+  );
 
   GoRouter get router => _router;
 
   late final GoRouter _router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: SplashScreen.path,
+    initialLocation: HomeScreen.path,
     debugLogDiagnostics: AppConfig.instance.isDev,
     routes: [
       GoRoute(
         path: SplashScreen.path,
         name: SplashScreen.routeName,
+        redirect: (_, _) => HomeScreen.path,
         builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
@@ -30,8 +32,7 @@ class AppRouter {
         builder: (context, state) => const HomeScreen(),
       ),
     ],
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(child: Text(StringConstants.pageNotFound)),
-    ),
+    errorBuilder: (context, state) =>
+        Scaffold(body: Center(child: Text(StringConstants.pageNotFound))),
   );
 }

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTextStyles {
   AppTextStyles._();
@@ -19,8 +17,8 @@ class AppTextStyles {
     FontWeight fontWeight, {
     required double height,
   }) {
-    return GoogleFonts.inter(
-      fontSize: fontSize.sp,
+    return TextStyle(
+      fontSize: fontSize,
       fontWeight: fontWeight,
       height: height,
       letterSpacing: 0,

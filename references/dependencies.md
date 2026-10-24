@@ -1,71 +1,74 @@
-# Dependency Intelligence
+# Package Selection
 
-A dependency is a permanent maintenance cost. Add one only when the ladder below bottoms out.
+Choose from the app's needs and installed SDK, not a memorized popularity list.
+Existing architecture wins; adding a second state/router/DI/HTTP stack is a migration.
 
-## The ladder
+## Decision ladder
 
-1. **Flutter/Dart SDK** covers it? Use it (`showDatePicker`, `AnimatedSwitcher`, `Share` via
-   the share sheet on supported platforms, `jsonDecode`, `compute`, `RefreshIndicator`).
-2. **Existing project code** covers it? Reuse `core/widgets`, `core/utils`, `core/extensions`.
-3. **Already-installed dependency** covers it? Use it — never add a second package for the same
-   concern (two HTTP clients, two image loaders, two state solutions).
-4. **New package** — justify it in one sentence: what breaks without it, why the SDK/project
-   can't do it, and why this package over the alternatives.
+Existing project code → Flutter/Dart SDK → installed dependency → maintained package →
+small owned implementation. Compare total maintenance and correctness cost: a short native
+integration can be harder to own than a well-supported plugin. SDK examples include
+AnimatedSwitcher, RefreshIndicator, date pickers, and jsonDecode. The SDK does not provide
+a general cross-platform share-sheet API; evaluate a plugin when that capability is needed.
 
-## Before adding — evaluate
+Keep the house architecture for greenfield: flutter_bloc, get_it/injectable, go_router,
+dio, dartz/equatable, json_serializable, and flutter_screenutil. Fonts, image caching,
+permissions, secure storage, notifications, databases, and Firebase are capability choices,
+not an automatic shopping list. `templates/app/pubspec.yaml` is the tested starter;
+its constraints are not a claim about today's newest versions.
 
-```bash
-flutter pub outdated                      # currency of what's already there
-dart pub deps --style=compact | head -40  # transitive weight
-```
+## Evaluate before adding
 
-Check: last publish date, open issue health, platform support (android/ios/web), null-safety
-and current SDK constraint, license, transitive count, and whether it is a federated official
-plugin (prefer official/first-party for platform channels).
+1. State the concrete capability and target platforms. Inspect pubspec AND lockfile.
+2. Read the candidate's current pub.dev page, official repository, changelog, and relevant
+   platform installation docs. Compare one credible alternative when a new package has
+   meaningful platform, architecture, size, or maintenance cost. Record source links/date.
+3. Check SDK constraints, license, publisher ownership, issue/release health, supported
+   platforms, transitive/native dependencies, minimum OS, permissions, privacy impact,
+   binary size, offline behavior, and testability. Old publication date alone doesn't prove
+   abandonment; assess open compatibility issues and maintainer responses.
+4. For native/high-risk capabilities, validate a minimal integration on the target platform
+   before building the whole feature around it. Pub resolution alone is insufficient.
+5. Record choice, reason, rejected alternative, setup cost, and an exit path proportional to
+   risk. A one-sentence note is enough for a small familiar dependency. Never fabricate
+   maintenance evidence when browsing is unavailable; label what remains unverified.
 
-Never add packages that compete with the architecture: a second state-management, routing, DI,
-networking, or model-codegen solution is an architectural migration, not a dependency choice.
-
-## House-pinned choices (do not replace)
-
-`flutter_bloc` · `get_it` + `injectable` · `go_router` · `dio` · `dartz` + `equatable` ·
-`json_serializable` (+ `freezed` where the app already uses it) · `flutter_screenutil` ·
-`google_fonts` · `shared_preferences` (+ `flutter_secure_storage` where present).
-
-## Adding correctly
-
-```bash
-flutter pub add <pkg>            # adds with caret constraint
-flutter pub get
-fdev gen                         # if the package ships builders
-flutter analyze && flutter test
-```
-
-- Pin a major (`^x.y.z`); avoid `any`.
-- Constraint-only bumps (raising an existing package's caret bound to the version already in
-  the lockfile) are allowed to clear analyzer/pub warnings — no new dependency, no lock change.
-  Still report them under Files changed.
-- If the package needs native setup (permissions, pods, gradle), do that in the same change —
-  see `native.md`.
-- Update the PR/report with the one-sentence justification.
-
-## Removing correctly
+Useful local checks:
 
 ```bash
-flutter pub remove <pkg>
-fdev clean                       # clean + pub get
-flutter analyze && flutter test
+flutter pub outdated
+dart pub deps --style=compact
 ```
 
-Delete the code that existed only for it (dead wrappers, adapters, constants). Check
-`dart pub deps --style=compact` for orphans you can also drop.
+Do not upgrade unrelated packages just because this output lists newer versions.
 
-## Anti-patterns
+## Integrate and verify
 
-| Smell | Reality |
-|---|---|
-| "It saves 20 lines" | You now own upgrades, CVEs, and SDK breakage for 20 lines. |
-| Two packages for one concern | Pick one; migrate the other out. |
-| A package for one screen | Inline the 30 lines or use the SDK. |
-| Adding during a bugfix | Separate change, separate justification, separate verification. |
-| Abandoned package (2+ years) | Fork cost is real; find a maintained alternative or inline it. |
+```bash
+flutter pub add <package>
+dart format .
+fdev gen # if builders changed; fallback: dart run build_runner build --delete-conflicting-outputs
+flutter analyze
+flutter test
+```
+
+Use compatible constraints, never `any`; commit the app lockfile. Review resolved changes
+and native build configuration. Add permissions only for the feature, with denial behavior.
+Build/run affected platforms using `fdev` where supported (e.g. `fdev apk dev`; fallback
+`flutter build apk --flavor dev -t lib/main_dev.dart`). A device/plugin check is required for
+claims about native behavior; do not claim iOS works from an Android build.
+
+Keep domain contracts independent of plugin types. Wrap stateful/native infrastructure when
+it provides a useful lifetime, test seam, or replaceable boundary; don't wrap every package
+function. Keep one source of truth for initialization and disposal.
+
+Constraint-only bumps to a version already resolved in the lockfile are allowed when needed
+for compatibility/analyzer warnings; still disclose them and verify. Review major upgrades
+against migration notes in a separate scoped change unless this feature requires one.
+
+## Remove
+
+Use `flutter pub remove <package>`, remove dead adapters/native setup, and inspect the
+lockfile/transitive graph. Then format → codegen if needed → analyze → test and affected
+platform build. Clean only to resolve a stale artifact (`fdev clean`; fallback
+`flutter clean && flutter pub get`), not as a ritual that hides reproducibility problems.

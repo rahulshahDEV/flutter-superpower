@@ -43,7 +43,8 @@ commands pass.
 
    A case that the baseline also passes at the same quality proves nothing about the skill;
    treat it as a candidate for hardening (more states, stricter Must-not, shared-code change).
-   Baselines are run manually and recorded in `RESULTS.md` — do not skip this for new cases.
+   Baseline runs are recorded in `RESULTS.md` — do not skip this for new evaluation batches.
+   Case 38 provides isolated inputs, withheld acceptance checks and archived source/results.
 
 ## Case index
 
@@ -75,6 +76,18 @@ commands pass.
 | 24 | Visual review before shipping | design-review, accessibility |
 | 25 | Parallel repository exploration | agent-delegation, senior-mode |
 | 26 | fdev project setup vs skill installation | fdev, installation |
+| 27 | Startup and platform UI | app-bootstrap, platform-ui |
+| 28 | Offline fonts and adaptive controls | fonts, ui-workflow |
+| 29 | Package choice with evidence | dependencies |
+| 30 | State and repository boundary integrity | architecture, state-and-di, networking-and-errors |
+| 31 | Codemagic/fastlane setup boundaries | codemagic-setup, codemagic-workflows, fastlane |
+| 32 | Shorebird staging and recovery | shorebird, shorebird-ci |
+| 33 | Native lifecycle/crash diagnosis | native, native-diagnostics, platform-channels |
+| 34 | Runtime inspection to regression | device-tooling, integration-testing, debugging |
+| 35 | Preview and adaptive state continuity | component-previews, adaptive-layout |
+| 36 | GPS, location permission and Settings recovery | mobile-permissions, location-services |
+| 37 | Minimum-scope capability permissions | permission-capabilities, mobile-permissions |
+| 38 | Matched permission coordinator contract | permission fixtures, mobile-permissions, location-services |
 
 ## Honest limits
 

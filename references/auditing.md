@@ -12,13 +12,13 @@ scripts/audit.sh /path/to/app --tests     # also runs flutter test
 scripts/audit.sh /path/to/app --static    # no toolchain: greps + file sizes only
 ```
 
-The script is read-only. It prints a mechanical report (✅/⚠/❌ with counts). Then do the
+The script is source-preserving. It prints a mechanical report (✅/⚠/❌ with counts). Then do the
 agent review below — the script cannot judge architecture or state modeling.
 
 ## Agent review — dimensions and checks
 
 ### 1. Architecture & boundaries
-- `core/` importing `features/`; widgets calling data sources or Dio directly.
+- `core/` importing `features/` outside route assembly; widgets calling data sources or Dio directly.
 - Layer inversions (domain importing Flutter/plugins; presentation doing data work).
 - Features missing layers they clearly need, or layers with no purpose.
 - Files with multiple unrelated responsibilities (large ≠ broken; responsibility is the test).
@@ -89,3 +89,12 @@ Rules for the report:
 - Never propose replacing the architecture. Propose the smallest fix inside it.
 - Do not fix during the audit unless the developer asks; offer the fixes as a follow-up list
   (each independently shippable, same verify gate).
+
+## Script result contract
+
+Static scanning does not edit files. Toolchain mode disables dependency resolution with
+--no-pub and does not edit sources, but Flutter/Dart may write cache/build state. Resolve
+packages deliberately before running those checks. Errors return nonzero; warnings remain
+review findings. A zero exit means no scripted blockers were detected, not proof of complete
+architecture/security/device correctness. Import scans include relative and package paths;
+no matches is still a scan result, not a complete dependency analysis.

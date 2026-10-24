@@ -1,166 +1,85 @@
-# Theme & Design System
+# Theme and Design System
 
-## Files
+Read `ui-workflow.md` for screen implementation, `fonts.md` for font delivery, and
+`platform-ui.md` for system bars. The runnable baseline lives in `templates/app/lib/core/`.
 
-```
-core/theme/
-├── app_colors.dart        # raw palette only (private ctor, static const)
-├── app_semantic_colors.dart  # optional ThemeExtension layer
-├── app_text_styles.dart   # static getters, no TextTheme wiring needed
-└── app_theme.dart         # lightTheme (+darkTheme if app supports it)
-```
+## Ownership
 
-`core/res/media.dart` / `media_constants.dart` for asset paths.
-`core/constants/string_constants.dart` for copy.
-
-## Colors
-
-```dart
-class AppColors {
-  AppColors._();
-
-  // ─── Brand ───────────────
-  static const Color primary = Color(0xFF3B9AD9);
-  static const Color primaryDark = Color(0xFF2E7CB0);
-
-  // ─── Neutrals ────────────
-  static const Color black = Color(0xFF323232);
-  static const Color background = Color(0xFFF7F7F7);
-  static const Color border = Color(0xFFE6E6E6);
-  static const Color white = Color(0xFFFFFFFF);
-
-  // ─── Semantic ────────────
-  static const Color error = Color(0xFFD9534F);
-  static const Color success = Color(0xFF4CAF50);
-  static const Color warning = Color(0xFFFCAF17);
-}
-```
-
-Optional semantic layer for multi-surface apps: `@immutable class AppSemanticColors
-extends ThemeExtension<AppSemanticColors>` with ~30 fields (`screenBackground`, `surface`,
-`primaryText`, `secondaryText`, `border`, ...), `copyWith` + `lerp`, registered via
-`ThemeData(extensions: [semanticColors])`, read as `context.semanticColors`.
-
-Widgets never use raw `Color(0x...)`. Either `AppColors.x` or `context.semanticColors.x`.
-
-Quality floor: tinted neutrals (never pure black or pure gray), one accent
-spent on action/selection/status only, no nested cards, no gray text on
-colored surfaces. Full list: `design-quality.md`.
-
-## Typography
-
-```dart
-class AppTextStyles {
-  AppTextStyles._();
-
-  static TextStyle get h1 => _base(32, FontWeight.w700, height: 1.25);
-  static TextStyle get h2 => _base(28, FontWeight.w600, height: 1.3);
-  static TextStyle get h3 => _base(22, FontWeight.w600, height: 1.3);
-  static TextStyle get bodyLarge => _base(17, FontWeight.w400, height: 1.5);
-  static TextStyle get body => _base(15, FontWeight.w400, height: 1.5);
-  static TextStyle get bodySmall => _base(13, FontWeight.w400, height: 1.4);
-  static TextStyle get caption => _base(12, FontWeight.w400, height: 1.3);
-  static TextStyle get label => _base(14, FontWeight.w500, height: 1.4);
-
-  static TextStyle _base(double size, FontWeight weight, {required double height}) =>
-      GoogleFonts.inter(fontSize: size.sp, fontWeight: weight, height: height, letterSpacing: 0);
-}
-```
-
-Rules:
-- Line-height is passed as a ratio (`height: lineHeight / fontSize`).
-- Widgets use `AppTextStyles.body.copyWith(color: colors.primaryText)` — never ad-hoc `TextStyle(fontSize: 14)` and never a new `GoogleFonts.*` call outside `app_text_styles.dart`.
-- `AppTheme.lightTheme` maps the same styles into `TextTheme` for Material widgets.
-
-## Sizing (flutter_screenutil)
-
-```dart
-// core/extensions/size_extensions.dart
-class AppSizes {
-  AppSizes._();
-
-  static const Size designSize = Size(390, 844); // some apps use 375x812 — match the app
-
-  static double get xs => 4.w;
-  static double get sm => 8.w;
-  static double get md => 16.w;
-  static double get lg => 24.w;
-  static double get xl => 32.w;
-  static double get xxl => 48.w;
-
-  static double get radiusSm => 4.r;
-  static double get radiusMd => 8.r;
-  static double get radiusLg => 12.r;
-  static double get radiusXl => 16.r;
-  static double get radius2Xl => 24.r;
-  static double get radiusFull => 999.r;
-}
-
-class VerticalSpace extends StatelessWidget {
-  const VerticalSpace(this.height, {super.key});
-  final double height;
-  @override
-  Widget build(BuildContext context) => SizedBox(height: height.h);
-}
-```
-
-`ScreenUtilInit(designSize: AppSizes.designSize, minTextAdapt: true, splitScreenMode: true)`
-wraps `MaterialApp.router` in `app.dart`. Dimensions use `.w/.h/.r/.sp`; spacing/radius
-uses `AppSizes` tokens. Never raw `EdgeInsets.only(left: 16)`.
-
-## Design system widgets (`core/widgets/`)
-
-| Widget | API |
+| File | Responsibility |
 |---|---|
-| `KButton` | `KButton(text:, onPressed:, isLoading:, variant: primary/secondary/outlined, leadingIcon:, height: 52)` — in-button spinner replaces label while loading |
-| `KTextField` | `KTextField(controller:, hintText:, errorText:, prefixIcon:, keyboardType:, borderStyle:)` |
-| `ImageRenderer` | `ImageRenderer(imagePath:, fit:, width:, height:)` — asset/network/SVG/file + placeholder/error fallback in one widget |
-| `EmptyStateWidget` | icon + title + message |
-| `ErrorStateWidget` | message + optional `onRetry` (Retry button label from constants) |
-| `LoadingWidget` | centered spinner + optional message |
-| shimmer | `AppShimmerZone` / `BaseSkeletonShimmerWidget` + per-feature `_shimmer.dart` skeletons that mirror real layout |
-| `AppSnackBar` / `CustomSnackBar` | top-anchored animated overlay: `.show(context, msg)` success, `.showError(context, msg, actionLabel:, onAction:)` — never raw `ScaffoldMessenger` |
-| `BottomSheetDivider` | standard drag handle + indents |
-| `AppBackButton` | default `context.popRoute()` |
-| `AppAlertDialog` | typed `AlertDialogType` enum carrying icon/title/copy; `show()` returns `Future<bool?>` |
-| `ConnectivityWrapper` | app-root only; `checkConnectivity()` called from the Dio interceptor |
-| selection sheets | `RadioSelectionSheet`, `MultiSelectionSheet`, `CountryCodePickerSheet`, `DateSelectorDialog` |
-| `LottieRefreshIndicator` | pull-to-refresh |
+| `theme/app_colors.dart` | Raw brand palette; no colors inline in widgets |
+| `theme/app_text_styles.dart` | Shared type roles, font metrics, optional bundled family |
+| `theme/app_theme.dart` | ColorScheme, TextTheme, component themes, overlay defaults |
+| `extensions/size_extensions.dart` | AppSizes spacing/radius tokens and gap widgets |
+| `constants/string_constants.dart` | User-visible copy; ARB when localization is required |
+| `constants/media_constants.dart` | Asset paths |
 
-Bottom sheets are top-level functions, not classes:
+Use ColorScheme semantic pairs (`primary/onPrimary`, `surface/onSurface`, error roles) in
+components. AppColors is the palette, not a reason to hardcode light colors across dark UI.
+Add a ThemeExtension only for roles not already expressible by Material's schemes. When
+dark mode is required, define and inspect both themes; don't claim support from a brightness
+flag or mechanical inversion. Existing apps retain their established semantic-color API.
 
-```dart
-void showSortSheet(BuildContext context, {required ValueChanged<Sort> onSelected}) {
-  showModalBottomSheet<void>(
-    context: context,
-    backgroundColor: context.semanticColors.surface,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(AppSizes.radius2Xl)),
-    ),
-    builder: (_) => Column(mainAxisSize: MainAxisSize.min, children: [
-      const BottomSheetDivider(),
-      ...
-    ]),
-  );
-}
-```
+Map AppTextStyles into TextTheme so dialogs, inputs, buttons, and explicit app text use the
+same metrics. Preserve inherited foreground colors. Widgets use named type roles or
+`AppTextStyles.body.copyWith(...)`, not ad-hoc TextStyle/GoogleFonts calls. Line-height is a
+ratio. The baseline uses system fonts with stable logical sizes and preserves TextScaler.
 
-Loading rules:
-- Page first load → shimmer skeleton mirroring layout, or `LoadingWidget`.
-- Submitting → `KButton(isLoading: true)`; no separate spinner.
-- Pagination → small footer indicator; no full-screen loader.
-- Never two loaders on one screen.
+## Sizing contract
 
-## Strings
+ScreenUtil is a design-sizing tool, not the responsive-layout algorithm. Initialize it once
+at the app root with the app's design size, `minTextAdapt`, and `splitScreenMode`.
+Use LayoutBuilder/constraints for layout changes and AppSizes for spacing. The baseline
+bounds spacing scale so a tablet doesn't become a magnified phone; choose actual bounds
+from the product and inspect both extremes.
 
-All copy in `core/constants/string_constants.dart` or
-`core/constants/text/<feature>_text.dart`, section-commented. Parameterized copy
-is a static function. Widgets never contain string literals for user-visible text.
+Gap widgets accept already-resolved logical pixels. `VerticalSpace(AppSizes.md)` and
+`HorizontalSpace(AppSizes.sm)` must not apply `.h`/`.w` again. If an existing app's gap API
+accepts raw design values, keep that contract and don't feed it pre-scaled tokens.
+Never apply ScreenUtil twice to a value or use scaled values for platform touch minimums.
+Use content-driven heights, minimum control sizes, flexible columns, and capped text width.
+Don't multiply type size by full tablet width. Preserve the user's TextScaler.
 
-## Screen composition conventions
+## Components
 
-- `Scaffold(backgroundColor: colors.screenBackground)` + `SafeArea`.
-- `Padding(horizontal: AppSizes.md or 20.w)` page gutter; `SingleChildScrollView` for forms; sticky CTA at the bottom with a fixed gap.
-- Keyboard: unfocus on outside tap (`GestureDetector`/`TapRegion`), respect `MediaQuery.viewInsets.bottom`.
-- Private `_buildXxx()` helper methods inside the screen file for local sections; extract a widget file only when reused or large.
-- Lists: `ListView.builder` with `padding: EdgeInsets.zero` and `AppSizes` gaps; separators via `separatorBuilder`.
+Reuse the project's K-widgets before adding new wrappers. The scaffold includes KButton,
+KTextField, loading/empty/error widgets, and AppSnackBar. Other useful components (image
+renderer, skeleton, drag handle, selection sheets) are capability examples, not files that
+already exist or an instruction to create them all.
+
+- KButton: text, nullable callback, variant, optional icon, loading, optional minimum height.
+  It expands for long/large text, disables duplicate taps, and keeps an accessible name while
+  busy. The minimum is not a fixed-height promise. Prefer existing Material states for hover,
+  focus, pressed, disabled, and semantics; don't replace a button with GestureDetector.
+- KTextField: forward the APIs required by the flow. A validating form needs TextFormField
+  or an existing form abstraction, validators, focus, autofill, and submission wiring. Don't
+  hide validation/focus limitations behind an attractive wrapper. Controllers belong to UI.
+- Error state: a safe message plus retry when meaningful. Empty state explains what happens
+  next. Image failures preserve layout and provide appropriate semantics.
+- AppSnackBar may wrap ScaffoldMessenger; centralization does not require a custom overlay.
+  Prefer inline error feedback for failed content and snackbars for transient actions;
+  don't announce the same failure twice.
+
+Configure common button/input/card behavior in ThemeData when shared. Keep semantic APIs
+(e.g. primary/secondary action), avoid a bag of unrelated booleans, and promote a component
+to core only for genuine cross-feature use. Keep private section widgets local.
+
+## Screen composition
+
+- Decide which region owns safe-area and keyboard padding; AppBar already handles top insets.
+- Forms scroll; bottom actions stay reachable with large text and the keyboard open.
+- Use directional padding/alignment when meaning follows reading direction.
+- Prefer private StatelessWidgets for distinct layout/rebuild responsibilities. Tiny pure
+  helper methods are fine; don't split everything into files or leak business logic into UI.
+- Use ListView.builder/separated for long data; don't nest an unconstrained scrolling list
+  inside a scroll view. Set padding deliberately, not always to zero.
+- First load uses a skeleton matching content or one loader. Refresh keeps usable content;
+  submit uses button progress; pagination uses a footer. Independent concurrent actions may
+  each show progress, but don't stack duplicate indicators for the same operation.
+
+## Verification
+
+Cover interaction states, long copy, 2x text, a narrow width and a wide window. Test minimum
+tap size, overflow, duplicate submissions, and accessible names in reusable controls.
+Check text/background contrast, including disabled/loading states, with actual colors.
+Use `design-review.md` for visual evidence; analyzer success doesn't establish UI quality.

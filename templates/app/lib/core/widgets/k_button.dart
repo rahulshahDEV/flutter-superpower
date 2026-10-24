@@ -29,28 +29,52 @@ class KButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isEnabled = onPressed != null && !isLoading;
 
-    return SizedBox(
-      width: double.infinity,
-      height: height ?? 52.h,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: (height ?? 52).clamp(48, double.infinity),
+      ),
       child: FilledButton(
         onPressed: isEnabled ? onPressed : null,
-        style: _style(),
-        child: isLoading
-            ? SizedBox(
-                width: 20.r,
-                height: 20.r,
-                child: const CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Row(
+        style: _style().copyWith(
+          minimumSize: const WidgetStatePropertyAll(Size(double.infinity, 48)),
+          padding: WidgetStatePropertyAll(EdgeInsets.all(AppSizes.md)),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Visibility(
+              visible: !isLoading,
+              maintainSize: true,
+              maintainAnimation: true,
+              maintainState: true,
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (leadingIcon != null) ...[
                     Icon(leadingIcon, size: 20.r),
                     HorizontalSpace(AppSizes.sm),
                   ],
-                  Text(text, style: AppTextStyles.label),
+                  Flexible(
+                    child: Text(
+                      text,
+                      style: AppTextStyles.label,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ],
               ),
+            ),
+            if (isLoading)
+              Semantics(
+                label: text,
+                child: const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -58,28 +82,28 @@ class KButton extends StatelessWidget {
   ButtonStyle _style() {
     return switch (variant) {
       KButtonVariant.primary => FilledButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.white,
-          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.4),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSizes.radiusFull),
-          ),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
+        disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSizes.radiusFull),
         ),
+      ),
       KButtonVariant.secondary => FilledButton.styleFrom(
-          backgroundColor: AppColors.textPrimary,
-          foregroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSizes.radiusFull),
-          ),
+        backgroundColor: AppColors.textPrimary,
+        foregroundColor: AppColors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSizes.radiusFull),
         ),
+      ),
       KButtonVariant.outlined => FilledButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          foregroundColor: AppColors.textPrimary,
-          side: const BorderSide(color: AppColors.border),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSizes.radiusFull),
-          ),
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.textPrimary,
+        side: const BorderSide(color: AppColors.border),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSizes.radiusFull),
         ),
+      ),
     };
   }
 }

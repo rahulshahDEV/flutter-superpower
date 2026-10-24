@@ -3,7 +3,7 @@
 Review the diff between `HEAD` and a fixed point (commit, branch, tag, merge-base) on two
 independent axes:
 
-- **Standards** — does the code follow this skill's house style?
+- **Standards** — does the code follow the profiled project conventions and applicable defaults?
 - **Spec** — does the code do what was actually asked?
 
 When the editor provides sub-agents, run the two axes concurrently as separate reviewers so
@@ -28,8 +28,13 @@ the other. See `agent-delegation.md` for task sizing, evidence, and integration 
 
 Give this checklist to the Standards reviewer, without the Spec reviewer's conclusions:
 
-**Hard violations** (documented rules):
-- Layer breach: `core/` importing `features/`; widget calling a data source/Dio directly.
+Profile the existing app first, including consistent conventions not written in repository
+rules. The following defaults apply to greenfield work or explicitly adopted house style;
+existing Riverpod/Provider/navigation conventions are not migration findings by themselves.
+Correctness, lifecycle safety and the user's scope still apply in every project.
+
+**Violations of the applicable conventions**:
+- Layer breach: `core/` importing `features/` outside route assembly; widget calling a data source/Dio directly.
 - State: `Provider`/Riverpod/GetX; raw `emit` instead of `safeEmit`; cubit holding
   `BuildContext`/navigation/controllers; business logic in a widget.
 - DI: `getIt` inside `build`; unregistered type; hand-edited `injection.config.dart`.
@@ -53,8 +58,8 @@ Give this checklist to the Standards reviewer, without the Spec reviewer's concl
 - **Middle man** — a class/function that only delegates → cut it.
 - **Refused bequest** — a subclass ignoring most of what it inherits → composition instead.
 
-Repo docs override this checklist; tooling-enforced rules are skipped (the analyzer already
-covers them).
+Project conventions override conflicting defaults. Read relevant analyzer/test output and
+avoid duplicate findings; a tooling check is evidence only when it actually ran.
 
 ## Spec axis
 
@@ -68,7 +73,7 @@ Quote the spec line for every finding. Under 400 words per axis.
 ## Flutter review extras
 
 - Loading/empty/error/success all handled for every async screen.
-- Failure surfaces via snackbar; retry where sensible.
+- Failure feedback matches context (inline content recovery or transient action message); no duplicate announcements.
 - Skeleton/shimmer mirrors real layout; no double loaders.
 - Keyboard: scroll + `viewInsets` handled; CTA reachable.
 - Lists use `ListView.builder`/slivers with `const` items.

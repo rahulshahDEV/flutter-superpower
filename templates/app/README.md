@@ -43,7 +43,11 @@ Add a feature:
 
 ```sh
 dart format .
-fdev gen
+fdev gen # fallback: dart run build_runner build --delete-conflicting-outputs
 flutter analyze
 flutter test
 ```
+
+The starter uses offline system fonts, OS orientation policy, edge-to-edge UI, and an
+unauthenticated HTTP client. Add custom fonts, auth, and Firebase only when needed.
+See the skill font/platform/bootstrap references before changing these policies.

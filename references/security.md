@@ -16,22 +16,16 @@ competes with it — harden the existing one.
 
 - `AppLogger` is dev-only by design — never log tokens, passwords, OTPs, payment data, or
   full request/response bodies containing auth headers, even in dev.
-- The Dio pretty logger prints request headers (including `Authorization`). In dev-only builds
-  that is tolerated, but redact before it can reach a release build: either gate the logger on
-  `AppConfig.isDev` (already the pattern) or add a redaction interceptor.
+- The scaffold has no payload logger. If diagnostics are needed, log allowlisted metadata
+  such as method, route template, status, and duration. Never full URLs/query parameters,
+  headers, or bodies by default; dev-only gating is not redaction.
 - Crash reporting (Sentry/Crashlytics): configure scrubbing; never attach raw network payloads.
-
-```dart
-// Redaction pattern for any request logger
-const _redacted = {'authorization', 'cookie', 'x-refresh-token'};
-final headers = Map.of(options.headers)
-  ..updateAll(_redacted, (v) => '***');
-```
 
 ## Storage
 
-- Tokens: `flutter_secure_storage` (Keychain/Keystore) when the project uses it; SharedPreferences
-  only where the project already does and the threat model accepts it.
+- New auth uses a dedicated secure session store backed by Keychain/Keystore. The unauthenticated
+  starter does not read tokens from preferences. Existing insecure storage needs an explicit
+  migration and cleanup plan, not silent acceptance or an incidental destructive change.
 - Never store passwords, card numbers, or raw crypto private keys in SharedPreferences.
 - Clear all auth artifacts on logout through the single session-cleanup path.
 
@@ -52,7 +46,8 @@ final headers = Map.of(options.headers)
 
 - Least privilege: remove manifest/Info.plist permissions the app does not use.
 - Ask in context with a reason; handle permanently-denied with a settings path.
-- Keep the permission matrix current — see `maps-location-health.md`.
+- Keep the capability matrix current — see `permission-capabilities.md`. Prompt ownership and
+  Settings recovery are defined in `mobile-permissions.md`; GPS is in `location-services.md`.
 
 ## Release hardening
 

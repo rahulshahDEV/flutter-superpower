@@ -1,0 +1,138 @@
+{
+  "case": 38,
+  "date": "2026-10-24",
+  "scope": "pure Dart permission coordinator contract; no native platform calls",
+  "flutter": "3.38.9",
+  "dart": "3.10.8",
+  "agent_model": "inherited session model; no override",
+  "acceptance_checks": 14,
+  "comparison": "both lanes pass; no demonstrated skill advantage",
+  "lanes": {
+    "baseline": {
+      "verdict": "PASS",
+      "source_sha256": "263afc000f44bf6bf4dfbddd75468a3a53089dd442b53104e4a971f102fdb8e4",
+      "self_authored_tests": 27,
+      "acceptance": [
+        {
+          "name": "passive denial performs no interactive work",
+          "result": "success"
+        },
+        {
+          "name": "blocked and restricted grants preserve their outcomes",
+          "result": "success"
+        },
+        {
+          "name": "service disabled is distinct and passive does not resolve it",
+          "result": "success"
+        },
+        {
+          "name": "cancelled service resolution stops acquisition",
+          "result": "success"
+        },
+        {
+          "name": "simultaneous interactive requests and prompt resume share one attempt",
+          "result": "success"
+        },
+        {
+          "name": "Settings launch does not imply grant and return only rechecks once",
+          "result": "success"
+        },
+        {
+          "name": "Settings return with grant resumes one passive read",
+          "result": "success"
+        },
+        {
+          "name": "unsuccessful Settings launch does not schedule recovery",
+          "result": "success"
+        },
+        {
+          "name": "permission denial after request remains denial rather than generic failure",
+          "result": "success"
+        },
+        {
+          "name": "quality rejects invalid coordinates accuracy and stale fixes",
+          "result": "success"
+        },
+        {
+          "name": "freshness is evaluated when a delayed position actually arrives",
+          "result": "success"
+        },
+        {
+          "name": "acquisition errors and timeout clean up pending native read",
+          "result": "success"
+        },
+        {
+          "name": "dispose suppresses late success and prevents new work",
+          "result": "success"
+        },
+        {
+          "name": "dispose while permission is pending prevents later position acquisition",
+          "result": "success"
+        }
+      ]
+    },
+    "with_skill": {
+      "verdict": "PASS",
+      "source_sha256": "e61a3c24da646b648d6b8ab7c418ee5f84ec93ac6f44d24a29c063395a9404b3",
+      "self_authored_tests": 34,
+      "acceptance": [
+        {
+          "name": "passive denial performs no interactive work",
+          "result": "success"
+        },
+        {
+          "name": "blocked and restricted grants preserve their outcomes",
+          "result": "success"
+        },
+        {
+          "name": "service disabled is distinct and passive does not resolve it",
+          "result": "success"
+        },
+        {
+          "name": "cancelled service resolution stops acquisition",
+          "result": "success"
+        },
+        {
+          "name": "simultaneous interactive requests and prompt resume share one attempt",
+          "result": "success"
+        },
+        {
+          "name": "Settings launch does not imply grant and return only rechecks once",
+          "result": "success"
+        },
+        {
+          "name": "Settings return with grant resumes one passive read",
+          "result": "success"
+        },
+        {
+          "name": "unsuccessful Settings launch does not schedule recovery",
+          "result": "success"
+        },
+        {
+          "name": "permission denial after request remains denial rather than generic failure",
+          "result": "success"
+        },
+        {
+          "name": "quality rejects invalid coordinates accuracy and stale fixes",
+          "result": "success"
+        },
+        {
+          "name": "freshness is evaluated when a delayed position actually arrives",
+          "result": "success"
+        },
+        {
+          "name": "acquisition errors and timeout clean up pending native read",
+          "result": "success"
+        },
+        {
+          "name": "dispose suppresses late success and prevents new work",
+          "result": "success"
+        },
+        {
+          "name": "dispose while permission is pending prevents later position acquisition",
+          "result": "success"
+        }
+      ]
+    }
+  }
+}

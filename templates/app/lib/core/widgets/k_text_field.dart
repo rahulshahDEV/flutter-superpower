@@ -17,6 +17,15 @@ class KTextField extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.onSubmitted,
+    this.onChanged,
+    this.validator,
+    this.focusNode,
+    this.autofillHints,
+    this.autovalidateMode,
+    this.enabled = true,
+    this.readOnly = false,
+    this.autocorrect = true,
+    this.enableSuggestions = true,
     super.key,
   });
 
@@ -30,15 +39,33 @@ class KTextField extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final ValueChanged<String>? onSubmitted;
+  final ValueChanged<String>? onChanged;
+  final FormFieldValidator<String>? validator;
+  final FocusNode? focusNode;
+  final Iterable<String>? autofillHints;
+  final AutovalidateMode? autovalidateMode;
+  final bool enabled;
+  final bool readOnly;
+  final bool autocorrect;
+  final bool enableSuggestions;
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
       textInputAction: textInputAction,
-      onSubmitted: onSubmitted,
+      onFieldSubmitted: onSubmitted,
+      onChanged: onChanged,
+      validator: validator,
+      focusNode: focusNode,
+      autofillHints: autofillHints,
+      autovalidateMode: autovalidateMode,
+      enabled: enabled,
+      readOnly: readOnly,
+      autocorrect: autocorrect,
+      enableSuggestions: enableSuggestions,
       style: AppTextStyles.body,
       decoration: InputDecoration(
         hintText: hintText,

@@ -4,12 +4,12 @@
 
 ```
 lib/
-├── main.dart                  # bootstrap; thin — real work in app/
-├── main_dev.dart              # Flavor.dev → app.main()
-├── main_prod.dart             # Flavor.prod → app.main()
+├── main.dart                  # thin dev entry; bootstrap in app.dart
+├── main_dev.dart              # Flavor.dev → app.bootstrap()
+├── main_prod.dart             # Flavor.prod → app.bootstrap()
 ├── firebase_options.dart      # FlutterFire generated
 ├── app.dart                   # App root widget: ScreenUtilInit + MaterialApp.router
-├── core/                      # NEVER imports features/
+├── core/                      # feature-independent except router composition
 │   ├── config/                # app_config.dart (Flavor enum + AppConfig singleton)
 │   ├── constants/             # api_constants.dart, app_constants.dart,
 │   │                          # media_constants.dart, string_constants.dart
@@ -60,11 +60,16 @@ create empty layers "for later" — a screen with no API call does not need data
 
 ## Layer rules
 
-- `core/` is cross-cutting only. If it depends on a feature, it belongs in the feature.
-- `domain/` has zero Flutter imports beyond `dartz`/`equatable` and no plugins. Repos are abstract.
+- `core/` is cross-cutting. The existing `core/router/` directory is an explicit application
+  composition boundary and may import screens; DI is another composition boundary. No other
+  core service/widget may import a feature. Keep business rules out of route assembly.
+  Existing apps with `app/router/` keep that layout; don't migrate folders just for this rule.
+- `domain/` has no Flutter or plugin imports; pure Dart packages such as `dartz`/`equatable`
+  are allowed. Repository contracts expose domain types, never Dio responses or widget types.
 - `data/` implements domain repos, owns models/JSON/plugins.
 - `presentation/` owns cubits/pages/widgets. Screens never call data sources or Dio.
-- One public type per file.
+- One public responsibility per file; colocate sealed state variants, closely related enums,
+  and a data-source interface/implementation where the templates do so.
 - Dependencies point inward: presentation → domain ← data. UI may import data models only via entities; prefer domain types in cubits.
 - Feature-to-feature imports are allowed for navigation helpers only (`_navigation.dart`); shared code moves to `core/`.
 
@@ -144,3 +149,23 @@ features/orders/
 
 Build order: entity → repository contract → model → data source → repo impl → use case →
 state → cubit → widgets → screen → route. Bottom-up; each step compiles before the next.
+
+## Decisions beyond folders
+
+- Put a rule beside the data and lifecycle it governs. Domain owns business invariants;
+  data owns transport/persistence mapping; presentation owns display state and user intent.
+  Shared infrastructure goes in core only after genuine cross-feature use.
+- Give mutable state one owner. Repositories own cache/write consistency; Cubits own flow
+  state; widgets own focus/controllers. Define disposal and cancellation at creation time.
+- Constructors make dependencies visible. Avoid service-locator calls hidden inside domain
+  methods or helpers. Add an abstraction for a useful boundary, not one per method.
+- Keep the house use-case seam for asynchronous features; don't create data/domain layers
+  for static screens. Separate DTOs from richer domain entities when transport inheritance
+  would violate domain invariants; prefer mapping over weakening the model.
+- Snapshot mutable collections before exposing state. `final List<T>` only prevents
+  reassignment. Do not mutate emitted data or share a writable cache list with a Cubit.
+- Before changing a shared contract, inspect all callers and serialization/storage formats.
+  Stage migrations with compatibility and rollback where persisted data is involved.
+- Verify boundaries through meaningful tests: domain invariants, repository mapping,
+  out-of-order requests, state preservation on failure, and disposal. A neat folder tree
+  alone does not prove clean architecture.

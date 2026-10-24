@@ -1,7 +1,7 @@
 # Release Engineering
 
 Mechanical pass: `scripts/release-check.sh /path/to/app` (read-only; reports what it can
-verify and explicitly lists what it cannot). Manual checklist below.
+verify and explicitly lists what it cannot; scripted blockers return nonzero, warnings do not). Manual checklist below.
 
 ## Version & identity
 

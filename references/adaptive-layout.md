@@ -8,6 +8,8 @@ two-pane layout, navigation rail, or grid.
 
 - Use `LayoutBuilder` when a component's local constraints determine its structure. Use
   `MediaQuery.sizeOf(context)` when the whole app window determines the shell layout.
+- Don't select a top-level layout from portrait/landscape or a hardware label. Resizing and
+  split-screen can change available width without changing either.
 - Define breakpoints once for the app and use them consistently. Choose them from the
   content's minimum usable width and test near each boundary; do not copy breakpoint numbers
   without checking the project's design.
@@ -33,6 +35,15 @@ two-pane layout, navigation rail, or grid.
 - For navigation shells, select bottom navigation, rail, or drawer by available width in one
   shared place; keep route and selection behavior in `routing.md`.
 
+## Preserve state while changing structure
+
+Use stable entity keys and lift selected item, filter, edit and scroll ownership above layout
+variants when continuity is required. Resizing must not recreate a Cubit, refetch everything,
+or lose a draft just because a Row became a Column. Define how a selected detail behaves when
+the second pane disappears; keep back/focus behavior coherent. Large-screen grids are useful
+for comparable tiles, while ordered/dense data may remain a capped list; don't convert every
+list to cards automatically. Keyboard, mouse and trackpad input need usable focus/scrolling.
+
 ## Verification
 
 Exercise the smallest supported width, a wide window, a breakpoint boundary, keyboard-open
@@ -42,3 +53,5 @@ use screenshots for stable visual states, not as a substitute for overflow asser
 
 Never claim tablet support from a single simulator screenshot. Check the actual content,
 focus order, scrolling, and reachable actions in each layout.
+
+Reference: [official responsive-layout workflow](https://github.com/flutter/agent-plugins/tree/main/skills/flutter-build-responsive-layout).

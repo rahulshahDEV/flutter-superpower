@@ -14,5 +14,5 @@ abstract class RegisterModule {
       LocalStorageService(prefs);
 
   @lazySingleton
-  DioClient dioClient(LocalStorageService storage) => DioClient(storage);
+  DioClient dioClient() => DioClient();
 }

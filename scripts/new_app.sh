@@ -52,15 +52,18 @@ flutter create --org "$ORG" --project-name "$APP_NAME" --platforms ios,android "
 
 mkdir -p "$DIR/assets/images"
 
-find "$TPL" -type f | while IFS= read -r file; do
+find "$TPL" \( -name .dart_tool -o -name build -o -name .flutter-plugins-dependencies -o -name pubspec.lock \) -prune -o -type f -print | while IFS= read -r file; do
   rel="${file#"$TPL"/}"
   dest="$DIR/$rel"
   mkdir -p "$(dirname "$dest")"
-  sed \
+  case "$rel" in
+    *.dart|*.yaml|*.md|.env.*|.gitignore) sed \
     -e "s/__APP_NAME__/$APP_NAME/g" \
     -e "s/__APP_CLASS__/$APP_CLASS/g" \
     -e "s/__APP_TITLE__/$TITLE/g" \
-    "$file" > "$dest"
+    "$file" > "$dest" ;;
+    *) cp "$file" "$dest" ;;
+  esac
 done
 
 printf '\n.env.dev\n.env.prod\n' >> "$DIR/.gitignore"

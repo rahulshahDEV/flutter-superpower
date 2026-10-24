@@ -82,7 +82,7 @@ Ask, in order:
 - Is it already implemented somewhere? (search before writing)
 - Which layer owns it? UI/presentation logic → widget or cubit; business rules → use case /
   domain; data access → repository → data source; platform → native config.
-- Is a new abstraction actually needed? (no interface with one implementation)
+- Does a new abstraction provide a useful boundary, lifetime or test seam?
 - What is the blast radius? (change impact below)
 
 **Change impact analysis** — before touching shared code:

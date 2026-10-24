@@ -2,10 +2,12 @@
 
 Visual taste rules for Flutter/Material 3 work. Distilled from Impeccable's
 detector vocabulary and UI-UX-Pro-Max's mobile checklist, adapted to the house
-style (K-widgets, `AppColors`, `AppTextStyles`, ScreenUtil). Read with
+style (K-widgets, `AppColors`, `AppTextStyles`, ScreenUtil). These are default taste
+preferences, not universal bans: supplied designs, brand requirements, platform conventions,
+and content needs win. Accessibility and readable controls remain requirements. Read with
 `design-review.md` before a visual pass.
 
-## Anti-pattern tells — refuse these
+## Default visual direction
 
 - Never `Card` inside `Card`. Flatten with `Divider`, padding, or M3 tonal
   surface levels (`surfaceContainer*`).
@@ -34,8 +36,8 @@ style (K-widgets, `AppColors`, `AppTextStyles`, ScreenUtil). Read with
   reinvented affordances. Inactive states are muted, never full-saturation.
 - Android gets M3 navigation (bar/rail), system Back, M3 dialogs and sheets.
   Never transplant Cupertino switches, iOS tabs, or back chevrons.
-- The default Inter theme is fine. Adopting another face needs a product
-  reason recorded in the feature; theme it through `AppTextStyles` roles.
+- The scaffold uses system fonts offline. Choose a branded family for a product reason;
+  use shared text roles and the delivery checks in `fonts.md`.
 
 ## Motion tokens
 

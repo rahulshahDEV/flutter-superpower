@@ -13,7 +13,7 @@ Do steps in order; the app compiles and runs after step 5, then each feature is 
    flutter create --org com.<org> --project-name <app> --platforms ios,android <app>
    ```
    Set `environment.sdk` to the Flutter SDK's Dart, trim generated counter app, write `analysis_options.yaml`.
-2. **Pubspec baseline** — copy the starter from `app-bootstrap.md`. Add feature packages only when the feature lands. Declare assets dirs + `.env.dev`/`.env.prod`.
+2. **Pubspec baseline** — use `templates/app/pubspec.yaml` and the selection rules in `dependencies.md`. Add feature packages only when the feature lands. Declare assets dirs + `.env.dev`/`.env.prod`.
 3. **Core foundations** (in this order, each file from the references):
    1. `core/config/app_config.dart` + `.env.sample`
    2. `core/constants/` — `string_constants.dart`, `api_constants.dart`, `app_constants.dart`, `media_constants.dart`
@@ -27,7 +27,7 @@ Do steps in order; the app compiles and runs after step 5, then each feature is 
    10. `core/network/dio_client.dart`
    11. `core/widgets/` — `k_button.dart`, `k_text_field.dart`, `image_renderer.dart`, `loading_widget.dart`, `empty_state_widget.dart`, `error_state_widget.dart`, `app_snack_bar.dart`, `bottom_sheet_divider.dart`
 4. **DI** — `di/injection.dart`, `di/register_module.dart`; run build_runner; confirm `getIt<LocalStorageService>()` resolves.
-5. **Bootstrap + shell** — `main.dart`, `main_dev.dart`, `main_prod.dart`, `app.dart`, `core/router/app_router.dart` with a splash route, `features/splash/presentation/pages/splash_screen.dart`. Run the app on dev flavor.
+5. **Bootstrap + shell** — `main.dart`, `main_dev.dart`, `main_prod.dart`, `app.dart`, `core/router/app_router.dart` with a home route (no artificial splash delay), `features/splash/presentation/pages/splash_screen.dart`. Run with `flutter run`; use dev flavor after native configuration.
 6. **Flavors** — Android/iOS config per `app-bootstrap.md`, `.vscode/launch.json`.
 7. **Firebase/FCM** — `flutterfire configure`, wire `FcmService` + background handler (skip if app has no push).
 8. **First real feature** — follow § New Feature below. Then verify.
@@ -84,14 +84,14 @@ Same playbook, applied per screen:
 
 ```bash
 dart format .
-dart run build_runner build --delete-conflicting-outputs   # ONLY if annotations/generated code changed
+fdev gen # only if annotations changed; fallback: dart run build_runner build --delete-conflicting-outputs
 flutter analyze                                   # must be zero issues
 flutter test                                      # must be green
 ```
 
 Test conventions (all three apps): `flutter_test` only, no mocktail/mockito.
 - Hand-written fakes: `class FakeOrdersRepository implements OrdersRepository { @override FutureEither<List<Order>> getOrders(...) async => Right([...]); }`
-- Cubit test: arrange fake → `blocTest`-free style or plain `await cubit.load(); expect(cubit.state, isA<OrdersLoaded>());` + `addTearDown(cubit.close)`.
+- Cubit test: arrange fake → `blocTest`-free style or plain `await cubit.load(); expect(cubit.state, isA<OrdersSuccess>());` + `addTearDown(cubit.close)`.
 - `SharedPreferences.setMockInitialValues({})` before storage tests.
 - One test per non-trivial unit: a parser, a validator, a cubit fold. Skip trivial getters.
 - Paths mirror `lib/` (`test/features/orders/presentation/cubit/orders_cubit_test.dart`).

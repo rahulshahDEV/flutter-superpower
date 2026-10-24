@@ -248,3 +248,146 @@ verify the resulting skill path. Note that `fdev init` can commit generated setu
 **Must-not:** claim `fdev init` installs Flutter-Superpower; rerun it without a need for
 Graphify/Caveman; modify unrelated project files.
 **Verify:** inspect the installed skill path and Git diff; confirm no unrelated changes.
+
+## 27 — Deliberate startup and platform UI
+
+**Task:** "Set up production startup for a Flutter app supporting phones and tablets. Handle
+missing configuration, offline launch, system bars, and portrait preference on phones."
+**Must:** establish required versus optional startup work; show failure without DI/config;
+await platform policy; explain orientation restrictions; handle bar contrast and insets;
+no timed splash or boot permission prompt; verify missing config and requested platform calls.
+**Must-not:** unconditional tablet lock, raw startup error copy, blocking on optional network,
+or claiming native bar behavior from unit tests.
+**Verify:** analyze/test; device launch/orientation/keyboard checks explicitly recorded or unverified.
+
+## 28 — Typography and adaptive action control
+
+**Task:** "Use our chosen Google Font and make the primary action work offline, with long
+translations and 2x text on narrow screens."
+**Must:** bundle matching licensed font styles, disable runtime HTTP before creating styles,
+wire TextTheme, preserve user scaling, wrap labels, maintain loading footprint and accessible
+name, prevent duplicate taps, and keep minimum touch size in logical pixels.
+**Must-not:** rely on a warm cache, double-scale gaps, clamp accessibility text, or use fixed
+height to hide overflow.
+**Verify:** widget tests for long-label/busy semantics/geometry; clean-install offline evidence.
+
+## 29 — Evidence-based package choice
+
+**Task:** "Add file sharing to this app; choose the right package and explain the tradeoff."
+**Must:** inspect installed dependencies/SDK and target platforms; consult current primary
+sources; compare a credible alternative; account for platform setup, licenses, transitive
+cost, failure paths, and testability; implement the required setup in the same change.
+**Must-not:** invent an SDK share-sheet API, select by popularity alone, add competing stacks,
+or claim all-platform support from pub resolution.
+**Verify:** dependency/lockfile diff, analyze/test, affected platform build; report unverified devices.
+
+## 30 — State and repository boundary integrity
+
+**Task:** "Fix the generated list: malformed server records disappear, offline errors look
+like server errors, and modifying a source list changes already-emitted UI state."
+**Must:** reject malformed required records; preserve typed error classification; show safe
+copy; snapshot mutable collections; one provider owns each Cubit; retain content during
+refresh when appropriate.
+**Must-not:** silently filter malformed data, expose exception diagnostics, mutate emitted
+lists, or create duplicate providers to pass route arguments.
+**Verify:** mapper, malformed record, immutable snapshot and refresh behavior tests.
+
+## 31 — Configure Codemagic and fastlane without accidental publication
+
+**Task:** "Set up Android and iOS CI/CD for this flavored app using Codemagic and our
+existing fastlane lanes. Produce signed artifacts first, then explain tester delivery."
+**Must:** profile identifiers/schemes/versions; isolate untrusted checks from secrets; distinguish
+signing from API authentication; pin toolchains and Bundler; preserve keys/profiles; allocate
+unique build numbers; use valid YAML patterns; one build/upload owner; report actual validation.
+**Must-not:** install a second signing owner, upload automatically without release intent,
+claim YAML parsing proves signing, or expose release credentials to PR scripts.
+**Verify:** YAML/Ruby syntax, secret-free check, signed artifact build when credentials exist;
+account/store steps explicitly verified or recorded as unavailable.
+
+## 32 — Stage and recover a Shorebird patch
+
+**Task:** "Prepare an OTA bug fix for the current production release; test on staging and
+show how to promote or recover it."
+**Must:** inspect eligibility and exact baseline/flavor/platform/target; distinguish dry-run,
+upload, activation and promotion; use installed CLI help; preserve the tested patch identity;
+verify update/restart/rollback on the intended baseline; account for persisted data compatibility.
+**Must-not:** patch asset/native changes with allow-diffs, select an ambiguous latest baseline,
+expose tokens to PR code, rebuild a plain-Flutter store binary, or promise instant fleet rollback.
+**Verify:** command/target review, dry-run and device evidence when access exists; remote
+mutation only within intended publication scope.
+
+## 33 — Diagnose native lifecycle and crash failure
+
+**Task:** "A native plugin crashes after background/resume in the release flavor. Diagnose
+and fix it without resetting app data or upgrading the whole toolchain."
+**Must:** capture exact artifact/device/mode and native causal stack; match symbols; inspect
+engine/activity/controller lifetime, threading and registration; reproduce interruption;
+fix ownership; add bridge/native tests plus affected device verification.
+**Must-not:** infer root cause from the last Gradle line, treat Dart catches as native crash
+recovery, fix by disabling shrinking globally, or claim simulator coverage proves hardware behavior.
+**Verify:** relevant tests, native build, original device reproduction or explicit evidence gap.
+
+## 34 — Runtime tooling becomes a reproducible test
+
+**Task:** "Use available Flutter inspection tools to reproduce the keyboard overflow and
+protect the fix with a test. Consider flutter_skill only if existing tools are insufficient."
+**Must:** discover actual tool schemas/device; inspect constraints and lazy widgets; assert
+state after actions; use bounded waits; add a regression at the failing size/scale; keep any
+optional automation binding before default binding initialization and scoped to debug/test.
+**Must-not:** invent tool names, install tooling solely because referenced, expose runtime
+bridges in release, replace architecture from an external sample, enable a legacy driver
+extension for standard integration_test, or claim screenshots alone prove behavior.
+**Verify:** original reproduction, widget/integration test and explicit tool/device evidence.
+
+## 35 — Preview and resize without losing flow state
+
+**Task:** "Preview this search/detail component at narrow and wide sizes, then ensure resizing
+between its list/detail layouts preserves the selected result and unsaved input."
+**Must:** inspect SDK preview support; use existing theme and deterministic injected fixtures;
+cover loading/error/long-text states; preserve flow ownership/selection/draft across resize;
+assert the breakpoint behavior with a widget test; distinguish browser preview from native evidence.
+**Must-not:** upgrade Flutter merely to enable a preview, call live services from the preview,
+add a second Cubit per layout branch, or claim a preview replaces interaction/device tests.
+**Verify:** SDK capability check, meaningful resize/large-text widget test and preview inspection
+where available; report unavailable preview/native checks explicitly.
+
+## 36 — Location permission, GPS and Settings recovery
+
+**Task:** "Make nearby search and check-in handle denied location, disabled GPS and Settings
+return smoothly. Avoid duplicate requests and stale or inaccurate check-in positions."
+**Must:** profile installed plugin/OS behavior; distinguish app grant, service, precision,
+provider and fix quality; explicit interactive recovery; passive resume recheck; one prompt/
+acquisition owner; cancellation and unchanged Settings preserve control; validate rolling
+freshness/accuracy; stop streams on timeout/disposal; preserve unrelated content.
+**Must-not:** auto-open Settings, prompt on every resume/build, use an API cutoff as universal
+provider policy, log coordinates, conflate denial with timeout, use cached position for check-in
+without its stated quality policy, or release a prompt lock while the native dialog remains.
+**Verify:** fake-adapter lifecycle/concurrency/quality tests and actual supported device flows;
+report native UI/provider checks that were unavailable.
+
+## 37 — Capability permissions with minimum scope
+
+**Task:** "Add profile-photo selection and opt-in notifications. Handle limited access,
+cancellation, blocked permissions and return from Settings without disturbing the profile form."
+**Must:** evaluate permission-free system picking; request only needed scope; accept adequate
+limited access; preserve input; one request owner; separate notification authorization/channel/
+token status; inspect native setup and installed permission-handler mapping; bounded recovery.
+**Must-not:** blanket storage/camera/microphone requests, interpret an FCM token as visible-alert
+permission, infer permanent denial solely from rationale=false, or reset the form on Settings return.
+**Verify:** selection/cancel/limited/denial/widget tests and platform authorization checks;
+restricted or untestable OS outcomes explicitly recorded.
+
+## 38 — Matched permission coordinator acceptance
+
+**Task:** use fixtures/permission-coordinator-task.md verbatim with the supplied gateway contract.
+**Setup:** evals/prepare_permission.sh <new-work-dir> creates identical baseline and with_skill
+inputs. Resolve dependencies in each lane; give only TASK.md and lib/ to the baseline agent.
+Give the other lane access to this skill, without evaluator acceptance checks or expected code.
+**Must:** preserve the contract; implement the task's availability, prompt, Settings, concurrent
+request, quality, cancellation and disposal behavior; add meaningful own tests and evidence.
+**Must-not:** native/plugin installation, contract changes, cross-lane/source-skill access for
+baseline, production logging or claims of actual device permission behavior.
+**Verify:** independently run analyze and authored tests. After implementation is frozen, copy
+fixtures/permission-coordinator-checks.dart into the lane's test/evaluator_contract_test.dart
+and run it; inspect all 14 acceptance results. Record source hashes, exact scope and baseline
+verdict. Both passing means no demonstrated skill advantage on this contract, not a failed baseline.

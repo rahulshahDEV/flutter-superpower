@@ -1,12 +1,56 @@
 # Changelog
 
+## 2.9.0
+
+- Hardened audit/release exit codes and command-status checks, disabled implicit pub in audit
+  toolchain checks, broadened import scanning and added negative contract regression tests.
+- Restricted installer copy payloads, protected existing real installations and recursive
+  destinations, and removed unused preference token keys from the unauthenticated scaffold.
+- Reconciled scope/review/storage rules with existing-project precedence and evidence reports;
+  added a matched permission-coordinator evaluation fixture and independent acceptance checks.
+
+- Added permission lifecycle/UX, capability-specific grants, GPS/location recovery and health
+  data guides informed by an existing production flow and checked against primary sources.
+- Distinguished denial, blocked/restricted/limited access, service-disabled, accuracy and fix
+  quality; defined serialized prompts, settings-return rechecks and cancellation-safe reads.
+- Corrected broad photo/storage assumptions, location-provider cutoffs, static-map offline
+  claims and simplistic health/step authorization/aggregation rules.
+
+- Follow-up comparison with Flutter agent-plugins and flutter_skill: added integration-test
+  and component-preview guides, clarified runtime-tool selection and debug harness ownership,
+  and documented state continuity during adaptive layout changes.
+- Corrected the testing guide's blanket layout exclusion, duplicate-provider example and
+  production Firebase guard advice; use runnable scaffold examples instead of stale fixtures.
+
+- Expanded Codemagic into account/signing setup and workflow guides; added reproducible
+  fastlane lanes, separate artifact/upload ownership, trusted CI boundaries and recovery.
+- Updated Shorebird baseline/staging/promotion/rollback and CI operations against installed
+  CLI help; synchronized fdev 0.1.6 commands and documented its mutating upgrade-help behavior.
+- Added native build/runtime diagnostics, platform-channel lifecycle guidance, and optional
+  runtime agent tooling informed by Flutter agent-plugins and flutter_skill documentation.
+
+- Added an end-to-end UI workflow and focused font/platform UI guides: deliberate orientation,
+  edge-to-edge, system overlays, bundled Google Fonts, offline delivery, and visual evidence.
+- Replaced stale bootstrap/pubspec examples with template-backed startup guidance and
+  evidence-based package selection; made Firebase, auth, and custom fonts opt-in capabilities.
+- Fixed generated UI foundations: accessible flexible buttons, text-theme wiring, bounded
+  spacing scaled once, readable primary contrast, and offline system typography.
+- Added validated configuration, awaited platform setup, a DI-independent startup failure
+  surface, and immediate home routing without a timed splash.
+- Aligned architecture/router boundaries, argument ownership, provider lifetimes, refresh
+  state preservation, and immutable state collections.
+- Preserved network failure categories, rejected malformed records, removed raw exception
+  copy and sensitive starter logging/auth interception; added regression coverage.
+- Excluded build caches/lockfiles from scaffold copying and preserved binary assets.
+- Added behavioral eval cases for the new decisions; unrun cases remain explicitly unverified.
+
 ## 2.8.1
 
 - Added the missing `templates/app/lib/core/error/api_response_handler.dart`: the envelope
   unwrapper documented in `networking-and-errors.md` now exists in the scaffold (both
   production apps profiled carry this file; the reference described it, the template did
   not). Verified through the scaffold regression (`flutter analyze` clean).
-- Production-app adoptions from zoomies and found-you-flutter profiles: splash screens show
+- Production-app review findings: splash screens show
   branding only (guard + startup coordinator own the first route, no `Timer` + `go()`);
   explicit auth-path whitelist so login/OTP 401s never trigger refresh or force-logout;
   suspension messages passed through to sign-in; local file-size validation before

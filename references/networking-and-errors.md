@@ -1,180 +1,111 @@
-# Networking & Error Handling
+# Networking and Error Ownership
 
-## Layers
+The runnable source of truth is the app/feature templates. Reuse an existing application's
+clients, failure family and envelope contract; don't create a competing error stack.
 
-```
-UI (BlocListener shows failure.message)
-  ↑
-Cubit .fold(failure, success)
-  ↑
-Repository  → safeApiCall / errorHandler  → FutureEither<T> = Either<Failure, T>
-  ↑
-Data source → throws ServerException / NetworkException / UnauthorizedException ...
-  ↑
-DioClient (interceptors: auth header, token refresh, logging)
-```
+## Boundaries
 
-- Data sources **throw** typed exceptions. They never return `Either`.
-- Repositories **never throw**; they wrap with `safeApiCall` and map model→entity.
-- Cubits fold into state variants. Screens only read state.
+Data source → typed exceptions (including DioException) → repository safeApiCall →
+FutureEither<T>/Either<Failure,T> → Cubit fold → UI state and safe feedback.
 
-## DioClient
+- Data sources own transport/JSON parsing and return models, never Either or widgets.
+- Repository methods wrap their work once and return domain outcomes. Don't wrap every
+  inner helper or throw transport exceptions after constructing a Failure.
+- Use cases expose business operations; the template UseCase/NoParams contract supplies
+  the seam. Keep business invariants out of interceptors and JSON constructors.
+- Cubits interpret outcomes; UI owns retry/navigation/snackbar presentation.
 
-```dart
-// core/network/dio_client.dart
-@lazySingleton
-class DioClient {
-  DioClient(this._storage) {
-    _dio = Dio(_baseOptions());
-    _refreshDio = Dio(_baseOptions());
-    _dio.interceptors.addAll([
-      QueuedInterceptorsWrapper(
-        onRequest: _addAuthHeader,
-        onError: _handleAuthError,
-      ),
-      if (AppConfig.instance.isDev)
-        PrettyDioLogger(requestBody: true, responseBody: true, error: true, compact: true),
-    ]);
-  }
+## Client configuration and lifecycle
 
-  late final Dio _dio;
-  late final Dio _refreshDio;
-  Future<void>? _activeRefreshRequest; // single-flight guard
+The scaffold DioClient uses public AppConfig, bounded timeouts and one DI registration.
+It has no auth/payload logger until required. Use the shared client rather than creating a
+new Dio in every feature. Inject replaceable infrastructure through constructors, not hidden
+service-locator calls inside business logic. Match DI lifetime to connection/subscription
+ownership. Don't register the same client via both a module factory and class annotation.
 
-  BaseOptions _baseOptions() => BaseOptions(
-        baseUrl: AppConfig.instance.baseUrl,
-        connectTimeout: AppConstants.connectionTimeout, // 30s
-        receiveTimeout: AppConstants.receiveTimeout,
-        headers: const {'Content-Type': 'application/json', 'Accept': 'application/json'},
-      );
+Define connection/receive/send timeouts, cancellation ownership and retry policy per operation.
+A cancelled request should not become a visible server error after its screen has left.
+A timeout doesn't prove the server abandoned a write. Retry idempotent reads with bounded
+backoff where needed; use backend-supported idempotency for retried mutations. Don't retry
+arbitrary POST requests because a connection disappeared.
 
-  Future<Response<T>> get<T>(String path, {Map<String, dynamic>? queryParameters}) =>
-      _dio.get<T>(path, queryParameters: queryParameters);
-  // post / put / patch / delete wrappers likewise
-}
-```
+Connectivity hints are UX information, not proof an API is reachable. Treat each request's
+actual result as authoritative. A connectivity banner/check is optional infrastructure,
+not a required ConnectivityWrapper class that must exist in every app.
 
-Interceptor duties:
-- **Request**: inject `Authorization: Bearer <accessToken>` from `LocalStorageService` unless already present.
-- **401** on non-auth paths → single-flight `POST /auth/refresh` with `x-refresh-token`, persist new tokens, retry original once (`extra['auth_retry'] = true`).
-  Keep an explicit whitelist of auth paths (`/auth/login`, `/auth/otp`, `/auth/refresh`):
-  their 401s are login failures, never triggers for refresh or force-logout.
-- **403 account inactive / refresh failure** → single-flight force logout: clear session service, `getIt<AppRouter>().router.go(SignInScreen.path)`.
-  Pass suspension messages through to the sign-in screen; never strand the user on a dead session.
-- Connectivity errors → trigger `ConnectivityWrapper.triggerCheck()`.
+## Authentication when required
 
-Never construct a bare `Dio()` in a feature. Uploads use `PresignedUploadClient`
-(raw client bypassing auth interceptors for S3/CDN `PUT`/`POST` with progress callbacks).
-Validate file size against `maxUploadBytes` locally before requesting the presigned URL.
+Constructor-inject a secure session store and a session invalidation boundary. Keep token
+storage/refresh policy outside widgets and repositories that don't own authentication.
+Use a separate refresh client so refresh failures cannot recursively trigger refresh.
 
-## Envelope parsing
+- Attach auth only to approved API hosts/paths; never leak a token to a presigned/upload URL.
+- Exclude login, OTP and refresh endpoints explicitly: their 401 is an operation failure.
+- Single-flight refresh: concurrent protected 401s share one refresh, not one per request.
+- Retry an eligible request at most once after refresh, retaining method/body/headers and
+  cancellation semantics. Streams/multipart bodies may need a recreated request body.
+- Don't restore a session after logout: associate refresh with session identity/generation
+  and reject completion from the old session. A transient refresh outage need not always
+  erase a valid local session; follow the backend/product contract.
+- Confirmed invalid/revoked session triggers one session cleanup outcome. Router composition
+  observes it; HTTP code does not import screens or call go(). Generic 403 is not logout.
+- Preserve safe account-restriction messages and the intended post-login destination.
 
-Backends wrap payloads (`{data, meta}`). Data sources parse via a handler that turns any
-shape/type error into a `ServerException` with a human message:
+New auth tokens use Keychain/Keystore-backed storage; plain preferences are for non-secret
+settings. An existing insecure session store needs a deliberate migration/cleanup plan.
+See security.md and auth-social.md for platform/auth setup.
 
-```dart
-final response = await _dioClient.get<Map<String, dynamic>>(
-  ApiConstants.orders,
-  queryParameters: {'page': page, 'limit': AppConstants.pageSize},
-);
+## Parsing and backend drift
 
-final data = ApiResponseHandler.handle(
-  response.data,
-  parser: (json) => OrderListModel.fromJson(json),
-  missingMessage: ErrorConstants.missingOrdersResponse,
-  invalidMessage: ErrorConstants.invalidResponseData,
-);
-```
+Validate the endpoint's documented envelope before mapping. ApiResponseHandler in the
+scaffold handles a map or its map-valued data field; it isn't a universal list/pagination
+parser. The feature template explicitly handles a list or data-list. Missing, null, wrong
+shape and valid empty data are distinct outcomes. Reject malformed required records rather
+than silently dropping them with whereType and reporting partial data as complete.
 
-Prefer generated `fromJson` when the backend is reliable; use defensive manual
-`_readString` helpers (trim + `FormatException` on missing) for hand-parsed endpoints.
+Prefer generated fromJson for stable schemas. If supporting a documented transition (e.g.
+alternate key spelling, flat versus nested user), define a deterministic fallback order,
+validate the selected value and test both shapes. Don't turn every field nullable or accept
+unknown coercions to conceal backend errors. Keep compatibility parsing in the data layer.
 
-## Failures & exceptions
+Models extend Equatable entities by default; map separate DTOs when inheritance would weaken
+domain invariants. API/storage schema changes require all callers and persisted data to be
+considered, not just the currently visible screen.
 
-```dart
-// core/error/exceptions.dart
-class ServerException implements Exception {
-  const ServerException(this.message, {this.statusCode, this.errorCode});
-  final String message;
-  final int? statusCode;
-  final String? errorCode;
-  @override
-  String toString() => 'ServerException($statusCode): $message';
-}
-// + CacheException, NetworkException, UnauthorizedException, ValidationException
+## Failure mapping and diagnostics
 
-// core/error/failures.dart
-abstract class Failure extends Equatable {
-  const Failure(this.message);
-  final String message;
-  @override
-  List<Object?> get props => [message];
-}
-final class ServerFailure extends Failure { const ServerFailure(super.message); }
-final class NetworkFailure extends Failure { const NetworkFailure([super.message = ErrorConstants.noInternetConnection]); }
-final class UnauthorizedFailure extends Failure { ... }
-final class ValidationFailure extends Failure { ... }
-final class NotFoundFailure extends Failure { ... }
-```
+Use one Failure family per app. The baseline ApiExceptionHandler maps network/timeout,
+unauthorized, validation, not-found, cache and server outcomes to category-specific safe copy.
+Preserve DioException until that boundary; catching it in a source and replacing it with
+ServerException destroys offline/401/422 classification. Unexpected failures use safe
+fallback constants, never exception.toString, statusMessage, raw HTML or server stack text.
 
-Special-cased failures (account suspended, underage) carry extra payload for dialogs/redirects.
+A backend message is displayable only when the API contract guarantees user-safe copy;
+otherwise map codes/statuses to app copy. A structured error body is not automatically safe.
+Use a typed domain failure for meaningful restrictions; don't scatter status checks in UI.
 
-## safeApiCall
+Keep useful internal diagnostics separate from user feedback. Log allowlisted method/route
+template/status/timing/correlation IDs, never tokens, full URLs/query strings, headers or
+payloads by default. Dev-only logging is not redaction. Unexpected errors can be reported
+with sanitized context and stack traces through the app's existing reporting boundary;
+reporting doesn't make an operation recoverable. Non-critical sync needs an observed failure
+path and fallback rather than an empty best-effort catch.
 
-```dart
-// core/error/api_exception_handler.dart
-mixin ApiExceptionHandler {
-  FutureEither<T> safeApiCall<T>(Future<T> Function() apiCall) async {
-    try {
-      return Right(await apiCall());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(e.message));
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(e.message));
-    } on ValidationException catch (e) {
-      return Left(ValidationFailure(e.message));
-    } on DioException catch (e) {
-      return Left(_handleDioException(e)); // 400/422 validation, 401 unauthorized,
-                                           // 403 forbidden, 404 not found, else server
-    } on Object catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-}
-```
+## Uploads and UI feedback
 
-`_handleDioException` extracts the backend `message` (from `{message}` or `{data:{message}}`)
-then falls back to an `ApiErrorMessages` code→string map, then to the status message.
+Use a dedicated presigned client that bypasses API auth interception for the intended
+storage host. Validate local size/type before requesting the upload URL, keep signed URLs
+out of logs, and define progress/cancel/retry and post-upload confirmation behavior. Don't
+retry an expired URL indefinitely or report completion before the server accepts the result.
 
-A stricter variant funnels everything through a single `ErrorHandler.errorHandler(future)`
-that also reports unknown errors to crash reporting and force-logs-out on `UnauthenticatedException`.
+No-content errors render inline with retry. Action failures may show AppSnackBar while
+retaining usable content/input. Refresh failures preserve loaded items; pagination failures
+use footer retry. Avoid duplicate snackbar/inline announcements for the same event.
 
-## Use case contract
+## Verification
 
-```dart
-// core/usecases/usecase.dart
-abstract class UseCase<Type, Params> {
-  FutureEither<Type> call(Params params);
-}
-
-class NoParams extends Equatable {
-  const NoParams();
-  @override
-  List<Object?> get props => const [];
-}
-```
-
-One class per file in `domain/usecases/`, `@lazySingleton`, one-line body delegating to the repo.
-
-## Showing errors
-
-- UI: `AppSnackBar.showError(context, failure.message)` or the app's equivalent
-  (`CustomSnackBar.showError(context, message: ...)`, `showErrorInfo(context, msg)`).
-- Never show raw exception text; failures already carry user-safe messages.
-- Retry affordances: `ErrorStateWidget(onRetry: () => cubit.load())`.
-- Logging: `AppLogger.d/i/w/e(message, name: 'ClassName', error: e, stackTrace: st)` —
-  dev-only, ANSI-colored, wraps `dart:developer log`. Never `print()`.
-- Best-effort non-critical work (syncs on resume, token registration) wraps in
-  `try { ... } on Object { /* best-effort */ }` so it can never crash startup.
+Test failure categories across the actual source/repository boundary, malformed records,
+valid empty/success data, safe fallback messages and cancellation. Auth changes also cover
+concurrent refresh, retry bounds, auth endpoint exclusion and logout during refresh. Upload
+changes exercise the correct client/host and late progress after disposal. Use deterministic
+fixtures/fakes for contracts and a controlled integration environment for real backend claims.

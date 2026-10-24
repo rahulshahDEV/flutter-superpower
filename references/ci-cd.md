@@ -1,44 +1,60 @@
-# CI/CD
+# CI/CD Engineering
 
-Quality gate on every PR: **format → analyze → test**. Builds run on release branches/tags.
-Use the owner's `fdev` CLI where installed; raw Flutter commands otherwise.
+CI reproduces the same gate as local: resolve dependencies, format → codegen if needed →
+analyze → test, then build the affected native targets. `fastlane-codemagic.md` routes hosted
+signing/delivery setup. Existing project workflow and explicit release scope take priority.
 
-## GitHub Actions — PR checks
+## Trust and reproducibility
+
+Use separate check, artifact, and publishing workflows. Pull requests run without signing,
+store, production backend, or OTA credentials. Untrusted code must not acquire credentials
+via an attacker-editable YAML/script or a privileged trigger checking out PR code. Protect
+release refs and publication environments using provider controls; a tag alone is not trust.
+
+Pin a tested Flutter release, compatible native toolchain, and Ruby/fastlane where used.
+Commit app pubspec.lock and other chosen dependency lockfiles. Prefer immutable action SHAs
+when maintaining production workflows; version tags below are readable examples to resolve
+and pin during setup. Record actual versions with artifacts. Don't float stable in CI.
+
+## GitHub Actions check example
+
+Replace the Flutter pin before use. This is a root Flutter package with codegen, public sample
+config and gitignored generated Dart files. No production secrets are needed for unit tests.
 
 ```yaml
-# .github/workflows/ci.yml
-name: CI
+name: Flutter checks
 on:
   pull_request:
-    branches: [develop, main]
+    branches: [main]
   push:
-    branches: [develop, main]
-
+    branches: [main]
+permissions:
+  contents: read
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: REPLACE_WITH_TESTED_FLUTTER
           channel: stable
           cache: true
-
-      - run: flutter pub get
-
-      - run: dart format --set-exit-if-changed lib test
-
-      - name: Codegen (verify generated code is current)
+      - name: Prepare and resolve
         run: |
-          dart run build_runner build --delete-conflicting-outputs
-          git diff --exit-code -- '*.g.dart' '*.freezed.dart' || \
-            (echo "Generated files are stale — run fdev gen and commit" && exit 1)
-
+          cp .env.sample .env.dev
+          cp .env.sample .env.prod
+          flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test
+      - name: Generate
+        run: |
+          if command -v fdev >/dev/null 2>&1; then
+            fdev gen
+          else
+            dart run build_runner build --delete-conflicting-outputs
+          fi
       - run: flutter analyze
-
       - run: flutter test --coverage
-
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -46,62 +62,44 @@ jobs:
           path: coverage/lcov.info
 ```
 
-Notes:
-- Generated files are gitignored in this house style, so the "stale generated code" step
-  only makes sense in repos that commit them. If gitignored, just run codegen before analyze
-  (no diff check).
-- `dart format --set-exit-if-changed` is the enforcement; local habit is `dart format .`.
+Remove generation when no builders exist. Never ask agents to commit `.g.dart`,
+`.freezed.dart`, or injection.config.dart in this house style; rebuild before analyze.
+Projects intentionally tracking generated files may add their own freshness check.
+Install a pinned fdev version if relying on it; don't assume hosted images include it.
 
-## Android build (dev flavor smoke)
+## Build and publish stages
 
-```yaml
-  build-android:
-    needs: check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
-      - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: '17' }
-      - run: flutter pub get
-      - run: dart run build_runner build --delete-conflicting-outputs
-      - name: Write secrets
-        run: |
-          echo "${{ secrets.ANDROID_KEY_PROPERTIES }}" > android/key.properties
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
-          echo "${{ secrets.ENV_DEV }}" > .env.dev
-          echo "${{ secrets.ENV_PROD }}" > .env.prod
-      - run: flutter build apk --flavor dev -t lib/main_dev.dart --debug
-```
+- Android: select compatible JDK/SDK/Gradle from the app, then build the actual flavor.
+  Prefer `fdev appbundle prod -t lib/main_prod.dart --build-number=<number>`; fallback
+  `flutter build appbundle --flavor prod -t lib/main_prod.dart --build-number=<number>`.
+- iOS: macOS with selected Xcode and project CocoaPods/SwiftPM setup. An unsigned compile
+  check uses `flutter build ios --no-codesign`; a signed export uses `flutter build ipa`
+  with flavor/entrypoint/export options. Simulator success does not prove archive/signing.
+- Allocate build numbers centrally or with an offset/seed above existing store uploads.
+  Prevent concurrent releases from choosing the same number. Marketing version stays in pubspec.
+- Keep configuration assets public and separate from signing/upload credentials. Use protected
+  files with restrictive permissions; don't dump environment variables or upload credential dirs.
+- Run `scripts/release-check.sh <app>` as a mechanical supplement, then inspect its output.
+  Blockers return nonzero; warnings and unverified external checks still need review.
+- Deliver the verified artifact to the intended destination only. Keep one upload owner;
+  don't call fastlane and Codemagic publishing for the same artifact/store in one workflow.
 
-iOS builds need `runs-on: macos-latest`, `pod install`, and an Apple signing setup
-(certificate + provisioning profile secrets, or `--no-codesign` for compile-only checks).
+## Cache and artifact policy
 
-## Secrets checklist (never commit)
+Cache package/native dependencies with keys tied to toolchain and lockfiles. Don't cache
+signing files, private API keys, or arbitrary environment directories. A cache miss must
+still build successfully. Avoid routine clean/pod update rituals; investigate stale artifacts.
 
-| Secret | Where it goes |
-|---|---|
-| `.env.dev`, `.env.prod` | repo secrets → written in CI; local dev keeps real files gitignored |
-| `android/key.properties` + keystore `.jks` | repo secrets (base64 the keystore) |
-| `google-services.json`, `GoogleService-Info.plist` | repo secrets |
-| App Store / Play credentials | CI environment secrets only |
+Retain binaries, checksums, commit/tool versions, flavor, package IDs, build number, tests,
+coverage where useful, dSYMs, R8 mappings, native/Dart symbols as applicable. Restrict access
+and retention for crash/test artifacts that contain user data. Match symbols to exact builds;
+OTA adds a patch identifier. Use `native-diagnostics.md` for symbolication.
 
-Commit a `.env.sample` documenting every key. Never echo secret contents in logs.
+## Verification and release recovery
 
-## Release flow
-
-The full release checklist lives in `release.md`; the mechanical pass is
-`scripts/release-check.sh <app>`. CI's part:
-
-1. `release-check.sh` runs on the release branch/tag (fails on hard blockers).
-2. Tag `vX.Y.Z`; CI builds the release flavors.
-3. `fdev appbundle prod -t lib/main_prod.dart` (or `flutter build appbundle ...`).
-4. iOS: `fdev ios prod -t lib/main_prod.dart`, then archive/upload in Xcode.
-
-## House CI rules
-
-- `flutter analyze` must be zero issues — no `// ignore` without a reason comment.
-- Tests must pass; new non-trivial logic adds at least one test in the same PR (see `testing.md`).
-- One logical change per PR; branch names `feat/*`, `bugfixes/*`; no self-merge.
-- CI failure fixes get a new commit, never a force-push over a reviewed branch.
+Validate YAML and provider schema, run a secret-free check, then a trusted signed artifact
+build. Inspect signer/version/identity before authorized upload. Confirm store processing,
+tester availability and release status separately. A green YAML parser proves syntax only.
+On timeout, inspect remote upload state before retrying; use the same artifact when valid.
+Keep previous release artifacts and a recovery plan; a rollback cannot automatically undo
+persisted data migrations. For OTA, follow `shorebird.md` rather than rebuilding with plain Flutter.

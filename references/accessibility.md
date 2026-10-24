@@ -20,7 +20,7 @@ Integrate it into the existing design system — never build a parallel "accessi
 
 ## Touch targets & interaction
 
-- Minimum 48×48dp (Material) / 44×44pt (iOS). `KButton` is 52 high — keep new controls in that range.
+- Minimum 48×48dp (Material) / 44×44pt (iOS). `KButton` has a 52dp minimum and grows with text; keep targets above the platform floor.
 - Space adjacent tappable items ≥8dp apart.
 - Long-press/slide-only actions need a visible alternative.
 
@@ -28,7 +28,8 @@ Integrate it into the existing design system — never build a parallel "accessi
 
 - Test at 1.3×, 1.5×, and 2.0× text scale.
 - No fixed-height containers around text (`SizedBox(height:)` around multi-line text overflows).
-- Prefer `maxLines` + `overflow: TextOverflow.ellipsis` over clipping.
+- Wrap headings, actions, and errors. Use ellipsis only for intentionally truncated secondary
+  text with an accessible full-value path, not as a universal overflow fix.
 - Avoid `TextScaler.noScaling` unless the layout genuinely cannot scale (and document why).
 
 ## Contrast

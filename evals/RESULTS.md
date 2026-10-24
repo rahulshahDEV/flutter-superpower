@@ -7,13 +7,13 @@ own report (analyze/test re-run, Must/Must-not inspected in the diff).
 
 | Status | Cases |
 |---|---|
-| ✅ PASS with skill (independently verified) | 01, 04, 07, 08, 15, 17, 18 (7/26) |
-| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 26 (19/26) |
-| 🔬 Baseline (no skill) run | none yet — required for at least one case per batch from now on |
+| ✅ Recorded PASS with skill (mixed skill versions; independently verified) | 01, 04, 07, 08, 15, 17, 18, 38 (8/38) |
+| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37 (30/38) |
+| 🔬 Baseline (no skill) run | 38 — PASS; with skill also PASS, no demonstrated advantage |
 
-Baselines are the known rigor gap: the current results prove the agent *can* produce correct
-work with the skill, not yet that the skill is what caused it. Next batch must include a
-baseline run per `README.md` step 6.
+Case 38 adds the first matched baseline. Both lanes passed, so the recorded results still
+do not establish a causal skill advantage. Expand comparisons on harder, less prescriptive
+tasks; retain passing baselines rather than selecting only favorable results.
 
 ## 2026-09-24 — skill v2.2.0 (batch 2)
 
@@ -132,3 +132,95 @@ no second date library.
       to resolve analyzer/pub warnings; still report them.
 - [ ] Re-run cases 04, 07, 08, 17 (bug fix, pagination, failure handling, performance) on the
       next pass — the highest-value behavior cases not yet exercised.
+
+## 2026-10-24 — v2.9.0 implementation validation
+
+Cases 27–34 added for startup/platform, font/UI delivery, package selection, boundary
+integrity, CI/CD, OTA, native diagnostics, and runtime tooling. These cases have not yet been run as independent agent/baseline comparisons;
+scaffold regression tests are separate implementation evidence, not behavioral eval passes.
+
+Implementation environment: Flutter 3.38.9, Dart 3.10.8, macOS; fdev 0.1.6.
+
+Implementation checks completed:
+
+- tests/consistency.sh: PASS (all reference indexes, version sync, budgets, shell syntax,
+  placeholders and documented fdev command names).
+- tests/run.sh: PASS (installer copy/project modes; new_app scaffold and orders feature;
+  codegen; format; analyze; tests; forbidden-pattern checks; audit/release-check execution).
+- Fresh-app tests cover adaptive/busy controls, form validation, single-pass spacing,
+  bootstrap failure surface, configuration validation, platform calls and safe error mapping.
+- Generated-feature fixtures cover immutable state, strict malformed-record rejection,
+  successful parsing and network-failure classification across the data boundary.
+- Skill quick validation, local reference targets, changed workflow YAML parsing, fastlane
+  Ruby syntax and git diff whitespace checks: PASS.
+- fdev 0.1.6 command help checked (upgrade excluded from read-only probing after its help
+  unexpectedly reactivated the same version); Shorebird 1.6.123 relevant command help checked.
+
+Not verified: real device orientation/system bars, clean-install bundled Google Font delivery,
+native hardware/lifecycle behavior, credentialed hosted signing/store upload, or live OTA
+activation/promotion/rollback. New behavior cases 27–34 and baseline comparisons remain unrun;
+implementation regression success does not count as their PASS verdict.
+
+### Reference comparison follow-up
+
+Reviewed Flutter agent-plugins' widget-test/responsive/preview workflows and the flutter_skill
+package documentation. Updated case 34 and added case 35; neither was run as an agent/baseline
+eval. Added dedicated integration/preview references and corrected stale testing rules.
+Documentation-only follow-up: consistency, skill metadata and local-link validation pass;
+the earlier scaffold regression remains applicable because templates/scripts were unchanged.
+No new preview session, device integration run, or flutter_skill installation was performed.
+
+### Permission and location follow-up
+
+Read an existing app's location utility, provider selection, location Cubit, permission UI,
+camera helper, lifecycle coordination and native permission declarations without modifying
+that app. Retained separate GPS/access outcomes, bounded acquisition and centralized refresh;
+strengthened denied/restricted/limited handling, Settings return, cancellation and fix quality.
+Checked permission_handler/geolocator/location and Android/Apple primary guidance; documented
+the current Android federated-plugin passive-status/request-result distinction explicitly.
+Added cases 36–37 (not run as agent/baseline evals). Documentation checks passed; templates,
+scripts and package dependencies are unchanged. No native permission/device flow was executed.
+
+## 2026-10-24 — independent quality and acceptance pass
+
+Independent audit found and corrected unsafe installer replacement/copy behavior, silent
+success exit codes, string-based tool-result detection, stale preference-token guidance,
+and scope/evidence contradictions. Negative script contracts and isolated installer tests
+pass. Full regression passes after these changes. PowerShell edits were source-reviewed;
+no PowerShell runtime was available.
+
+### Case 38 — matched permission coordinator
+
+Two independent agents received identical public task/gateway inputs in isolated directories.
+Only the with-skill lane could read SKILL.md/references; neither implementer saw the held-out
+checks before implementation completed. The parent then ran the same 14 acceptance checks,
+read outcomes, and independently reran analyzer and all tests.
+
+| Lane | Authored tests | Held-out acceptance checks | Combined test result | Analyze |
+|---|---:|---:|---:|---|
+| Baseline, no skill | 27 | 14/14 | 41 passed | 0 issues |
+| With skill | 34 | 14/14 | 48 passed | 0 issues |
+
+Verdict: PASS for both lanes on this pure-Dart contract. This demonstrates correct behavior
+under the tested races and failure paths, not a measured advantage from the skill. Test
+counts alone do not establish superior quality. Future comparisons should use harder,
+less prescriptive tasks. Neither lane exercised native prompts or GPS hardware.
+
+Reproducible inputs/acceptance: fixtures/permission-coordinator-task.md,
+fixtures/location_gateway.dart, fixtures/permission-coordinator-checks.dart and
+prepare_permission.sh. Frozen source, authored tests, source hashes and per-check results:
+[case 38 artifacts](artifacts/2026-10-24-case38/summary.json).
+
+### Android scaffold smoke
+
+A separate fresh scaffold was generated, analyzed (0 issues), unit/widget tested (18 passed),
+built as a debug APK, installed and launched on an Android 17/API 37 ARM64 emulator.
+Home was confirmed by UIAutomator text and inspected screenshots in portrait/landscape;
+the same process remained alive, and app-scoped logs had no fatal/overflow/startup-failure
+markers. Original free-rotation policy was restored. No emulator wipe/reset was requested.
+One emulator launch retry was required; Android cold-booted after a renderer snapshot mismatch.
+
+am start reported Status ok and TotalTime 2397ms. This isn't a Flutter first-frame benchmark.
+The starter has no primary interactive flow; this smoke proves the observed startup/rotation
+scope only. Native permissions/GPS, iOS, release signing/store processing and OTA remain untested.
+[Device evidence](artifacts/2026-10-24-device-smoke/summary.json) includes screenshots and APK hash.

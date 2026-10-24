@@ -1,80 +1,96 @@
-# Debugging (house style)
+# Debugging
 
-## The loop
+A principal engineer narrows uncertainty before editing. The skill supplies a repeatable
+method, not a guarantee that every failure is diagnosable without logs, devices, or access.
+Native builds: `native.md`. Crashes/hangs/device traces: `native-diagnostics.md`.
+Custom bridges: `platform-channels.md`. Async ownership: `async-safety.md`.
 
-```
-1. Reproduce        — exact screen, exact state, dev flavor, device/emulator
-2. Locate the layer — symptom → layer table below
-3. Hypothesize      — one sentence: "X is null because Y"
-4. Verify           — log/breakpoint BEFORE editing
-5. Fix root cause   — grep every caller of the thing you're touching; fix where all callers route through
-6. Add a check      — a test that fails if it regresses (see testing.md)
-```
+## Reproduce and classify
 
-Never edit code to "see if it fixes it". One hypothesis at a time. If two fixes were
-needed, one of them was wrong.
+Record expected/actual behavior, exact steps, frequency, first bad version, device/OS,
+flavor/entrypoint, build mode, network/account state, and recent changes. Preserve the first
+stack trace and its causal chain. A report names a symptom, not necessarily the faulty layer.
+If reproduction is unavailable, add narrowly scoped safe instrumentation and state what
+would distinguish the leading hypotheses; don't invent a root cause.
 
-## Symptom → layer
-
-| Symptom | Layer to inspect first |
+| Signal | First boundary to inspect |
 |---|---|
-| UI shows nothing / wrong widget | cubit state + `switch`/`maybeMap` exhaustiveness |
-| Spinner forever | cubit emitted loading but fold path never emits loaded/failed |
-| Snackbar never shows | `BlocListener` not wrapping the right subtree; failure swallowed by repo |
-| `Failure` message is generic | data source threw non-typed exception; `safeApiCall` fell into `on Object` |
-| 401/redirect loop | token refresh single-flight guard; auth whitelist path matching |
-| Screen blank after navigate | route builder returned fallback (bad `extra`); check `fromExtra` |
-| Overflow stripes | fixed sizes in a constrained row/column; missing `Expanded`/`Flexible` |
-| Data renders then vanishes | stale async response (missing request-id guard) or `safeEmit` after close |
-| Only prod broken | `.env.prod` key missing; proguard/R8; release signing; FCM APNs config |
+| Build fails before Dart runs | Native toolchain/task output or dependency resolution |
+| Wrong/missing UI | Actual Cubit state, provider scope, builder branch, layout constraints |
+| Spinner forever | Every async completion/error path; swallowed errors; request ownership |
+| Old data replaces new | Request ordering, cancellation, shared mutable state |
+| Double fetch or action | Nested providers, build-time effects, repeated listeners/submission |
+| Wrong screen/deep link | Router input, encoded IDs, redirect state, absent extras |
+| 401 loop | Refresh ownership, retry marker, excluded auth paths, session invalidation |
+| Offline classified as server error | Data source wrapping DioException too early |
+| Overflow/hidden CTA | Constraints, text scale, keyboard/inset ownership, fixed heights |
+| Only release fails | Native crash logs, signing/env, assertions, entry points, shrinking |
+| Plugin unavailable | Platform support, registration, engine/isolate, full native rebuild |
+| Slow/janky/hot | Profile trace; distinguish Dart, raster, native, I/O and background work |
 
-## Tools (in order of cheapness)
+## Evidence-driven loop
 
-1. `flutter analyze` — most bugs are analyzer errors; run it before anything else.
-2. `AppLogger.d/i/w/e(message, name: 'Class')` — dev-only, already everywhere. Add temporary
-   logs at layer boundaries (repo in/out, cubit emit), remove them after.
-3. Dio `PrettyDioLogger` (dev only) — request/response bodies + status codes. For non-Dio
-   (or the `http`-based variant), `HttpPrettyLoggerInterceptor` does the same.
-4. Breakpoints / `debugger()` in the IDE — for control flow, not data shapes.
-5. DevTools: widget inspector (tree + overflow), performance (jank), network (if using `http`),
-   memory (image/video leaks).
-6. `flutter run --verbose` — plugin/native build failures (pods, gradle, manifest merge).
-7. `flutter doctor -v`, `dart pub deps --style=compact` — environment/dependency conflicts.
+1. Preserve a failing reproduction or focused test. Check `git status` and recent diffs.
+2. State a falsifiable hypothesis and the smallest observation that could disprove it.
+3. Inspect at the boundary: breakpoint, state transition, sanitized timing/status metadata,
+   minimal fixture, or native log. Use the tool suited to the failure; analyzer output cannot
+   diagnose a native crash or backend outage.
+4. Search all callers before changing a shared contract. Fix the responsible owner; avoid
+   unrelated refactors, speculative retries, dependency upgrades, and broad configuration edits.
+5. Re-run the original reproduction and add a regression check that fails without the fix.
+   Check adjacent paths affected by the same contract. Multiple causes can coexist; explain
+   each with evidence rather than assuming every incident must have one edit.
+6. Remove temporary probes or retain only useful redacted telemetry. Report cause, evidence,
+   change, test result, and anything not reproduced or verified.
 
-## House-style failure modes
+A diagnostic experiment may temporarily change code, but label it as an experiment, keep it
+small/reversible, and don't ship it as proof without confirming the causal link.
 
-| Error | Cause | Fix |
-|---|---|---|
-| `Object/factory with type X is not registered inside GetIt` | annotation missing, or generated DI stale | add `@injectable`/`@LazySingleton(as:)`, then `fdev gen` |
-| `Missing part 'x.g.dart'` / `_$XFromJson` undefined | generated files not rebuilt after annotation change | `fdev gen` |
-| `'X' isn't defined` after renaming a cubit method | stale `.freezed.dart`/`.g.dart` referencing old name | `fdev gen`, then analyze |
-| `emit was called after close` | async completed after screen disposed | `SafeCubit.safeEmit` (already), plus `if (isClosed) return;` after awaits |
-| `setState() called after dispose` | dialog/sheet callback after pop | `if (!mounted) return;` |
-| `Firebase.initializeApp` in widget tests | tests build `App` without Firebase | guard `if (Firebase.apps.isEmpty) return;` |
-| `.env` asset not found | `.env.dev`/`.env.prod` not declared under `flutter: assets:` | declare them |
-| `GoException: no routes for location` | route not registered / path built wrong | use `XScreen.pathFor(...)` constants, never string literals |
-| Push works foreground, not background | missing `@pragma('vm:entry-point')` or channel not created in background isolate | check `fcm_background_handler.dart` |
-| Works debug, fails release (Android) | R8 stripping models/plugins | keep rules / `minifyEnabled` config |
-| `pod install` mismatch / iOS flavor fails | xcconfig chain / scheme missing | check `FLUTTER_TARGET` per config |
-| Keyboard covers CTA | no `viewInsets` handling | scroll view + `MediaQuery.viewInsets.bottom` padding |
-| Unbounded height / list not scrolling | `ListView` inside `Column` without `Expanded` | wrap in `Expanded` or use `CustomScrollView` slivers |
-| Image blank | wrong resolver for path type (S3 key vs full URL) | route through `ImageRenderer` + `MediaUrlResolver` |
-| `RenderFlex overflowed` only on small phones | raw pixel sizes | `.w/.h/.r` + `AppSizes`; test at 320pt width |
+## Use the right tools
 
-## Bug-fix discipline
+- Compile/type problems: `flutter analyze`; generated code: `fdev gen` (fallback
+  `dart run build_runner build --delete-conflicting-outputs`). Never hand-edit generated files.
+- UI: Inspector/constraints, breakpoints and a widget test at the failing size/text scale.
+  Fix structure before scaling; adding `.w/.h` everywhere is not an overflow diagnosis.
+- State: observe ordered transitions and request IDs, not just the final state. Verify one
+  provider owns each factory Cubit, and disposed owners cannot receive late work.
+- Data: compare a minimized redacted response fixture with the parser contract. Keep only
+  allowlisted status, route template, timing, and correlation IDs in logs. Never dump auth
+  headers, full payloads, arbitrary route extras, or personal data, even in dev.
+- Network: capture request method/status/error category and server correlation ID; distinguish
+  DNS/TLS/timeout, HTTP failure, parsing, auth and backend contract errors. Don't disable TLS
+  validation as a fix or endlessly retry a non-idempotent write.
+- Native/plugin: `flutter run --verbose`, failing Gradle/Xcode task and device logs. A Dart
+  `MissingPluginException` does not prove a package bug; test registration and supported mode.
+- Dependency/environment: `flutter doctor -v`, lockfile diff, `dart pub deps --style=compact`.
+  Clean only for an evidenced stale artifact: `fdev clean` (fallback
+  `flutter clean && flutter pub get`), then repeat the same reproduction.
 
-- **Grep every caller before editing** the function — fix once where all callers route through,
-  not per call site (this is the lazy fix AND the root-cause fix).
-- A report names a symptom, not a location. Trace the flow end to end first.
-- Data bugs: log the raw response at the data source, not the mapped entity.
-- State bugs: log every `safeEmit` transition, not the final state only.
-- Navigation bugs: log `state.extra`/`pathParameters` in the route builder.
-- Never "fix" by widening a type to `dynamic`, catching `Object` silently, or adding `!`.
+## Common repairs, with proof
 
-## Red flags — stop and re-diagnose
+| Failure | Evidence required before repair |
+|---|---|
+| Missing GetIt registration | Annotation/interface binding and regenerated registration output |
+| Emit after close | Async completion after disposal; cancellation/stale guard regression |
+| Widget context after await | Owner unmounted during await; test navigate-away path |
+| Failure swallowed | Trace repository fold and callback error observation |
+| Widget test initializes Firebase | Inject/fake the dependency or test a smaller view; don't add a production empty catch |
+| Keyboard covers action | Inspect viewInsets and Scaffold resizing; one padding owner, scrollable content |
+| Release-only plugin crash | Native stack and correct build symbols; narrow config/native fix |
+| Generic error copy | Inspect safe internal diagnostics; don't expose raw exceptions to the user |
 
-- Fixing the second symptom before understanding the first.
-- Adding a retry/timeout to hide a race instead of finding the stale request.
-- Wrapping in `try/catch` with an empty body to silence a stack trace.
-- "Works on my machine" — compare flavor, env file, and device API level.
-- Editing generated files (`.g.dart`, `.freezed.dart`, `injection.config.dart`).
+Flutter framework errors and uncaught asynchronous errors use different handlers. Preserve
+normal error presentation when adding reporting, and keep setup at the existing bootstrap
+boundary. See [Flutter error handling](https://docs.flutter.dev/testing/errors) and
+`app-bootstrap.md`; don't scatter competing global handlers through features.
+
+## Stop and reassess
+
+Reassess after repeated unsuccessful experiments: summarize observations, eliminate contradicted
+hypotheses, and choose a different boundary or a smaller reproduction. Do not cycle through
+clean/reinstall/retry commands without new evidence. Avoid silent catches, unsafe casts,
+`dynamic`/`!` workarounds, disabling validation, or destructive data resets.
+
+If blocked, provide the smallest actionable request: the exact sanitized log, device action,
+configuration identifier, or permission needed, plus the check that becomes possible with it.
+Continue independent work and clearly distinguish confirmed findings from hypotheses.
