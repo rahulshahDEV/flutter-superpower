@@ -68,6 +68,8 @@ A Flutter UI test doesn't automatically control every native permission dialog, 
 system sheet or platform view. Use supported native UI automation or a documented manual
 step when necessary. Mocked MethodChannel responses establish adapter behavior only.
 Keep unit, widget, device, and backend assertions distinct in the report.
+Optional Android exploration with ARTEMIS uses android-automation.md; inspect the actual
+journey before translating it into deterministic tests, without making that tool mandatory.
 
 Exercise denial, navigation away during work, foreground/background, restart and deep-link
 entry when the change touches those lifetimes. A normal in-process test restart isn't an

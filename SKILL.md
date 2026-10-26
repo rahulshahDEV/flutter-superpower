@@ -3,7 +3,7 @@ name: flutter-superpower
 description: Build, extend, audit, debug, or refactor Flutter apps with feature-first architecture, Cubits, injectable DI, and deliberate UI and platform decisions. Use for Flutter implementation, native integration/debugging, and Codemagic/fastlane/Shorebird delivery; existing project conventions take priority over these defaults.
 license: MIT
 metadata:
-  version: "2.9.0"
+  version: "2.10.0"
 ---
 
 # Flutter Superpower
@@ -40,8 +40,8 @@ carefully, implement cleanly, verify everything, and never stop at partially wor
    preference. Greenfield → use the defaults. Existing project → mirror the project and
    improve incrementally. Migration → only when explicitly requested, staged, verified
    after each stage.
-3. **Decide before coding:** layer ownership, reuse, blast radius (`rg` dependents before
-   editing shared code).
+3. **Decide before coding:** observable acceptance, ownership, reuse, blast radius (`rg`
+   dependents); substantial work → `references/task-planning.md`.
 4. **Own the obvious work** without asking: states (loading/error/empty/success), validation,
    DI, route, constants, platform config, tests. Ask only when genuinely blocked — one
    precise question with your proposed default.
@@ -117,6 +117,8 @@ Non-trivial behavior ships with a runnable check — see `references/testing.md`
 | File | Load when |
 |---|---|
 | `references/architecture.md` | folder layout, naming table, layer rules, feature skeleton |
+| `references/task-planning.md` | acceptance criteria, runnable slices, dependencies, resume checkpoints |
+| `references/boundary-design.md` | useful interfaces, test boundaries, safe simplification |
 | `references/state-and-di.md` | cubits, states, providers, injectable wiring, local UI state |
 | `references/routing.md` | go_router, route data, guards, shells/bottom nav |
 | `references/networking-and-errors.md` | Dio, interceptors, token refresh, Either, failures, logging |
@@ -161,6 +163,7 @@ Non-trivial behavior ships with a runnable check — see `references/testing.md`
 | `references/native-diagnostics.md` | crashes, ANRs, logs, symbols, Instruments/Perfetto |
 | `references/platform-channels.md` | Kotlin/Swift bridges, Pigeon, threading, lifecycle |
 | `references/device-tooling.md` | runtime MCP/Inspector, optional flutter_skill, test conversion |
+| `references/android-automation.md` | optional ARTEMIS, Android task lifecycle, traces, outcome assertions |
 | `references/release.md` | release checklist + `scripts/release-check.sh` |
 | `references/auth-social.md` | Google & Apple sign-in end to end: platform setup, exchange, errors |
 | `references/store-release.md` | Play + App Store submission, review rejections |

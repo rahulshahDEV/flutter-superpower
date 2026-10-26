@@ -1,7 +1,9 @@
 # Parallel Agent Delegation
 
-Use sub-agents to shorten repository exploration and broaden reviews when the editor offers
-them. The lead agent still owns the plan, shared changes, verification, and final report.
+Use sub-agents to shorten repository exploration and broaden reviews when available and
+permitted by the current session. Tool availability alone does not override an instruction
+restricting delegation. Otherwise use sequential passes. The lead agent still owns the plan,
+shared changes, verification, and final report.
 
 ## Decide whether to fan out
 

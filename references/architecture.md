@@ -149,6 +149,8 @@ features/orders/
 
 Build order: entity → repository contract → model → data source → repo impl → use case →
 state → cubit → widgets → screen → route. Bottom-up; each step compiles before the next.
+For substantial features, apply that order inside one runnable outcome at a time rather
+than completing every layer for every imagined feature first; see task-planning.md.
 
 ## Decisions beyond folders
 
@@ -169,3 +171,6 @@ state → cubit → widgets → screen → route. Bottom-up; each step compiles 
 - Verify boundaries through meaningful tests: domain invariants, repository mapping,
   out-of-order requests, state preservation on failure, and disposal. A neat folder tree
   alone does not prove clean architecture.
+
+For interface design or consolidation, use boundary-design.md: reduce what callers must
+coordinate while preserving the domain/data/presentation boundaries and useful test seams.

@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.10.0
+
+- Compared pinned snapshots of mattpocock/skills, google/artemis and Ponytail; recorded the
+  adoption plan and kept their setup, publishing and architecture choices optional.
+- Added outcome-based planning, runnable feature slices and resume checkpoints; expanded
+  public-boundary testing with independent expectations and meaningful regression failures.
+- Added interface-design and safe-simplification guidance while preserving the established
+  Flutter layers, useful adapters, lifecycle ownership and complete caller updates.
+- Added optional ARTEMIS Android guidance for readiness, exact device selection, asynchronous
+  task/trace ownership, assertion review, bounded recovery and deterministic regression tests.
+- Corrected review of staged/unstaged/untracked changes and connected callers; replaced the
+  blanket BlocConsumer simplification rule and respected session delegation restrictions.
+- Added behavioral eval cases 39–42; these remain unrun pending independent evaluation.
+
 ## 2.9.0
 
 - Hardened audit/release exit codes and command-status checks, disabled implicit pub in audit

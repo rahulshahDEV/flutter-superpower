@@ -22,7 +22,8 @@ Do not skip the first two. Do not stop after Implement.
 
 ## Step 1 — Project Profile (always, before changing anything)
 
-Inspect: `pubspec.yaml`, `lib/` tree, routing, DI, state management, networking, models,
+Read applicable repository instructions and relevant ADRs/glossary if present. Inspect:
+`pubspec.yaml`, `lib/` tree, routing, DI, state management, networking, models,
 repositories/data sources, shared widgets, theme, extensions/utilities, localization,
 tests, generated files, platform folders (`android/`, `ios/`), env/config, build config.
 
@@ -44,7 +45,7 @@ Mode:           existing project | greenfield | migration
 
 If a project deviates from the defaults, record the deviation and follow the project.
 For a large repository, split this read-only profile across independent agents when the
-host supports them; the lead agent reconciles the evidence into one profile. See
+session permits delegation; the lead agent reconciles the evidence into one profile. See
 `agent-delegation.md`.
 
 ## Step 2 — Mode
@@ -71,6 +72,10 @@ Answer these before coding: Which screens? Which business logic? Which endpoint/
 Which state transitions? Which routes? Which shared components can be reused? Which tests
 are required? What are the edge cases? What could break?
 
+Define observable acceptance and the public boundary that checks it. For substantial work,
+use task-planning.md: sequence runnable user outcomes with explicit dependencies, then use
+the layer build order inside each slice. Keep a brief checkpoint when work spans sessions.
+
 If the requirement is incomplete but a safe inference exists, make the professional
 assumption and continue — do not ask about trivia. Ask only when missing information
 genuinely blocks implementation, and ask one precise question with your proposed default.
@@ -84,6 +89,9 @@ Ask, in order:
   domain; data access → repository → data source; platform → native config.
 - Does a new abstraction provide a useful boundary, lifetime or test seam?
 - What is the blast radius? (change impact below)
+
+For shared contract design or simplification, read boundary-design.md. Hide coherent policy
+behind an understandable interface while keeping the app's layers and lifecycle owners.
 
 **Change impact analysis** — before touching shared code:
 

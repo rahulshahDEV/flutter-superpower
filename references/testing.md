@@ -19,6 +19,27 @@ Don't test trivial getters or duplicate generated serialization internals. Test 
 contract and malformed inputs. Layout isn't automatically exempt: a hidden submit action or
 an unusable large-text control is a behavior regression. Match effort to consequence.
 
+## One observable behavior at a time
+
+Identify the public operation and acceptance result before choosing fixtures. Use the
+highest boundary that exposes the failure with reliable diagnosis; add lower-level checks
+when they protect a distinct parsing, invariant or lifecycle contract. Follow the project's
+existing test seams; routine test choices don't require a separate user approval round.
+See boundary-design.md when the public contract itself needs design work.
+
+For a bug or test-first feature slice: write one meaningful failing check, confirm that it
+fails for the intended missing behavior, implement the smallest complete path, then rerun.
+An import/setup failure is not the regression's red result. Repeat for the next behavior;
+don't write a bulk suite against an imagined implementation before exercising any slice.
+Refactor with the relevant checks green; preserve the same public behavior.
+
+Derive expected results independently from the specification, a worked example or a fixed
+fixture. For a total of 12 and 8, assert 20; don't compute the expected total with the same
+loop/helper as production. Reject assertions that merely confirm the implementation's wiring.
+Assert returned data, emitted state, visible recovery or an externally meaningful effect.
+Call counts/order are useful for an explicit duplicate-write or serialization invariant;
+checking every internal collaborator call makes harmless refactors break tests.
+
 ## Fixtures and state tests
 
 Use minimal fakes implementing the actual contract, with explicit success/failure fixtures.

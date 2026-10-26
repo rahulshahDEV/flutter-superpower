@@ -53,10 +53,13 @@ preview feature and command availability rather than making previews a universal
 | Reusable pure UI iteration | component-previews.md or a widget-test harness |
 | Missing runtime interaction capability with a concrete need | Evaluate flutter_skill before adding it |
 | OS dialog, hardware or native crash | Native tools/device automation; bridge visibility may be insufficient |
+| Android UI journey with ARTEMIS already selected/available | android-automation.md: readiness, trace lifecycle and outcome checks |
 
 A tool's existence doesn't require installation. Verify versions and capabilities on this
 project; keep the reference project's state/HTTP samples subordinate to house architecture.
 For permanent device regressions, follow integration-testing.md.
+For optional ARTEMIS discovery, Android device targeting and asynchronous trace ownership,
+follow android-automation.md. A submitted or completed automation job is not a test verdict.
 
 ## Optional flutter_skill integration
 

@@ -18,6 +18,11 @@ Stop at the first rung that holds:
 The ladder runs after understanding the screen, not instead of it. Read the existing
 screen + its cubit first, trace the data flow, then climb.
 
+The smallest complete change includes affected callers, fixtures, exports, DI, configuration
+and tests. Trace those before minimizing the diff. Prefer a readable few lines over a dense
+one-liner, and retain error/validation/lifecycle behavior when moving or merging code.
+Use boundary-design.md before deleting an interface that may own useful policy.
+
 ## Flutter rules
 
 - **Local state before global state.** `setState`/`ValueNotifier` for toggles, controllers, expansion, scroll — a cubit is for async/shared/navigation-surviving state only (see `state-and-di.md § Local UI state`).
@@ -48,7 +53,7 @@ screen + its cubit first, trace the data flow, then climb.
 | Global provider for screen-only state | create in route builder |
 | Custom JSON parsing package for 3 fields | `jsonDecode` + `as`/patterns |
 | 5 files for a static info screen | 1 file |
-| `BlocListener` + `BlocBuilder` + `BlocConsumer` all on one page | one `BlocConsumer` |
+| Duplicate listeners/rebuilds for the same state effect | choose `BlocConsumer` when both concerns belong together; separate scoped listeners/builders when ownership or rebuild filtering differs |
 | Animated splash choreography nobody asked for | static logo + route |
 
 ## Output
@@ -61,7 +66,7 @@ evidence required by senior-mode.md; brevity never removes test results or limit
 | Level | Change |
 |---|---|
 | **lite** | Build what's asked; name the lazier alternative in one line. |
-| **full** | Ladder enforced. SDK and reuse first. Shortest diff. Default. |
+| **full** | Ladder enforced. Project components, then SDK/reuse. Smallest complete, readable change. Default. |
 | **ultra** | YAGNI extremist. Deletion before addition. Ship the one-liner and challenge the requirement. |
 
 Example: "Add a custom animated loading button."

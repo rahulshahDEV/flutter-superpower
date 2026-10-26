@@ -27,6 +27,8 @@ The skill operates as the senior engineer who owns the task end to end:
   defaults; existing projects are mirrored, not rewritten; migrations only on request, staged.
 - **Owns the obvious work** — states, validation, DI, routes, constants, tests, platform
   config — without asking about trivia.
+- **Plans by outcome** — observable acceptance, runnable slices and public-boundary checks;
+  optional ARTEMIS guidance covers Android task traces and verified device outcomes.
 - **Definition of Done + evidence report** (Implemented / Files changed / Verification /
   Not verified / Notes) — never "Done." without proof.
 - **Audit capability** — `scripts/audit.sh <app> [--perf]` mechanical pass + agent review per
@@ -42,7 +44,7 @@ tests/consistency.sh   # links, version sync, placeholders, script syntax (secon
 tests/run.sh           # installer + scaffold + feature generator + audits (needs Flutter)
 ```
 
-Behavior cases live in `evals/` (26 cases; protocol in `evals/README.md`, results in
+Behavior cases live in `evals/` (42 cases; protocol in `evals/README.md`, results in
 `evals/RESULTS.md`).
 There is no CI by design — the tests run locally, and they must be green before a release.
 
@@ -54,8 +56,9 @@ See `CONTRIBUTING.md` to propose changes.
 "Implement order history with pagination"
   → profile the project (architecture, state, routing, DI, net, design system)
   → find the closest existing feature and mirror it
-  → plan: entity → repo → model → data source → use case → state → cubit → UI → route → tests
-  → implement all states (loading/error/empty/success) + edge cases
+  → define observable acceptance and checks at the relevant public boundaries
+  → implement one runnable outcome through the layers, check it, then take the next slice
+  → cover relevant states (loading/error/empty/success) + edge cases
   → self-review the diff (layers, reuse, scope, security, regression)
   → verify: dart format · fdev gen · flutter analyze · flutter test
   → report: Implemented / Files changed / Verification / Not verified / Notes
@@ -173,6 +176,9 @@ flutter-superpower/
     ├── native-diagnostics.md        ← logs, crash symbols, ANRs, performance traces
     ├── platform-channels.md         ← Kotlin/Swift bridges, threading, lifecycle
     ├── device-tooling.md            ← MCP/Inspector, optional flutter_skill, regression tests
+    ├── android-automation.md        ← optional ARTEMIS, device targeting, traces and assertions
+    ├── task-planning.md             ← acceptance, runnable slices, dependencies and checkpoints
+    ├── boundary-design.md           ← useful interfaces, test seams and safe simplification
     ├── release.md                   ← release checklist + release-check.sh
     ├── auth-social.md               ← Google & Apple sign-in end to end
     ├── store-release.md             ← Play + App Store submission and rejections

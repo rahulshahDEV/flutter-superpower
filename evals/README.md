@@ -88,6 +88,10 @@ commands pass.
 | 36 | GPS, location permission and Settings recovery | mobile-permissions, location-services |
 | 37 | Minimum-scope capability permissions | permission-capabilities, mobile-permissions |
 | 38 | Matched permission coordinator contract | permission fixtures, mobile-permissions, location-services |
+| 39 | Plan and deliver runnable slices | task-planning, senior-mode |
+| 40 | Independent behavioral regression checks | testing, boundary-design |
+| 41 | Review and simplify a complete shared change | reviewing, boundary-design, ponytail |
+| 42 | Android automation lifecycle and verdicts | android-automation, device-tooling |
 
 ## Honest limits
 

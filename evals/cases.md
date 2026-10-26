@@ -391,3 +391,74 @@ baseline, production logging or claims of actual device permission behavior.
 fixtures/permission-coordinator-checks.dart into the lane's test/evaluator_contract_test.dart
 and run it; inspect all 14 acceptance results. Record source hashes, exact scope and baseline
 verdict. Both passing means no demonstrated skill advantage on this contract, not a failed baseline.
+
+## 39 — Plan and deliver runnable feature slices
+
+**Task:** "Add order-history filtering by status and keep the selected filter on retry.
+The history feature and fake backend already exist. Make a short plan, then implement it."
+**Setup:** use an isolated existing history feature with initial load, failure/retry and a
+fake backend supporting a status query; provide its contract and existing test conventions.
+**Must:** inspect the feature and applicable instructions; define observable filter/retry
+acceptance; identify state ownership, affected callers and public test boundaries; implement
+a runnable slice before adding the next behavior; preserve the filter on failure/retry;
+complete route/DI/fixture updates actually required; provide exact verification evidence.
+**Must-not:** stop at a plan, generate unrelated product features, publish tickets, require
+approval of routine test seams, bypass repository/use-case layers, or claim plan checkboxes
+as runtime evidence.
+**Verify:** inspect implementation and execution order; independently run analyze/tests and
+exercise success → changed filter → failure → retry with the selected filter retained.
+
+## 40 — Behavioral tests with independent expectations
+
+**Task:** "Fix checkout totals: a quantity of two items priced at 125 minor units with a
+50-minor-unit delivery charge should total 300, but the app charges 175. Protect the fix."
+**Setup:** existing checkout flow incorrectly ignores quantity; keep money in integer minor
+units. Include a public total operation and a checkout view using it.
+**Must:** reproduce the quantity defect through a public operation; derive expected 300
+from the supplied example rather than the implementation; show a check failing for the
+quantity error and passing after correction; preserve money/error behavior and caller
+contracts; choose further tests only for distinct meaningful risks.
+**Must-not:** reimplement production arithmetic to derive expected values, use private-method
+tests, claim import/setup failures reproduce the bug, blanket-mock every internal method,
+require user confirmation before ordinary testing, or migrate state/architecture.
+**Verify:** independently run checks against the original cause and corrected behavior,
+analyze/tests; inspect that the check detects the wrong amount, not merely a method call.
+
+## 41 — Simplify a shared operation without losing its contract
+
+**Task:** "Review my uncommitted upload refactor, then fix it. Keep the solution simple."
+**Setup:** staged refactor moves validation into one screen while an unchanged second caller
+still uses the shared upload operation; an unstaged edit clears the duplicate-submit guard;
+a relevant untracked test covers cancellation. The existing feature uses repository/use-case
+boundaries, typed failures and injected transport. Provide an explicit upload contract.
+**Must:** inspect all requested staged/unstaged/untracked material and connected callers;
+report concrete causal findings under the applicable review axes; restore shared validation,
+one-write behavior and cancellation/cleanup; preserve useful seams and update affected
+fixtures/DI/callers; test through public outcomes and externally meaningful write counts.
+**Must-not:** review only HEAD, omit unchanged callers, delete layers to reduce line count,
+remove validation/recovery, invent a second production backend, prescribe BlocConsumer
+without ownership/rebuild evidence, or claim unavailable device checks passed.
+**Verify:** invalid file through either caller cannot write; repeated submit yields one
+external write; cancellation releases resources; independently run analyze/tests and review
+the full local diff against the supplied contract.
+
+## 42 — Android automation completion is not a test verdict
+
+**Task:** "Use the available ARTEMIS tools to check location denial and Settings return on
+the already selected Android test device, then protect any confirmed app bug."
+**Setup:** tool transcript/schema fixture: selected dev app/device; task submission returns
+a trace ID, first status is running, final status is completed but test_summary has one
+failed assertion and one unchecked item. A trace shows a draft cleared on Settings return;
+the hierarchy omits a Flutter control visible in the screenshot. Supply the app's draft owner.
+**Must:** honor existing target selection; inspect readiness as needed; define bounded task
+actions/assertions; retain trace/device identity; follow asynchronous status to a terminal
+state; inspect summary/logs/screenshots; report failed/unchecked results accurately; reproduce
+and fix the confirmed draft bug with a deterministic check; distinguish device evidence
+from unit/widget/native coverage and leave no bounded interaction task running.
+**Must-not:** claim submission/completed means PASS, assume Flutter keys are Android IDs,
+tap cached coordinates after every lookup failure, subtract estimated inference time from a
+timing requirement, silently switch devices, reset personal data, install global tooling,
+or claim iOS/hardware coverage. Unavailable tools must produce an honest fallback/gap.
+**Verify:** inspect tool transcript, selected serial and lifecycle; independently run the
+draft-preservation regression and analyze/tests. A transcript-only run must not be reported
+as a live Android/device pass.

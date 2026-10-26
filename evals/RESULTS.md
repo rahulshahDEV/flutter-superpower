@@ -7,13 +7,39 @@ own report (analyze/test re-run, Must/Must-not inspected in the diff).
 
 | Status | Cases |
 |---|---|
-| ✅ Recorded PASS with skill (mixed skill versions; independently verified) | 01, 04, 07, 08, 15, 17, 18, 38 (8/38) |
-| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37 (30/38) |
+| ✅ Recorded PASS with skill (mixed skill versions; independently verified) | 01, 04, 07, 08, 15, 17, 18, 38 (8/42) |
+| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42 (34/42) |
 | 🔬 Baseline (no skill) run | 38 — PASS; with skill also PASS, no demonstrated advantage |
 
 Case 38 adds the first matched baseline. Both lanes passed, so the recorded results still
 do not establish a causal skill advantage. Expand comparisons on harder, less prescriptive
 tasks; retain passing baselines rather than selecting only favorable results.
+
+## 2026-10-26 — v2.10.0 upstream-adoption validation
+
+Compared pinned source snapshots of mattpocock/skills, google/artemis and Ponytail;
+IMPROVEMENT_PLAN.md records the files inspected, adoption decisions and rejected assumptions.
+Added cases 39–42 for outcome planning, independent test expectations, safe shared-operation
+simplification and Android automation lifecycle/verdicts. All four remain **NOT RUN** as
+independent agent evaluations; no baseline comparison was performed for this batch.
+
+Implementation validation on the local macOS Flutter toolchain:
+
+- `tests/consistency.sh`: PASS, including all new reference links/README entries, version
+  2.10.0 sync, shell syntax and the entrypoint budget (1,892 words, limit 1,900).
+- `tests/run.sh`: PASS, including failure/installer contracts, copy/project installs, fresh
+  app codegen/format/analyze/tests, orders generation/analyze/tests and audit/release checks.
+- Skill-creator `quick_validate.py`: PASS (`Skill is valid!`).
+- `git diff --check`: PASS. Read the full changed guidance and new references for ownership,
+  project precedence, sealed/freezed naming, DI, route arguments and verification order.
+
+One redirected consistency invocation failed its fdev command-name check after receiving
+empty help text. A direct `fdev --help` returned the documented commands and a direct
+consistency rerun passed. No CLI or gate changes were made to hide that failure.
+
+This pass changes guidance and eval definitions, not templates/scripts or app dependencies.
+It does not establish live ARTEMIS readiness, device interaction, native permission behavior,
+iOS support or a measured behavioral advantage. No ARTEMIS installer or device task ran.
 
 ## 2026-09-24 — skill v2.2.0 (batch 2)
 

@@ -1,26 +1,37 @@
 # Reviewing Changes (two axes)
 
-Review the diff between `HEAD` and a fixed point (commit, branch, tag, merge-base) on two
-independent axes:
+Review the requested working tree, staged changes, commit or branch range on two independent
+axes. Pin committed endpoints; preserve staged/unstaged distinctions for local work.
 
 - **Standards** — does the code follow the profiled project conventions and applicable defaults?
 - **Spec** — does the code do what was actually asked?
 
-When the editor provides sub-agents, run the two axes concurrently as separate reviewers so
-neither pollutes the other. If it does not, run them as separate passes and keep their
+When the session permits sub-agents, run the two axes concurrently as separate reviewers so
+neither pollutes the other. Otherwise, run them as separate passes and keep their
 findings independent. Never merge or rerank findings across axes: code can pass one and fail
 the other. See `agent-delegation.md` for task sizing, evidence, and integration rules.
 
 ## Process
 
-1. **Pin the fixed point.** `git rev-parse <ref>` first; capture
-   `git diff <ref>...HEAD` and `git log <ref>..HEAD --oneline`. Resolve an empty diff or bad
-   ref before dispatching reviewers.
-2. **Find the spec.** Issue references in commits → a path the user passed → a spec file
-   under `docs/`, `specs/`, `.scratch/`. If none, the Spec reviewer reports "no spec available".
-3. **Review both axes independently.** Dispatch one Standards reviewer and one Spec reviewer
-   in parallel when sub-agents are available. Give each only the material that axis needs.
-4. **Aggregate** under `## Standards` and `## Spec`, then a one-line summary: findings per
+1. **Select the actual change.** Use the target the user named. With no target, inspect
+   `git status --short`: review local changes if present, otherwise the last commit.
+   Staged: `git diff --cached`; unstaged: `git diff`; combined tracked changes:
+   `git diff HEAD`. Inspect relevant untracked source files separately; diff omits them.
+   For a branch, resolve the base and head with `git rev-parse`, then inspect
+   `git diff <base>...<head>` and `git log <base>..<head> --oneline`. For a single commit,
+   use `git show <commit>` (choose the intended parent for a merge). Resolve bad refs or
+   an unexpectedly empty diff before review. Don't silently omit uncommitted work.
+2. **Find the spec.** Start with the user's request and supplied acceptance/contract; follow
+   their linked issue or file, then relevant repository specs under `docs/` or `specs/`.
+   Issue references in commits may add context. If none exists, the Spec reviewer reports
+   "no spec available" instead of inventing requirements.
+3. **Read the connected flow.** Inspect changed definitions, their callers/callees, contracts,
+   DI, fixtures and tests. Trace input → policy → effect → user result. Search all callers
+   when a signature or behavior changes, including unchanged files; use boundary-design.md
+   for shared contracts. Judge concurrency and growth against the app's actual expected use.
+4. **Review both axes independently.** Dispatch one Standards reviewer and one Spec reviewer
+   in parallel when permitted. Give each only the material that axis needs.
+5. **Aggregate** under `## Standards` and `## Spec`, then a one-line summary: findings per
    axis, worst issue per axis. The lead reviewer checks cited hunks before reporting; no
    cross-axis winner.
 
@@ -69,6 +80,15 @@ Paste the diff + spec, then ask for:
 - (c) requirements that look implemented but wrong.
 
 Quote the spec line for every finding. Under 400 words per axis.
+
+## Make findings actionable
+
+Prioritize correctness, data/security/lifecycle risk and missing acceptance before style or
+diff size. Cite a precise location, triggering input/state, resulting failure, and a feasible
+correction. Separate observed defects from hypotheses needing a check. Name missing runtime
+evidence without asserting the app fails. A smell is a prompt to investigate, not a finding
+until it has a concrete cost or violates an applicable convention. Avoid speculative scale
+requirements, preference-only rewrites, duplicate reports and invented spec requirements.
 
 ## Flutter review extras
 
