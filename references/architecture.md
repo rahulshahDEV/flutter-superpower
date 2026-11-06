@@ -1,9 +1,10 @@
 # Architecture, Folders, Naming
 
 The Cubit/GetIt examples below describe the default stack. For a requested or existing
-Riverpod, Provider or GetX stack, apply `state-selection.md` and its stack guide first;
+event Bloc, Riverpod, Provider or GetX stack, apply `state-selection.md` and its stack guide first;
 keep shared layer, routing-data and verification rules. Cubit scaffold scripts are not
-alternative-stack generators.
+alternative-stack generators. The selected stack guide defines its presentation files;
+the Cubit tree below is not a naming restriction for other stacks.
 
 ## Target tree (new app)
 
@@ -72,11 +73,13 @@ create empty layers "for later" — a screen with no API call does not need data
 - `domain/` has no Flutter or plugin imports; pure Dart packages such as `dartz`/`equatable`
   are allowed. Repository contracts expose domain types, never Dio responses or widget types.
 - `data/` implements domain repos, owns models/JSON/plugins.
-- `presentation/` owns cubits/pages/widgets. Screens never call data sources or Dio.
+- `presentation/` owns the selected state adapters/pages/widgets. Screens never call data sources or Dio.
 - One public responsibility per file; colocate sealed state variants, closely related enums,
   and a data-source interface/implementation where the templates do so.
 - Dependencies point inward: presentation → domain ← data. UI may import data models only via entities; prefer domain types in cubits.
-- Feature-to-feature imports are allowed for navigation helpers only (`_navigation.dart`); shared code moves to `core/`.
+- Cross-feature dependencies use deliberate public domain contracts or application
+  navigation composition; never import private implementation/state. Use
+  `feature-boundaries.md` for ownership, shared business modules and cycle prevention.
 
 ## Naming table (enforced)
 
@@ -88,6 +91,10 @@ create empty layers "for later" — a screen with no API call does not need data
 | Modal sheet | `_sheet.dart` | `logout_sheet.dart` |
 | Provider wrapper | `_provider.dart` | `search_provider.dart` |
 | Cubit / state | `_cubit.dart` / `_state.dart` | `login_cubit.dart` / `login_state.dart` |
+| Event Bloc | `_bloc.dart` / `_event.dart` / `_state.dart` | `orders_bloc.dart` / `orders_event.dart` / `orders_state.dart` |
+| Riverpod composition / notifier | `_providers.dart` / `_notifier.dart` | `orders_providers.dart` / `orders_notifier.dart` |
+| Provider view model | `_view_model.dart` | `orders_view_model.dart` |
+| GetX controller / binding | `_controller.dart` / `_binding.dart` | `orders_controller.dart` / `orders_binding.dart` |
 | Use case | `_usecase.dart` or verb name | `sign_in_usecase.dart` / `get_pet.dart` |
 | Repository | `_repository.dart` / `_repository_impl.dart` | `auth_repository_impl.dart` |
 | Data source | `_remote_data_source.dart` | `auth_remote_data_source.dart` |
@@ -105,7 +112,8 @@ Files `snake_case.dart`; classes `UpperCamelCase`; private widgets `_Prefixed`.
 
 - Absolute imports only: `package:<app_name>/core/core.dart`, `package:<app_name>/features/...`.
 - Order: `dart:` → blank → external `package:` → blank → `package:<app>/` (core → di → features).
-- Barrels only for `core/core.dart`, `core/widgets/widgets.dart`, `core/error/error.dart`, `core/enums/enums.dart`. No feature-internal barrels.
+- Keep core barrels focused. A capability may expose a deliberate public API file
+  (`feature-boundaries.md`); do not export every internal file through a feature barrel.
 - Dart 3 idioms: `switch` expressions, pattern matching (`if (x case final v?)`), sealed classes, `final class`, records for tuples, `unawaited()`.
 - No `!` non-null assertions. Required fields + early returns + patterns instead.
 - `withValues(alpha: x)` not `withOpacity`.
@@ -162,12 +170,13 @@ than completing every layer for every imagined feature first; see task-planning.
 - Put a rule beside the data and lifecycle it governs. Domain owns business invariants;
   data owns transport/persistence mapping; presentation owns display state and user intent.
   Shared infrastructure goes in core only after genuine cross-feature use.
-- Give mutable state one owner. Repositories own cache/write consistency; Cubits own flow
+- Give mutable state one owner. Repositories own cache/write consistency; state adapters own flow
   state; widgets own focus/controllers. Define disposal and cancellation at creation time.
 - Constructors make dependencies visible. Avoid service-locator calls hidden inside domain
   methods or helpers. Add an abstraction for a useful boundary, not one per method.
-- Keep the house use-case seam for asynchronous features; don't create data/domain layers
-  for static screens. Separate DTOs from richer domain entities when transport inheritance
+- Use cases own useful orchestration/policy/test boundaries; simple reads may use a
+  repository contract directly per project conventions (`feature-boundaries.md`). Do not
+  create data/domain layers for static screens. Separate DTOs from entities when inheritance
   would violate domain invariants; prefer mapping over weakening the model.
 - Snapshot mutable collections before exposing state. `final List<T>` only prevents
   reassignment. Do not mutate emitted data or share a writable cache list with a Cubit.

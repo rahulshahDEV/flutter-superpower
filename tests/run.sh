@@ -26,6 +26,12 @@ section "Script failure and installer contracts"
 sh "$ROOT/tests/checks.sh" >/dev/null 2>&1 && ok "audit/release failure contracts" || bad "check script contracts failed"
 sh "$ROOT/tests/installer.sh" >/dev/null 2>&1 && ok "installer safety contracts" || bad "installer contracts failed"
 
+section "Feature preflight"
+sh "$ROOT/tests/generator-preflight.sh" && ok "incompatible apps rejected without mutation" || bad "generator preflight failed"
+
+section "State-stack examples"
+sh "$ROOT/tests/state-stacks.sh" && ok "state-stack examples format/analyze/test" || bad "state-stack examples failed"
+
 section "Installer (copy mode, fake HOME)"
 FAKE_HOME="$WORK/home"
 mkdir -p "$FAKE_HOME"

@@ -13,7 +13,7 @@ Cubit (loading → success | failure)
   ↓  use case
 Repository  →  AuthRemoteDataSource  →  backend exchange (idToken)
   ↓  FutureEither<AuthSession>
-Session store (tokens + user JSON)
+Secure session store (tokens); separate safe profile store
   ↓
 Router (onboarded ? home : profile setup)  +  device/FCM registration
 ```
@@ -38,7 +38,11 @@ Router (onboarded ? home : profile setup)  +  device/FCM registration
 **iOS**
 1. OAuth client (type iOS) → note the iOS client ID and the **reversed client ID**.
 2. `Info.plist` → `CFBundleURLTypes` with the reversed client ID as a URL scheme.
-3. `serverClientId` = the iOS client ID when exchanging on a backend.
+3. Configure the iOS OAuth client via `clientId`/`GIDClientID` as supported by the plugin.
+   For backend exchange, `serverClientId`/`GIDServerClientID` is the backend **web OAuth
+   client ID**, not the iOS client ID; backend audience validation must match it.
+   See [official iOS plugin setup](https://pub.dev/packages/google_sign_in_ios) and
+   [Google backend client configuration](https://developers.google.com/identity/sign-in/ios/start-integrating).
 
 **Code**
 
@@ -111,7 +115,10 @@ Apple logo, equal prominence).
 - Fake repository → cubit tests: success, failure, cancel (silent), loading state.
 - Widget test: button disables while loading, no double invoke.
 - Native sheet cannot be unit-tested: cover with one manual/integration pass on a device.
-- `SharedPreferences.setMockInitialValues({})` for session-store tests.
+- Fake the secure session-store contract in repository/state tests; verify the real secure
+  storage adapter separately. Preferences mocks apply only to non-secret settings.
+- Test concurrent protected 401s, excluded auth endpoints, transient refresh failure, confirmed
+  revocation and logout/account switch during refresh; old completions cannot restore a session.
 
 ## Common failures
 

@@ -8,7 +8,8 @@ priority over the greenfield defaults; fdev has raw-command fallbacks.
 
 State stacks: Bloc/Cubit (default), Riverpod, Provider and GetX. Each has a feature
 structure, dependency ownership, lifecycle and testing guide. Scaffold scripts generate
-the Cubit default; other stacks use the documented manual workflow.
+the Cubit default and reject incompatible apps before writing. Other stacks use the manual
+workflow; runnable framework examples live in `tests/stack_examples/`.
 
 ## How it works
 
@@ -45,10 +46,11 @@ The skill operates as the senior engineer who owns the task end to end:
 
 ```bash
 tests/consistency.sh   # links, version sync, placeholders, script syntax (seconds)
-tests/run.sh           # installer + scaffold + feature generator + audits (needs Flutter)
+tests/run.sh           # installer + scaffold + generator + state-stack examples + audits
+tests/state-stacks.sh  # focused framework examples (needs Flutter)
 ```
 
-Behavior cases live in `evals/` (43 cases; protocol in `evals/README.md`, results in
+Behavior cases live in `evals/` (51 cases; protocol in `evals/README.md`, results in
 `evals/RESULTS.md`).
 There is no CI by design — the tests run locally, and they must be green before a release.
 
@@ -142,6 +144,12 @@ flutter-superpower/
     ├── riverpod.md                  ← Riverpod structure, lifecycle, tests
     ├── provider.md                  ← ChangeNotifier structure, ownership, tests
     ├── getx.md                      ← controllers, bindings, cleanup, tests
+    ├── bloc.md                      ← event concurrency, ownership, tests
+    ├── feature-boundaries.md        ← public contracts and shared business modules
+    ├── offline-data.md              ← local/remote truth, pending writes, reconciliation
+    ├── persistence-migrations.md    ← upgrades, interruption and rollback compatibility
+    ├── lifecycle-restoration.md     ← drafts, resume, process death, background jobs
+    ├── production-observability.md  ← error delivery, correlation and release health
     ├── state-and-di.md              ← cubits, states, injectable wiring
     ├── routing.md                   ← go_router, route data, guards, shells
     ├── networking-and-errors.md     ← DioClient, interceptors, Either, logging

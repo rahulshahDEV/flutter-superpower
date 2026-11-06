@@ -5,7 +5,9 @@ Riverpod, Provider or GetX stack, apply `state-selection.md` and its stack guide
 keep shared layer, routing-data and verification rules. Cubit scaffold scripts are not
 alternative-stack generators.
 
-Use one GoRouter/AppRouter per app. The existing core/router directory is an application
+GoRouter/AppRouter is the unspecified new-app default. Honor a requested or existing
+router (including Get routing); keep one authoritative routing composition and adapt the
+argument, guard and lifetime contracts below to its APIs. The core/router directory is an application
 composition boundary allowed to import screens; other core services remain feature-independent.
 Existing apps using app/router keep that layout. Follow the runnable AppRouter template.
 
@@ -33,7 +35,7 @@ Use Uri.encodeComponent for a dynamic segment rather than interpolating arbitrar
 For query state, build a Uri with queryParameters instead of manual string concatenation.
 Don't double-decode route parameters or embed credentials in URLs. Reject malformed or
 unsupported inputs at the router boundary. Parse once, pass validated input to the provider,
-and let its Cubit fetch. Do not cast extra with `as` and hope it is present.
+and let its state owner fetch. Do not cast extra with `as` and hope it is present.
 
 An invalid link renders a deliberate not-found/unavailable state or redirects to a canonical
 safe URL. Don't display an unrelated home screen under the invalid resource URL. Unknown
@@ -66,7 +68,8 @@ save stale preview data over newer server data.
 
 ## Provider lifetime and navigation
 
-Choose screen-owned OR wrapper-owned BlocProvider creation per `state-and-di.md`; never
+For Cubit/Bloc, choose screen-owned OR wrapper-owned BlocProvider creation per
+`state-and-di.md`; never
 nest both for the same Cubit. A route wrapper receives parsed arguments, initializes one
 factory Cubit, and builds a provider-free view. UI triggers navigation from callbacks/listeners;
 Cubits and clients expose outcomes/session state without importing a router or screen.
@@ -85,7 +88,8 @@ extension ContextNavigation on BuildContext {
 }
 ```
 
-Use context.goTo/pushRoute/popRoute/goReplace instead of raw navigation calls. Dialogs and
+With the default GoRouter stack, use these helpers consistently. Existing router helpers
+remain valid; do not introduce GoRouter solely for these names. Dialogs and
 sheets may use showDialog/showModalBottomSheet. Cross-feature navigation helpers can live in
 presentation/utils/<flow>_navigation.dart; avoid importing another feature's widgets everywhere.
 

@@ -1,0 +1,30 @@
+00:00 +0: loading <APP>/test/ui_foundation_test.dart
+00:00 +0: <APP>/test/widget_test.dart: NoParams is equal to another NoParams
+00:00 +1: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +2: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +3: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +4: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +5: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +6: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +7: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +8: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +9: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +10: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +11: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +12: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +13: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +14: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +15: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +16: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +17: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +18: <APP>/test/ui_foundation_test.dart: long button label grows at large text without overflow
+00:00 +19: <APP>/test/ui_foundation_test.dart: busy button preserves its name and prevents duplicate action
+00:00 +20: <APP>/test/ui_foundation_test.dart: resolved gap tokens are not scaled a second time
+00:00 +21: <APP>/test/ui_foundation_test.dart: startup failure is readable without DI or config
+00:00 +22: <APP>/test/ui_foundation_test.dart: shared input participates in form validation and keeps input
+00:00 +23: <APP>/test/ui_foundation_test.dart: invalid config fails before it reaches the network client
+00:00 +24: <APP>/test/ui_foundation_test.dart: mobile platform policy requests OS orientation and edge-to-edge
+00:00 +25: <APP>/test/ui_foundation_test.dart: loading preserves the multiline button footprint
+00:00 +26: <APP>/test/ui_foundation_test.dart: light edge-to-edge surfaces request dark icons for both bars
+00:00 +27: <APP>/test/ui_foundation_test.dart: primary button foreground meets normal-text contrast
+00:00 +28: All tests passed!

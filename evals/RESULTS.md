@@ -7,13 +7,35 @@ own report (analyze/test re-run, Must/Must-not inspected in the diff).
 
 | Status | Cases |
 |---|---|
-| ✅ Recorded PASS with skill (mixed skill versions; independently verified) | 01, 04, 07, 08, 15, 17, 18, 38 (8/43) |
-| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42, 43 (35/43) |
-| 🔬 Baseline (no skill) run | 38 — PASS; with skill also PASS, no demonstrated advantage |
+| ✅ Recorded PASS with skill (mixed skill versions; independently verified) | 01, 04, 07, 08, 15, 17, 18, 38 (8/51) |
+| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42, 44, 45, 46, 47, 48, 49, 50, 51 (42/51) |
+| ◐ Partial current-version run | 43 — existing Riverpod/Provider/GetX behavior passed; standards/other variants incomplete |
+| 🔬 Baseline (no skill) run | 04, 38 — both lanes PASS; no demonstrated advantage |
 
 Case 38 adds the first matched baseline. Both lanes passed, so the recorded results still
 do not establish a causal skill advantage. Expand comparisons on harder, less prescriptive
 tasks; retain passing baselines rather than selecting only favorable results.
+
+## 2026-11-06 — v2.12.0 principal engineering hardening
+
+Evidence: [archived source patches, reports and parent logs](artifacts/2026-11-06-hardening/README.md).
+
+- Current case 04: independent matched baseline/with-skill implementations both PASS.
+  Parent-held checks detect the original cause in both lanes. Parent analyzer clean;
+  full test suites 28 baseline / 36 with skill. This does not demonstrate a skill advantage.
+- Case 43: minimal existing Riverpod, Provider and GetX apps each passed 8 agent-authored
+  and 8 parent-held widget checks with clean analyzers. Full case remains PARTIAL: other
+  variants unrun and relative imports violate shared style. Added explicit shared-rule routing.
+- Deterministic framework suite: 37 passing checks across Riverpod, Provider, GetX and
+  event Bloc. These are runtime fixtures, not behavior-evaluation verdicts.
+- Added cases 44–51 for generator safety, Bloc concurrency, offline replay, migrations,
+  restoration, observability, public feature contracts and measured optimization; NOT RUN.
+- `tests/consistency.sh`, skill frontmatter validation and full `tests/run.sh`: PASS
+  (including scaffold format/analyze/test, feature codegen/analyze/test, installer,
+  source-preserving generator rejection, 37 framework checks and audit/release checks).
+- Source review corrected quoted-key/flow-header and reserved-name preflight bypasses, default-router
+  precedence and Google client-ID guidance. Rejection tests protect byte-identical app trees.
+- External private deny-list remains unavailable; no private-list PASS is claimed.
 
 ## 2026-11-06 — v2.11.0 state-stack guidance validation
 

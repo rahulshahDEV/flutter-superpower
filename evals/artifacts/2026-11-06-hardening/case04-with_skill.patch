@@ -1,0 +1,158 @@
+--- a/lib/features/orders/presentation/cubit/orders/orders_cubit.dart
++++ b/lib/features/orders/presentation/cubit/orders/orders_cubit.dart
+@@ -10,11 +10,18 @@
+   OrdersCubit(this._getOrders) : super(const OrdersInitial());
+ 
+   final GetOrders _getOrders;
++  int _requestId = 0;
+ 
+   Future<void> load() async {
++    if (isClosed) return;
++
++    final requestId = ++_requestId;
+     safeEmit(const OrdersLoading());
+ 
+     final result = await _getOrders(const NoParams());
++
++    // A newer load owns the state, even while its result is still pending.
++    if (isClosed || requestId != _requestId) return;
+ 
+     result.fold(
+       (failure) => safeEmit(OrdersFailure(failure)),
+--- /dev/null
++++ b/test/features/orders/presentation/cubit/orders/orders_cubit_test.dart
+@@ -0,0 +1,134 @@
++import 'dart:async';
++
++import 'package:dartz/dartz.dart' show Either, Left, Right;
++import 'package:flutter_test/flutter_test.dart';
++
++import 'package:eval_app/core/error/either_extensions.dart';
++import 'package:eval_app/core/error/failures.dart';
++import 'package:eval_app/features/orders/domain/entities/order.dart';
++import 'package:eval_app/features/orders/domain/repositories/orders_repository.dart';
++import 'package:eval_app/features/orders/domain/usecases/get_orders.dart';
++import 'package:eval_app/features/orders/presentation/cubit/orders/orders_cubit.dart';
++import 'package:eval_app/features/orders/presentation/cubit/orders/orders_state.dart';
++
++class _ControlledOrdersRepository implements OrdersRepository {
++  final requests = <Completer<Either<Failure, List<Order>>>>[];
++
++  @override
++  FutureEither<List<Order>> getOrders() {
++    final request = Completer<Either<Failure, List<Order>>>();
++    requests.add(request);
++    return request.future;
++  }
++}
++
++void main() {
++  const olderItems = [Order(id: 'older', name: 'Older selection')];
++  const latestItems = [Order(id: 'latest', name: 'Latest selection')];
++
++  late _ControlledOrdersRepository repository;
++  late OrdersCubit cubit;
++
++  setUp(() {
++    repository = _ControlledOrdersRepository();
++    cubit = OrdersCubit(GetOrders(repository));
++  });
++
++  tearDown(() => cubit.close());
++
++  test('older success cannot replace the latest completed load', () async {
++    final older = cubit.load();
++    final latest = cubit.load();
++
++    repository.requests[1].complete(const Right(latestItems));
++    await latest;
++    expect(cubit.state, OrdersSuccess(latestItems));
++
++    repository.requests[0].complete(const Right(olderItems));
++    await older;
++    expect(cubit.state, OrdersSuccess(latestItems));
++  });
++
++  for (final olderFails in [false, true]) {
++    for (final latestFails in [false, true]) {
++      for (final latestFinishesFirst in [false, true]) {
++        test('latest load owns state: olderFails=$olderFails, '
++            'latestFails=$latestFails, '
++            'latestFinishesFirst=$latestFinishesFirst', () async {
++          final older = cubit.load();
++          final latest = cubit.load();
++          const latestFailure = NetworkFailure('Latest request failed');
++          final Either<Failure, List<Order>> olderResult = olderFails
++              ? const Left(ServerFailure('Older request failed'))
++              : const Right(olderItems);
++          final Either<Failure, List<Order>> latestResult = latestFails
++              ? const Left(latestFailure)
++              : const Right(latestItems);
++          final expected = latestFails
++              ? const OrdersFailure(latestFailure)
++              : OrdersSuccess(latestItems);
++
++          expect(cubit.state, const OrdersLoading());
++          if (latestFinishesFirst) {
++            repository.requests[1].complete(latestResult);
++            await latest;
++            expect(cubit.state, expected);
++            repository.requests[0].complete(olderResult);
++            await older;
++          } else {
++            repository.requests[0].complete(olderResult);
++            await older;
++            expect(cubit.state, const OrdersLoading());
++            repository.requests[1].complete(latestResult);
++            await latest;
++          }
++          expect(cubit.state, expected);
++        });
++      }
++    }
++  }
++
++  test('latest empty result replaces an older list', () async {
++    final older = cubit.load();
++    final latest = cubit.load();
++    repository.requests[1].complete(const Right([]));
++    await latest;
++    repository.requests[0].complete(const Right(olderItems));
++    await older;
++    expect(cubit.state, OrdersSuccess(const []));
++  });
++
++  test('single request failure allows a successful retry', () async {
++    expect(cubit.state, const OrdersInitial());
++    final failed = cubit.load();
++    expect(cubit.state, const OrdersLoading());
++    repository.requests.single.complete(const Left(NetworkFailure()));
++    await failed;
++    expect(cubit.state, const OrdersFailure(NetworkFailure()));
++
++    final retry = cubit.load();
++    expect(cubit.state, const OrdersLoading());
++    repository.requests[1].complete(const Right(latestItems));
++    await retry;
++    expect(cubit.state, OrdersSuccess(latestItems));
++  });
++
++  for (final fails in [false, true]) {
++    test('pending completion after close is ignored: fails=$fails', () async {
++      final pending = cubit.load();
++      await cubit.close();
++      repository.requests.single.complete(
++        fails ? const Left(NetworkFailure()) : const Right(latestItems),
++      );
++      await pending;
++      expect(cubit.state, const OrdersLoading());
++    });
++  }
++
++  test('load after close does not start a repository request', () async {
++    await cubit.close();
++    await cubit.load();
++    expect(repository.requests, isEmpty);
++    expect(cubit.state, const OrdersInitial());
++  });
++}

@@ -33,7 +33,10 @@ competes with it — harden the existing one.
 
 - HTTPS only; no `http://` endpoints in `lib/` (audit flags them).
 - Validate/sanitize anything user-supplied before it reaches a URL, file path, or query.
-- Auth: single-flight token refresh, logout on 401/refresh failure, no retry storms.
+- Auth: single-flight refresh and at most one eligible replay; exclude login/OTP/refresh
+  endpoint failures. Confirmed invalid/revoked sessions trigger one cleanup path. A transient
+  refresh outage follows the backend/product recovery policy, not automatic logout; reject
+  refresh completions after logout/account switch. See `networking-and-errors.md`.
 - Never trust `state.extra` or deep-link parameters — parse defensively (`fromExtra` + fallback).
 
 ## WebViews & deep links

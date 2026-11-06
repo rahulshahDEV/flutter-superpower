@@ -7,6 +7,12 @@ alternative-stack generators.
 
 ## New App from zero
 
+The feature generator checks block-style package declarations and house-core file contracts
+before writing. Alternative/mixed stacks, missing dependencies or core files, and invalid
+identifiers fail with no changes. This is a compatibility preflight, not a guarantee that
+customized APIs match; inspect the closest feature first. Use the manual workflow for
+custom structures rather than adding dependencies to satisfy the generator.
+
 **Fast path:** `scripts/new_app.sh <name> --org com.example --title "My App"` does steps 1–5
 below (verified: `flutter analyze` clean, tests pass) and prints the next commands. Read the
 rest of this section for the manual path, flavors, and Firebase.

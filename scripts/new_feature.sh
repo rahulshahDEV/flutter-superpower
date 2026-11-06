@@ -37,14 +37,77 @@ APP_DIR="${APP_DIR:-$(pwd)}"
   exit 1
 }
 
+# Fail before creating files or changing API constants. This generator requires the
+# Cubit house scaffold; other stacks follow references/state-selection.md manually.
+preflight_error() {
+  echo "error: $*" >&2
+  echo "No files changed. Use the manual feature workflow in references/state-selection.md." >&2
+  exit 1
+}
+valid_identifier() {
+  # Reject Dart keywords/built-in identifiers conservatively for filenames, generated
+  # declarations and endpoint members (including the derived singular entity name).
+  case "$1" in
+    abstract|as|assert|async|await|augment|base|break|case|catch|class|const|continue|covariant|default|deferred|do|dynamic|else|enum|export|extends|extension|external|factory|false|final|finally|for|Function|get|hide|if|implements|import|in|interface|is|late|library|mixin|native|new|null|of|on|operator|part|required|rethrow|return|sealed|set|show|static|super|switch|sync|this|throw|true|try|type|typedef|var|void|when|while|with|yield) return 1 ;;
+  esac
+  printf '%s\n' "$1" | LC_ALL=C grep -Eq '^[a-z][a-z0-9]*(_[a-z0-9]+)*$'
+}
+valid_identifier "$FEATURE" || preflight_error "feature must be a lower_snake_case identifier"
+if [ -n "$ENTITY" ]; then
+  valid_identifier "$ENTITY" || preflight_error "entity must be a lower_snake_case identifier"
+fi
+# Conservative parser for block-style dependency maps used by the house pubspec.
+# Exotic YAML/aliases are rejected safely rather than guessed or rewritten.
+has_package() {
+  awk -v package="$1" -v expected="${2:-dependencies}" '
+    /^[^[:space:]#]/ { section = ($0 ~ ("^" expected ":[[:space:]]*(#.*)?$")) }
+    section && $0 ~ "^  " package ":([[:space:]]|$)" { found=1 }
+    END { exit !found }
+  ' "$APP_DIR/pubspec.yaml"
+}
+if ! awk '
+  /^[^[:space:]#]/ && $0 !~ /^[a-z][a-z0-9_]*:([[:space:]]|$)/ { exit 1 }
+  /^(dependencies|dev_dependencies):/ && $0 !~ /^(dependencies|dev_dependencies):[[:space:]]*(#.*)?$/ { exit 1 }
+  /^[^[:space:]#]/ { section = ($0 ~ /^(dependencies|dev_dependencies):[[:space:]]*(#.*)?$/) }
+  section && /^  [^[:space:]#]/ && $0 !~ /^  [a-z][a-z0-9_]*:([[:space:]]|$)/ { exit 1 }
+' "$APP_DIR/pubspec.yaml"; then
+  preflight_error "unsupported dependency declaration (plain block-style package keys required)"
+fi
+for alternate in flutter_riverpod riverpod hooks_riverpod provider get; do
+  if has_package "$alternate" || has_package "$alternate" dev_dependencies; then
+    preflight_error "alternative or mixed stack ($alternate); Cubit generator is not applicable"
+  fi
+done
+for package in flutter flutter_bloc get_it injectable go_router dartz equatable dio json_annotation \
+  flutter_screenutil; do
+  has_package "$package" || preflight_error "missing house dependency: $package (block-style pubspec required)"
+done
+for package in build_runner injectable_generator json_serializable; do
+  has_package "$package" dev_dependencies || preflight_error "missing house dev dependency: $package"
+done
+for required in \
+  core/cubit/safe_cubit.dart core/error/api_exception_handler.dart \
+  core/error/api_response_handler.dart core/error/either_extensions.dart \
+  core/error/exceptions.dart core/error/failures.dart core/usecases/usecase.dart \
+  core/constants/api_constants.dart core/constants/error_constants.dart \
+  core/constants/string_constants.dart core/network/dio_client.dart \
+  core/extensions/size_extensions.dart core/theme/app_colors.dart \
+  core/theme/app_text_styles.dart core/widgets/app_snack_bar.dart \
+  core/widgets/empty_state_widget.dart core/widgets/error_state_widget.dart \
+  core/widgets/loading_widget.dart di/injection.dart; do
+  [ -f "$APP_DIR/lib/$required" ] || preflight_error "missing house contract: lib/$required"
+done
+
 pascal() {
   printf '%s' "$1" | awk -F_ '{ for (i = 1; i <= NF; i++) if ($i != "") printf toupper(substr($i, 1, 1)) substr($i, 2) }'
 }
 
 APP_NAME="$(awk '/^name:/{ print $2; exit }' "$APP_DIR/pubspec.yaml")"
+valid_identifier "$APP_NAME" || preflight_error "unsupported pubspec package name"
 FEATURE_CLASS="$(pascal "$FEATURE")"
 ENTITY="${ENTITY:-$(printf '%s' "$FEATURE" | sed 's/s$//')}"
 [ -n "$ENTITY" ] || ENTITY="$FEATURE"
+valid_identifier "$ENTITY" || preflight_error "derived entity is a reserved or invalid Dart identifier; pass --entity"
 ENTITY_CLASS="$(pascal "$ENTITY")"
 
 DEST="$APP_DIR/lib/features/$FEATURE"

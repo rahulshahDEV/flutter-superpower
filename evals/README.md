@@ -46,6 +46,17 @@ commands pass.
    Baseline runs are recorded in `RESULTS.md` — do not skip this for new evaluation batches.
    Case 38 provides isolated inputs, withheld acceptance checks and archived source/results.
 
+## Reproducible current-version inputs
+
+- `evals/prepare_request_ordering.sh <new-dir>` prepares identical baseline/with-skill
+  case-04 apps; use separate independent agents and withhold `fixtures/request-ordering/acceptance_test.dart`.
+- `evals/prepare_state_stack.sh <new-dir>` prepares case-43 Riverpod/Provider/GetX apps;
+  withhold `fixtures/state-stack/acceptance_test.dart` until implementations finish.
+- Copy the applicable acceptance file into each completed app's `test/` and independently
+  run analyze/tests. A held-out failure is a recorded failure even if repaired afterward;
+  report initial and corrected verdicts separately. `tests/state-stacks.sh` is deterministic
+  framework regression, not an agent behavior evaluation.
+
 ## Case index
 
 | # | Case | Primary reference under test |
@@ -93,6 +104,14 @@ commands pass.
 | 41 | Review and simplify a complete shared change | reviewing, boundary-design, ponytail |
 | 42 | Android automation lifecycle and verdicts | android-automation, device-tooling |
 | 43 | Honor the selected state architecture | state-selection, riverpod, provider, getx |
+| 44 | Preserve incompatible apps during feature generation | scaffold safety, state-selection |
+| 45 | Choose event Bloc concurrency by contract | bloc, async-safety |
+| 46 | Reconcile durable offline writes | offline-data |
+| 47 | Upgrade persistent data safely | persistence-migrations |
+| 48 | Restore a draft after process death | lifecycle-restoration |
+| 49 | Verify production error delivery | production-observability |
+| 50 | Expose a public feature contract without cycles | feature-boundaries |
+| 51 | Optimize only the measured bottleneck | app-optimization, performance |
 
 ## Honest limits
 

@@ -70,7 +70,8 @@ loader; failure mid-pagination handled without losing loaded items; test for the
 
 **Setup:** make the fake/repo return `Left(ServerFailure(...))`.
 **Task:** "The orders screen shows a spinner forever when the API fails."
-**Must:** failure state rendered (`ErrorStateWidget` + retry); snackbar for transient failure;
+**Must:** failure state rendered (`ErrorStateWidget` + retry); action failure feedback
+retains usable content when relevant; avoid duplicate snackbar/inline announcements;
 retry re-invokes the cubit.
 **Must-not:** catching-and-swallowing; raw exception text shown to users.
 **Verify:** `flutter test` (failure-state test present).
@@ -482,3 +483,67 @@ flag supported state packages as violations, or claim documentation review prove
 **Verify:** independently run format, applicable codegen, analyze and tests; drive failure
 then retry, reverse completion order, leave during load, reopen and use two route IDs.
 Inspect pubspec/diff for an unrequested second stack. Score each variant independently.
+
+## 44 — Preserve incompatible apps during feature generation
+
+**Task:** "Use the feature generator to add orders to this existing Provider app; preserve our stack."
+**Setup:** Existing Provider app with sentinel API constants and no Cubit house core; snapshot input tree.
+**Must:** Inspect stack first; choose manual Provider workflow or report incompatible generator before writes; retain package/core conventions and explain evidence.
+**Must-not:** Install Cubit/GetIt to force compatibility, partially write Cubit files or alter endpoints before rejecting.
+**Verify:** Run the actual rejection path against an isolated copy and compare file bytes/tree; if implementing manually, analyze/test the Provider feature.
+
+## 45 — Choose event Bloc concurrency by contract
+
+**Task:** "Fix search results reverting after a refresh, and prevent duplicate saves without losing submitted writes."
+**Setup:** Event Bloc with separate SearchChanged/Refresh handlers, controllable repository futures and a save effect counter.
+**Must:** Choose explicit same/cross-event ordering; newest read survives; serialize or intentionally drop writes according to provided product contract; prove transport/server cancellation is distinct.
+**Must-not:** Assume separate sequential handlers serialize globally, restart uncertain writes or use delays to hide races.
+**Verify:** Reverse read completion across event types; repeated save under controlled futures; assert exact external write effects and close safely.
+
+## 46 — Reconcile durable offline writes
+
+**Task:** "Allow editing a note offline and sync it after relaunch without overwriting a newer server edit."
+**Setup:** Versioned note API, fake persistent outbox, crash points before/after remote acceptance; supplied conflict-resolution contract.
+**Must:** Define local/remote truth and visible pending/conflict state; durably associate idempotency identity with write; reconcile after uncertain delivery and restart; preserve edits on conflict.
+**Must-not:** Treat connectivity as delivery proof, regenerate retry IDs, mark synced before acceptance or silently overwrite conflicts.
+**Verify:** Restart at each crash point; replay accepted operation without duplicate effect; reject stale account jobs and preserve conflict content.
+
+## 47 — Upgrade persistent data safely
+
+**Task:** "Upgrade saved drafts from schema 1 to 3 without deleting user data; support our stated rollback window."
+**Setup:** Actual test database engine, version-1/version-2 fixture files and incompatible future-version fixture; injected migration failure.
+**Must:** Exercise supported upgrade paths atomically; preserve IDs/content; define interruption recovery and forward-schema refusal/rollback compatibility.
+**Must-not:** Drop/recreate data on error, claim migrations tested only with maps/fakes or assume binary rollback reverses schema.
+**Verify:** Open old fixtures with new app; fail/reopen migration; check content, constraints/version and future-schema handling with real engine tests.
+
+## 48 — Restore a draft after process death
+
+**Task:** "Keep an unfinished draft when the OS kills the backgrounded app, and refresh account permissions on resume."
+**Setup:** Draft editor with explicit retention/privacy policy and auth-scoped durable store; delayed permission check; device runner if available.
+**Must:** Separate widget restoration from durable drafts; persist at product-defined boundaries; revalidate without overwriting newer user input/account; define unavailable device evidence.
+**Must-not:** Rely on dispose/paused callback as guaranteed save, restore another account draft or report hot restart as process-death evidence.
+**Verify:** Test restoration round trip and persistence; simulate stale resume completion; actual terminate/relaunch on target where available or clearly report device gap.
+
+## 49 — Verify production error delivery
+
+**Task:** "Add error reporting to this release build and prove one sanitized event arrives for the failed operation."
+**Setup:** Fake reporting sink plus optional authorized test project; release/environment identity and same failure crossing repository/global hooks.
+**Must:** Define handled/fatal ownership and dedupe; scrub secrets/context; preserve Flutter presentation; isolate reporter failure; attach release/correlation identity.
+**Must-not:** Report same error at every layer, expose tokens or claim fake sink proves real dashboard ingestion.
+**Verify:** Assert one classified sanitized sink event, failed reporter fallback and global-hook restoration; verify actual ingestion separately only with authorized service access.
+
+## 50 — Expose a public feature contract without cycles
+
+**Task:** "Let checkout use cart pricing while keeping orders and checkout independently testable."
+**Setup:** Cart internal repository/controller, checkout workflow and existing orders-to-checkout edge; supplied pricing and partial-failure contract.
+**Must:** Expose narrow domain values/contracts, inject implementations at composition, prevent cycles and preserve policy across callers; choose use cases for real orchestration.
+**Must-not:** Move all business logic into core, import controller internals or hide cycle through service locator/event bus.
+**Verify:** Check dependency edges and both consuming outcomes; run owning/consumer tests and verify price/partial-failure behavior.
+
+## 51 — Optimize only the measured bottleneck
+
+**Task:** "This small preferences screen scrolls smoothly. Review this proposed optimization without changing behavior."
+**Setup:** Bounded shrink-wrapped list, variable-height accessible text, proposal replaces it with fixed-height builder rows; baseline has no observed jank.
+**Must:** Inspect actual constraints and evidence; decline unsupported blanket rewrite; preserve text scaling/semantics; state target refresh-rate budget if profiling is requested.
+**Must-not:** Remove shrinkWrap or add buildWhen solely because a checklist says never; call rewrite zero-risk; invent measurements.
+**Verify:** Exercise long copy/large text before and after any justified change; report no optimization needed when baseline meets acceptance.

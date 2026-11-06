@@ -1,8 +1,31 @@
 # Skill improvement audit and implementation plan
 
 Scope: the reusable Flutter Superpower skill, its references, scaffold templates and tests.
-Scope: the Flutter skill, its references, scaffolds and verification workflows.
-Version: 2.9.0. Audit date: 2026-10-24.
+Baseline audit: v2.9.0 (2026-10-24); latest hardening plan below.
+
+## 2026-11-06 — principal engineering hardening
+
+Target: 2.12.0. Preserve requested/existing stacks and load capability guides only when needed.
+
+| Priority | Work | Acceptance evidence |
+|---|---|---|
+| 1 | Align auth, stack/router/naming and use-case contracts | Diff/contradiction review; selected-stack behavior cases |
+| 2 | Preflight feature generation before writes | Incompatible stacks, missing contracts and invalid IDs leave identical trees; happy-path scaffold regression |
+| 3 | Runnable Riverpod/Provider/GetX/event Bloc examples | Actual packages, format/analyze/test, async ordering and ownership checks |
+| 4 | Feature boundaries and production data/lifecycle playbooks | Focused references indexed from entrypoint/README; concrete failure/recovery verification |
+| 5 | Contextual performance decisions | Remove blanket/no-risk prescriptions; target-device measurement and behavior retention |
+| 6 | Current-version behavior runs and regression | Independent agent artifacts/results distinguished from deterministic fixture checks |
+
+Execution: complete one runnable slice per area, integrate indexes and evaluation cases,
+then run consistency, full regression and independent diff review. Keep unrun scenarios,
+backend/device limits and external privacy-gate availability explicit in `evals/RESULTS.md`.
+Do not report all historical cases as revalidated by new fixture tests.
+
+Implemented all six areas. Framework regression: 37 checks across four stacks. Independent
+current-version case 04 passes both matched lanes; existing Riverpod/Provider/GetX case-43
+variants pass behavioral checks but full case/standards coverage remains partial. New
+capability scenarios are written but unrun. Detailed results and reproducible artifacts:
+`evals/RESULTS.md`. No native/backend/telemetry delivery or private deny-list pass is claimed.
 
 ## 2026-10-26 — upstream comparison and implementation plan
 

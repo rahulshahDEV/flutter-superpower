@@ -10,14 +10,18 @@ Choose before adding packages, scaffolding or planning files:
 
 | Stack | Presentation structure per feature | Composition and lifetime | Read next |
 |---|---|---|---|
-| Bloc/Cubit | `cubit/<flow>/<flow>_cubit.dart`, `<flow>_state.dart` | GetIt/Injectable creates; BlocProvider closes | `state-and-di.md` |
+| Cubit default | `cubit/<flow>/<flow>_cubit.dart`, `<flow>_state.dart` | GetIt/Injectable creates; BlocProvider closes | `state-and-di.md` |
+| Event Bloc | `bloc/<flow>/<flow>_bloc.dart`, `<flow>_event.dart`, `<flow>_state.dart` | Route-owned BlocProvider; explicit per-operation event policy | `bloc.md` |
 | Riverpod | `providers/<feature>_providers.dart`, `notifiers/<flow>_notifier.dart`, optional `state/<flow>_state.dart` | ProviderScope and provider graph; explicit disposal/cache policy | `riverpod.md` |
 | Provider | `viewmodels/<flow>_view_model.dart`, `state/<flow>_state.dart`, optional `providers/<feature>_providers.dart` | Provider tree creates/disposes; constructor dependencies | `provider.md` |
 | GetX | `controllers/<flow>_controller.dart`, `state/<flow>_state.dart`, `bindings/<feature>_binding.dart` | Route binding creates; route owner deletes | `getx.md` |
 
+Read `architecture.md` for shared layer, naming and import rules (including absolute
+package imports); the selected stack guide replaces only stack-specific examples.
 Each keeps `features/<feature>/{data,domain,presentation}` plus presentation `pages/`
 and `widgets/`. Omit layers with no useful responsibility. `core/` holds shared infrastructure;
-feature composition stays feature-local and the app root assembles dependencies/routes.
+feature composition stays feature-local and the app root assembles dependencies/routes. Cross-feature public contracts and shared
+business modules follow `feature-boundaries.md`; do not dump business rules into core.
 Domain has no Flutter, Ref, ChangeNotifier, Get or BuildContext dependency. Data sources
 throw typed exceptions; repositories translate them into the app's result/failure contract.
 State owners consume that contract; UI renders state and handles navigation/feedback.
@@ -48,6 +52,9 @@ selected guide; for a feature, create its needed files manually following its ne
 Shared theme, constants, error and platform patterns can be reused without Cubit/DI code.
 `playbooks.md`'s numbered bootstrap and route examples are Cubit-specific; substitute the
 selected provider tree/binding graph and state files rather than installing their packages.
+
+Runnable examples are maintained in `tests/stack_examples/`; consult their README for
+covered contracts and verification. They are fixtures, not alternative app generators.
 
 No alternative generator flags are advertised. Report which stack/manual path was used.
 Verify in order: `dart format .` → `fdev gen` only for changed generated annotations

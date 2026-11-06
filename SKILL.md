@@ -3,7 +3,7 @@ name: flutter-superpower
 description: Build, extend, audit, debug, or refactor Flutter apps with feature-first architecture, Bloc/Cubit, Riverpod, Provider or GetX, stack-appropriate DI, and deliberate UI and platform decisions. Use for Flutter implementation, native integration/debugging, and Codemagic/fastlane/Shorebird delivery; existing project conventions take priority over these defaults.
 license: MIT
 metadata:
-  version: "2.11.0"
+  version: "2.12.0"
 ---
 
 # Flutter Superpower
@@ -11,35 +11,31 @@ metadata:
 Build with **feature-first architecture, selected state/DI, GoRouter, Dio + Either,
 centralized theme/strings, ScreenUtil, K-widgets and dev/prod flavors.**
 
-Mirror the closest existing feature for details.
-
 **Scope:** follow project conventions; add only what the task uses (`references/ponytail.md`).
 
 ## When NOT to use
 
 - Standalone non-Flutter apps or Dart CLIs; native integration inside a Flutter app is in scope.
 - Throwaway snippets with no app context; typo/one-line copy fixes.
-- A repo with a conflicting documented house style — follow the repo (unless asked to migrate).
+- Conflicting house style: follow the project unless migration is requested.
 
 ## Senior mode — own the task
 
-You are the senior engineer on this codebase, not a code generator. Inspect first, decide
-carefully, implement cleanly, verify everything, and complete the task.
+Inspect, implement, verify and complete the task.
 
 1. **Profile before changing** — inspect pubspec, `lib/`, routing, DI, state, networking,
    models, widgets, theme, tests, platform config, env. State the profile
-   (`senior-mode.md` has the template) before planning.
+   before planning.
 2. **Priority:** explicit choice > project conventions > defaults. Greenfield → select state/DI first.
    Existing project → mirror the project and
    improve incrementally. Migration → only when explicitly requested, staged, verified
    after each stage.
 3. **Decide before coding:** observable acceptance, ownership, reuse, blast radius (`rg`
    dependents); substantial work → `references/task-planning.md`.
-4. **Own the obvious work** without asking: states (loading/error/empty/success), validation,
-   DI, route, constants, platform config, tests. Ask only when genuinely blocked — one
-   precise question with your proposed default.
-5. **Self-review the diff** before verifying: architecture, scope, reuse, UI, state, data,
-   errors, tests, performance, security, regression. Fix findings, then run the gate.
+4. **Own required work:** state, validation, DI, routes, constants, platform config and tests.
+   Ask when blocked.
+5. **Self-review** architecture, scope, UI, correctness, security and regression; fix findings,
+   verify.
 6. **Never write "Done."** without the evidence block: Implemented / Files changed /
    Verification (format, analyze, test, build) / Not verified / Notes.
 
@@ -52,7 +48,7 @@ Behavior: `references/senior-mode.md`. Audits: `references/auditing.md`.
 3. Cubit default: Cubit + State live in separate files under `presentation/cubit/<flow>/`. Basic fetch variants: sealed → `Initial/Loading/Success/Failure`; freezed → `initial/loading/loaded/failed`. Fresh app default: **sealed** (no codegen); switch to freezed only when states carry many fields or the app already uses freezed. Joining an app? Mirror its choice.
 4. State owners never hold `BuildContext`, navigate, or own `TextEditingController`s. UI navigates; state owners map repository results.
 5. Cubit default DI = `get_it` + `injectable`. `@injectable` cubits, `@LazySingleton(as: XRepository)` impls, `@module` for plugins. Never `GetIt` inside widgets except `getIt<X>()` at provider/route creation.
-6. Routing = `go_router`, one `AppRouter`. Every screen owns `static const String path` + `routeName`. IDs in paths, shareable filters in queries; transient objects via typed `state.extra` with a `fromExtra` fallback. Navigate with `context.goTo/pushRoute/popRoute/goReplace`.
+6. Honor the selected/existing router. For default `go_router`/`AppRouter`: screens own `static const String path` + `routeName`. IDs in paths, shareable filters in queries; transient objects via typed `state.extra` with a `fromExtra` fallback. Navigate with `context.goTo/pushRoute/popRoute/goReplace`.
 7. Data flow = data source throws typed exceptions → repository wraps `safeApiCall`/`errorHandler` → returns `FutureEither<T>` (`Either<Failure, T>`) → selected state adapter → UI shows failure message. One `Failure` type family per app.
 8. Models: Equatable entities (plain, all-final, `props`); wire models `@JsonSerializable` extend entities by default (mapping exception: `architecture.md`); generated `.g.dart`/`.freezed.dart` are gitignored and rebuilt, never hand-edited.
 9. All user-visible strings, asset paths, API paths, colors, and storage keys live in constants classes (`StringConstants`, `MediaConstants`/`Media`, `ApiConstants`/`ApiEndpoints`, `StorageKeys`, `AppColors`/`Colours`). Never inline a string or hex color in a widget.
@@ -83,7 +79,7 @@ Ship to a store?   → REQUIRED: references/play-console.md (Play) or
 Optimize?     → references/app-optimization.md (level-wise; implement / plan / skip)
 ```
 
-Non-trivial behavior needs a runnable check (`references/testing.md`).
+Behavior needs a runnable check (`references/testing.md`).
 
 ## Quick reference
 
@@ -100,7 +96,7 @@ Non-trivial behavior needs a runnable check (`references/testing.md`).
 | Firebase | Only when required; Core + Messaging for push. `FcmService` + `@pragma('vm:entry-point')` background handler |
 | Uploads | presigned URL client, never multipart through the auth client |
 | Simplest solution | climb the `ponytail.md` ladder first |
-| Scaffolding | `scripts/new_app.sh <name>` / `scripts/new_feature.sh <name> --app <dir>` (templates in `templates/`) |
+| Cubit scaffolding | `scripts/new_app.sh <name>` / `scripts/new_feature.sh <name> --app <dir>`; preflight rejects incompatible apps |
 | Existing project | profile first; project conventions win; improve incrementally (`references/senior-mode.md`) |
 | Audit | `scripts/audit.sh <app> [--tests] [--static]` + agent review per `references/auditing.md` |
 | Blocked? | report: Blocked / Evidence / Needs / Default I would use |
@@ -116,6 +112,12 @@ Non-trivial behavior needs a runnable check (`references/testing.md`).
 | `references/riverpod.md` | Riverpod structure, providers, lifecycle, testing |
 | `references/provider.md` | Provider structure, ChangeNotifier, ownership, testing |
 | `references/getx.md` | GetX structure, bindings, reactive state, cleanup, testing |
+| `references/bloc.md` | event Bloc, concurrency policy, cancellation, tests |
+| `references/feature-boundaries.md` | public feature contracts, shared domain, dependency cycles |
+| `references/offline-data.md` | optional local/remote ownership, queued writes, reconciliation |
+| `references/persistence-migrations.md` | schema upgrades, recovery, compatibility, fixtures |
+| `references/lifecycle-restoration.md` | drafts, restoration, resume, durable background work |
+| `references/production-observability.md` | reporting, correlation, privacy, release health |
 | `references/state-and-di.md` | cubits, states, providers, injectable wiring, local UI state |
 | `references/routing.md` | go_router, route data, guards, shells/bottom nav |
 | `references/networking-and-errors.md` | Dio, interceptors, token refresh, Either, failures, logging |
@@ -176,9 +178,9 @@ Non-trivial behavior needs a runnable check (`references/testing.md`).
 ## Red flags — STOP and correct
 
 - Writing asynchronous UI before its state contract; adding Cubits for purely local UI.
-- A new file that isn't in the layer table (`architecture.md`).
+- Files violating the selected stack's layer/naming rules (`architecture.md`, `state-selection.md`).
 - Inline color, user-visible string, or route path.
-- `Navigator.push` / raw `context.go` instead of `context.goTo/pushRoute`.
+- Navigation violating the selected router conventions; business-layer navigation.
 - `try/catch` that swallows, `!`, `dynamic`, `late` as a crutch.
 - Editing a generated file, or committing `.g.dart`/`.freezed.dart`/`injection.config.dart`.
 - "I'll add the test after" — after means never.
@@ -186,7 +188,7 @@ Non-trivial behavior needs a runnable check (`references/testing.md`).
 
 ## Evidence before claiming done
 
-Run and paste the result (or summarize the exact output) — never assert success:
+Report exact results; never assert success without evidence:
 
 ```bash
 dart format .
