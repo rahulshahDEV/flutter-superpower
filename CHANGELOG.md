@@ -5,7 +5,8 @@
 - Aligned stack, router, naming, use-case and authentication contracts; added event Bloc
   and public feature-boundary guidance.
 - Added source-preserving feature-generator preflight and rejection regression checks.
-- Added runnable state-stack examples and expanded behavior evaluation coverage.
+- Added runnable state-stack examples and expanded behavior evaluation coverage, with
+  sanitized logs and replayable source patches.
 - Added optional offline data, schema migration, lifecycle/restoration and production
   observability playbooks; replaced blanket optimization prescriptions with evidence gates.
 

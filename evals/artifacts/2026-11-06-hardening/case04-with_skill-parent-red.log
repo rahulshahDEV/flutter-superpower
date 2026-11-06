@@ -4,37 +4,37 @@
   Expected: <Instance of 'OrdersLoading'>
     Actual: OrdersSuccess:<OrdersSuccess([Order(old, Old)])>
      Which: is not an instance of 'OrdersLoading'
-  
+
   package:matcher                                     expect
   package:flutter_test/src/widget_tester.dart 473:18  expect
   test/parent_acceptance_test.dart 40:9               main.<fn>
-  
+
 00:00 +0 -1: latest failure survives stale completion; stale failure=false
 00:00 +0 -2: latest failure survives stale completion; stale failure=false [E]
   Expected: OrdersFailure:<OrdersFailure(ServerFailure(Latest failure))>
     Actual: OrdersSuccess:<OrdersSuccess([Order(old, Old)])>
-  
+
   package:matcher                                     expect
   package:flutter_test/src/widget_tester.dart 473:18  expect
   test/parent_acceptance_test.dart 68:9               main.<fn>
-  
+
 00:00 +0 -2: latest owns loading and content; stale failure=true
 00:00 +0 -3: latest owns loading and content; stale failure=true [E]
   Expected: <Instance of 'OrdersLoading'>
     Actual: OrdersFailure:<OrdersFailure(ServerFailure(Old failure))>
      Which: is not an instance of 'OrdersLoading'
-  
+
   package:matcher                                     expect
   package:flutter_test/src/widget_tester.dart 473:18  expect
   test/parent_acceptance_test.dart 40:9               main.<fn>
-  
+
 00:00 +0 -3: latest failure survives stale completion; stale failure=true
 00:00 +0 -4: latest failure survives stale completion; stale failure=true [E]
   Expected: OrdersFailure:<OrdersFailure(ServerFailure(Latest failure))>
     Actual: OrdersFailure:<OrdersFailure(ServerFailure(Old failure))>
-  
+
   package:matcher                                     expect
   package:flutter_test/src/widget_tester.dart 473:18  expect
   test/parent_acceptance_test.dart 68:9               main.<fn>
-  
+
 00:00 +0 -4: Some tests failed.

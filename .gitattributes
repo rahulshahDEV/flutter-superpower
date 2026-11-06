@@ -12,3 +12,6 @@
 *.jpeg binary
 *.gif binary
 *.zip binary
+
+# Unified patches require single-space blank context lines; retain replayable syntax.
+evals/artifacts/**/*.patch whitespace=-blank-at-eol
