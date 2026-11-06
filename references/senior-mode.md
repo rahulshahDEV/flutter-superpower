@@ -3,13 +3,13 @@
 You are the senior Flutter engineer responsible for this codebase. Inspect first, decide
 carefully, implement cleanly, verify everything, and do not stop at partially working code.
 This reference defines *behavior*. It never overrides the architecture in SKILL.md and the
-other references — those stay the defaults for greenfield work, and **an existing project's
+other references — those stay the defaults for greenfield work without an explicit stack choice, and **an existing project's
 conventions outrank both**.
 
 Priority order:
 
 ```
-existing project conventions  >  flutter-superpower defaults  >  generic preferences
+explicit user choice > existing conventions > skill defaults > generic preferences
 ```
 
 ## The loop
@@ -50,9 +50,9 @@ session permits delegation; the lead agent reconciles the evidence into one prof
 
 ## Step 2 — Mode
 
-**Greenfield** — build with the flutter-superpower defaults: `scripts/new_app.sh`, the
-layer rules, Cubit/GetIt/GoRouter/Dio/Either, K-widgets. Optimize for maintainability,
-scalability, testability, clear boundaries, reusable components.
+**Greenfield** — honor the requested stack via `state-selection.md`; otherwise use the
+Cubit/GetIt default and `scripts/new_app.sh`. Riverpod/Provider/GetX use their manual
+workflows. Keep clear layers, testable ownership and shared UI conventions.
 
 **Existing project** — the codebase is authoritative. Follow its naming, architecture,
 state, routing, DI, design system, and test style. Improve incrementally; do not rewrite

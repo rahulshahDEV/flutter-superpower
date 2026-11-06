@@ -92,6 +92,7 @@ commands pass.
 | 40 | Independent behavioral regression checks | testing, boundary-design |
 | 41 | Review and simplify a complete shared change | reviewing, boundary-design, ponytail |
 | 42 | Android automation lifecycle and verdicts | android-automation, device-tooling |
+| 43 | Honor the selected state architecture | state-selection, riverpod, provider, getx |
 
 ## Honest limits
 

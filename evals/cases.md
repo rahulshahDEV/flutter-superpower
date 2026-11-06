@@ -462,3 +462,23 @@ or claim iOS/hardware coverage. Unavailable tools must produce an honest fallbac
 **Verify:** inspect tool transcript, selected serial and lifecycle; independently run the
 draft-preservation regression and analyze/tests. A transcript-only run must not be reported
 as a live Android/device pass.
+
+## 43 — Honor the selected state architecture
+
+**Task:** "Add order history with loading, empty, failure and retry. Keep our chosen
+state stack and folder conventions, and verify it."
+**Setup:** run separately against existing Riverpod, Provider, GetX and Bloc/Cubit apps
+with fake repository contracts. Include a greenfield variant explicitly requesting each
+alternative stack, and one without a preference. Provide a delayed response and two
+route IDs so ownership, disposal and stale results can be exercised.
+**Must:** profile first; select requested stack, otherwise existing stack, otherwise Cubit;
+use feature-first data/domain/presentation with appropriate providers/notifiers,
+viewmodels or controllers/bindings; constructor-inject framework-free repository contracts;
+render all requested states; initialize once; reject stale/disposed results; demonstrate
+route cleanup and independent route instances; use the selected stack's test overrides/fakes.
+**Must-not:** add Cubit/GetIt implicitly to alternative stacks, use Cubit scaffold scripts
+for them, replace the existing router for GetX, store BuildContext in state owners,
+flag supported state packages as violations, or claim documentation review proves runtime.
+**Verify:** independently run format, applicable codegen, analyze and tests; drive failure
+then retry, reverse completion order, leave during load, reopen and use two route IDs.
+Inspect pubspec/diff for an unrequested second stack. Score each variant independently.

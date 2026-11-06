@@ -6,6 +6,10 @@ Flutter implementation and review guidance with tested scaffolding, feature owne
 UI/platform workflows and evidence-based verification. Existing project conventions take
 priority over the greenfield defaults; fdev has raw-command fallbacks.
 
+State stacks: Bloc/Cubit (default), Riverpod, Provider and GetX. Each has a feature
+structure, dependency ownership, lifecycle and testing guide. Scaffold scripts generate
+the Cubit default; other stacks use the documented manual workflow.
+
 ## How it works
 
 - The frontmatter `description` triggers the skill automatically on any Flutter task
@@ -23,8 +27,8 @@ The skill operates as the senior engineer who owns the task end to end:
 
 - **Profile before changing** — architecture, state, routing, DI, networking, models, tests,
   design system, mode — then plan.
-- **Existing project conventions > skill defaults > generic preference.** Greenfield uses the
-  defaults; existing projects are mirrored, not rewritten; migrations only on request, staged.
+- **Explicit choice > project conventions > skill defaults.** Greenfield selects the
+  requested stack, otherwise Cubit; existing projects are mirrored, not rewritten; migrations only on request, staged.
 - **Owns the obvious work** — states, validation, DI, routes, constants, tests, platform
   config — without asking about trivia.
 - **Plans by outcome** — observable acceptance, runnable slices and public-boundary checks;
@@ -44,7 +48,7 @@ tests/consistency.sh   # links, version sync, placeholders, script syntax (secon
 tests/run.sh           # installer + scaffold + feature generator + audits (needs Flutter)
 ```
 
-Behavior cases live in `evals/` (42 cases; protocol in `evals/README.md`, results in
+Behavior cases live in `evals/` (43 cases; protocol in `evals/README.md`, results in
 `evals/RESULTS.md`).
 There is no CI by design — the tests run locally, and they must be green before a release.
 
@@ -95,9 +99,9 @@ Audit findings and the completed improvement plan: [IMPROVEMENT_PLAN.md](IMPROVE
 
 ## What it enforces
 
-- Feature-first clean architecture: `lib/features/<x>/{data,domain,presentation}` + `lib/core/` + `lib/di/`
-- `flutter_bloc` Cubits + `SafeCubit` + sealed/freezed states
-- `get_it` + `injectable` DI (`@injectable` cubits, `@LazySingleton(as:)` repos)
+- Feature-first clean architecture: `lib/features/<x>/{data,domain,presentation}` + `lib/core/` + stack-specific composition
+- Selected state stack: Riverpod, Provider, GetX, or default `flutter_bloc` Cubits + `SafeCubit`
+- Stack-appropriate DI; Cubit default uses `get_it` + `injectable`
 - `go_router` with `static const path/routeName` per screen + typed route-data
 - `dio` + `Either<Failure, T>` + `safeApiCall`/`ErrorHandler`
 - `json_serializable` models extending Equatable entities by default, with explicit DTO mapping for richer invariants
@@ -134,6 +138,10 @@ flutter-superpower/
 │   └── pointer-snippet.md           ← AGENTS.md / Cursor-rule pointer for non-skill agents
 └── references/
     ├── architecture.md              ← layers, folders, naming, feature template
+    ├── state-selection.md           ← stack choice and scaffold boundaries
+    ├── riverpod.md                  ← Riverpod structure, lifecycle, tests
+    ├── provider.md                  ← ChangeNotifier structure, ownership, tests
+    ├── getx.md                      ← controllers, bindings, cleanup, tests
     ├── state-and-di.md              ← cubits, states, injectable wiring
     ├── routing.md                   ← go_router, route data, guards, shells
     ├── networking-and-errors.md     ← DioClient, interceptors, Either, logging

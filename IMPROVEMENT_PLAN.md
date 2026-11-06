@@ -1,7 +1,7 @@
 # Skill improvement audit and implementation plan
 
 Scope: the reusable Flutter Superpower skill, its references, scaffold templates and tests.
-The nested application factory is a separate project and was not redesigned in this pass.
+Scope: the Flutter skill, its references, scaffolds and verification workflows.
 Version: 2.9.0. Audit date: 2026-10-24.
 
 ## 2026-10-26 — upstream comparison and implementation plan

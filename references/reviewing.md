@@ -41,12 +41,13 @@ Give this checklist to the Standards reviewer, without the Spec reviewer's concl
 
 Profile the existing app first, including consistent conventions not written in repository
 rules. The following defaults apply to greenfield work or explicitly adopted house style;
-existing Riverpod/Provider/navigation conventions are not migration findings by themselves.
+requested or existing Riverpod/Provider/GetX/navigation conventions are not migration findings by themselves.
 Correctness, lifecycle safety and the user's scope still apply in every project.
 
 **Violations of the applicable conventions**:
 - Layer breach: `core/` importing `features/` outside route assembly; widget calling a data source/Dio directly.
-- State: `Provider`/Riverpod/GetX; raw `emit` instead of `safeEmit`; cubit holding
+- State: deviations from the selected stack (`state-selection.md`); for Cubit, raw
+  `emit` instead of `safeEmit`; state owner holding
   `BuildContext`/navigation/controllers; business logic in a widget.
 - DI: `getIt` inside `build`; unregistered type; hand-edited `injection.config.dart`.
 - Routing: hardcoded route strings; `Navigator.push`/raw `context.go`; `extra as X`.

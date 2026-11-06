@@ -1,5 +1,10 @@
 # Architecture, Folders, Naming
 
+The Cubit/GetIt examples below describe the default stack. For a requested or existing
+Riverpod, Provider or GetX stack, apply `state-selection.md` and its stack guide first;
+keep shared layer, routing-data and verification rules. Cubit scaffold scripts are not
+alternative-stack generators.
+
 ## Target tree (new app)
 
 ```

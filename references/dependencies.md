@@ -11,11 +11,14 @@ integration can be harder to own than a well-supported plugin. SDK examples incl
 AnimatedSwitcher, RefreshIndicator, date pickers, and jsonDecode. The SDK does not provide
 a general cross-platform share-sheet API; evaluate a plugin when that capability is needed.
 
-Keep the house architecture for greenfield: flutter_bloc, get_it/injectable, go_router,
+When no state stack is requested, the greenfield default is: flutter_bloc, get_it/injectable, go_router,
 dio, dartz/equatable, json_serializable, and flutter_screenutil. Fonts, image caching,
 permissions, secure storage, notifications, databases, and Firebase are capability choices,
 not an automatic shopping list. `templates/app/pubspec.yaml` is the tested starter;
 its constraints are not a claim about today's newest versions.
+
+For Riverpod, Provider or GetX, use `state-selection.md` and the matching guide instead
+of adding flutter_bloc/get_it/injectable automatically.
 
 ## Evaluate before adding
 

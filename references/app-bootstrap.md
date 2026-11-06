@@ -1,5 +1,10 @@
 # App Bootstrap and Flavors
 
+The Cubit/GetIt examples below describe the default stack. For a requested or existing
+Riverpod, Provider or GetX stack, apply `state-selection.md` and its stack guide first;
+keep shared layer, routing-data and verification rules. Cubit scaffold scripts are not
+alternative-stack generators.
+
 Use the runnable `templates/app/` as the source of truth; do not copy a second,
 version-pinned pubspec from prose. Existing applications keep their bootstrap conventions.
 

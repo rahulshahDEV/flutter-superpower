@@ -24,7 +24,8 @@ agent review below — the script cannot judge architecture or state modeling.
 - Files with multiple unrelated responsibilities (large ≠ broken; responsibility is the test).
 
 ### 2. State management
-- Mixed state solutions (two of Cubit/Riverpod/Provider/GetX).
+- Competing owners for the same state or unplanned mixed stacks. Intentional migration
+  boundaries and Provider used only for DI are not violations. Use `state-selection.md`.
 - `emit` after close, missing stale-request guards, business logic in widgets.
 - Missing `initial/loading/error/empty` branches; unhandled failure states.
 - App-root providers for screen-local state (or vice versa).

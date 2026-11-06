@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.11.0
+
+- Removed the bundled Flutter App Factory project from the skill repository.
+- Added explicit state-stack selection and feature architecture guides for Riverpod,
+  Provider and GetX alongside the existing Bloc/Cubit default.
+- Scoped Cubit/GetIt examples and scaffolding to the default stack; aligned dependency,
+  audit and review guidance with requested and existing stacks.
+- Added a behavior evaluation for stack selection, lifecycle ownership and scaffold safety.
+
 ## 2.10.0
 
 - Compared pinned snapshots of mattpocock/skills, google/artemis and Ponytail; recorded the

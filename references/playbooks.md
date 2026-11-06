@@ -1,5 +1,10 @@
 # Playbooks
 
+The Cubit/GetIt examples below describe the default stack. For a requested or existing
+Riverpod, Provider or GetX stack, apply `state-selection.md` and its stack guide first;
+keep shared layer, routing-data and verification rules. Cubit scaffold scripts are not
+alternative-stack generators.
+
 ## New App from zero
 
 **Fast path:** `scripts/new_app.sh <name> --org com.example --title "My App"` does steps 1–5

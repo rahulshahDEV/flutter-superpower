@@ -1,5 +1,10 @@
 # State Ownership and Dependency Injection
 
+The Cubit/GetIt examples below describe the default stack. For a requested or existing
+Riverpod, Provider or GetX stack, apply `state-selection.md` and its stack guide first;
+keep shared layer, routing-data and verification rules. Cubit scaffold scripts are not
+alternative-stack generators.
+
 Use the runnable feature templates as the default implementation: separate Cubit/state files,
 constructor injection, safe emission, explicit Either folding, and stale-result protection.
 Existing apps retain their state style and provider conventions.

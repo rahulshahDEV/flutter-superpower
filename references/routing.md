@@ -1,5 +1,10 @@
 # Routing and Navigation Ownership
 
+The Cubit/GetIt examples below describe the default stack. For a requested or existing
+Riverpod, Provider or GetX stack, apply `state-selection.md` and its stack guide first;
+keep shared layer, routing-data and verification rules. Cubit scaffold scripts are not
+alternative-stack generators.
+
 Use one GoRouter/AppRouter per app. The existing core/router directory is an application
 composition boundary allowed to import screens; other core services remain feature-independent.
 Existing apps using app/router keep that layout. Follow the runnable AppRouter template.

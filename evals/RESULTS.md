@@ -7,13 +7,26 @@ own report (analyze/test re-run, Must/Must-not inspected in the diff).
 
 | Status | Cases |
 |---|---|
-| ✅ Recorded PASS with skill (mixed skill versions; independently verified) | 01, 04, 07, 08, 15, 17, 18, 38 (8/42) |
-| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42 (34/42) |
+| ✅ Recorded PASS with skill (mixed skill versions; independently verified) | 01, 04, 07, 08, 15, 17, 18, 38 (8/43) |
+| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42, 43 (35/43) |
 | 🔬 Baseline (no skill) run | 38 — PASS; with skill also PASS, no demonstrated advantage |
 
 Case 38 adds the first matched baseline. Both lanes passed, so the recorded results still
 do not establish a causal skill advantage. Expand comparisons on harder, less prescriptive
 tasks; retain passing baselines rather than selecting only favorable results.
+
+## 2026-11-06 — v2.11.0 state-stack guidance validation
+
+- `tests/consistency.sh`: PASS (reference indexes, version, size budgets, syntax, fdev commands).
+- `tests/run.sh`: PASS (installer, Cubit app scaffold format/analyze/test, feature generator
+  and codegen, endpoint, forbidden patterns, audit/release checks).
+- Skill frontmatter validator and `git diff --check`: PASS.
+- Independent read-only review found default-stack routing/precedence and direct GetX
+  lifecycle ambiguities; corrected before release.
+- Added case 43; all stack variants remain NOT RUN. Documentation/source review and the
+  Cubit scaffold regression do not establish alternative-stack runtime coverage.
+- Private deny-list check NOT RUN: the external list was not located. Repository checks
+  for machine-specific paths passed; they do not substitute for that private list.
 
 ## 2026-10-26 — v2.10.0 upstream-adoption validation
 
