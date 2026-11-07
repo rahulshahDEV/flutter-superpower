@@ -12,6 +12,15 @@ Priority order:
 explicit user choice > existing conventions > skill defaults > generic preferences
 ```
 
+## Advice or implementation
+
+Explicit package/integration suggestions or migration planning use `feature-advice.md`.
+Profile the accessible project, research current sources, and deliver a concrete decision
+with setup, ownership, alternatives and upgrade costs. Advice-only work does not edit apps
+or run implementation gates. If the user requests implementation too, select the approach
+and continue through the loop without adding an approval stage. Report actual research
+evidence and untested assumptions rather than claiming unrun analyzer/device checks.
+
 ## The loop
 
 ```
@@ -27,21 +36,10 @@ Read applicable repository instructions and relevant ADRs/glossary if present. I
 repositories/data sources, shared widgets, theme, extensions/utilities, localization,
 tests, generated files, platform folders (`android/`, `ios/`), env/config, build config.
 
-Produce the profile internally and state it briefly in your plan:
-
-```
-PROJECT PROFILE
-Architecture:   feature-first + clean layers (data/domain/presentation)
-State:          Cubit + SafeCubit, sealed states
-Routing:        GoRouter, static path/routeName per screen
-DI:             get_it + injectable
-Networking:     Dio + Either<Failure,T>, typed exceptions
-Models:         json_serializable models extending Equatable entities
-Testing:        flutter_test, hand-written fakes
-Design system:  KButton/KTextField/ImageRenderer, AppColors/AppTextStyles, AppSizes
-Localization:   none (StringConstants) | ARB | other
-Mode:           existing project | greenfield | migration
-```
+Summarize the actual profile: architecture/layers, state and state shape, routing, DI,
+network/result contract, models/storage, testing, design system, localization, native targets
+and mode (advice, existing project, greenfield or migration). State findings briefly in the
+plan; do not fill missing observations with the default architecture.
 
 If a project deviates from the defaults, record the deviation and follow the project.
 For a large repository, split this read-only profile across independent agents when the
@@ -155,49 +153,30 @@ flutter test      # all green
 Then exercise the affected screen(s) in the dev flavor when a device is available; build
 when the change touches native/config/release concerns. If a check cannot run, say so.
 
-**Definition of Done** — verify each:
+**Definition of Done** — required behavior and project architecture respected; existing
+components reused; no unnecessary dependency; relevant states/edge cases handled; self-review
+complete; format, applicable codegen, analyzer and tests pass; affected build/navigation
+verified when relevant. No debug code/secrets, unjustified package or unverified success claim.
 
-```
-[ ] Requirement implemented
-[ ] Architecture respected (or project convention followed)
-[ ] Existing components reused; no duplication introduced
-[ ] No unnecessary dependency or abstraction
-[ ] Loading / error / empty / success handled
-[ ] Edge cases considered
-[ ] Self-review completed (Step 6)
-[ ] Formatting passed
-[ ] Analyzer passed
-[ ] Tests passed (new test for new non-trivial logic)
-[ ] Build verified when relevant; navigation verified when relevant
-[ ] No debug code, no secrets, no new dependency without justification
-```
+## Step 8 — Report implementation evidence
 
-## Step 8 — Report (evidence, never vibes)
+Use this evidence block, with actual commands/results rather than example success counts:
 
 ```
 Implemented:
-- <what changed, one line each>
-
+- <observable changes>
 Files changed:
-- lib/features/.../profile_cubit.dart
-- lib/features/.../profile_screen.dart
-- test/features/.../profile_cubit_test.dart
-
+- <implementation, configuration and test files>
 Verification:
-- dart format ✅
-- flutter analyze ✅ (0 issues)
-- flutter test ✅ (12 passed)
-- <build/screen check> ✅
-
+- <exact format/codegen/analyze/test/build commands and outcomes>
 Not verified:
-- iOS build (no macOS toolchain) — needs Xcode
-
+- <skipped boundary and reason>
 Notes:
-- <assumptions, follow-ups, risks>
+- <material assumptions, limitations or follow-ups>
 ```
 
-Never claim a check passed unless it was run. Never write "Done." without the evidence
-block. If a step was skipped, name it under "Not verified".
+Never claim an unrun check passed. For advice-only work, use `feature-advice.md`'s decision
+brief and research evidence instead of this implementation report.
 
 ## Ownership rules (do without being asked)
 
@@ -210,13 +189,5 @@ block. If a step was skipped, name it under "Not verified".
 
 ## Communication
 
-Direct, technical, precise. No essays, no restating the request. When blocked:
-
-```
-Blocked: <what>
-Evidence: <error/log/test output>
-Needs: <the one thing you need>
-Default I would use: <your proposed assumption>
-```
-
-Never fabricate certainty; state confidence and what would confirm it.
+Be direct and precise. When blocked report: Blocked / Evidence / Needs / Default I would
+use. State confidence and what would confirm it; never fabricate certainty.

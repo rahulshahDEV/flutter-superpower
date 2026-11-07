@@ -2,6 +2,9 @@
 
 Choose from the app's needs and installed SDK, not a memorized popularity list.
 Existing architecture wins; adding a second state/router/DI/HTTP stack is a migration.
+For a suggestion/comparison request, use `feature-advice.md`: inspect and research, return
+a recommendation, implementation slice and upgrade/exit path. Advice alone does not install
+packages or execute migrations. If implementation is requested, select and continue.
 
 ## Decision ladder
 
@@ -45,7 +48,7 @@ dart pub deps --style=compact
 
 Do not upgrade unrelated packages just because this output lists newer versions.
 
-## Integrate and verify
+## Integrate and verify (implementation requests)
 
 ```bash
 flutter pub add <package>

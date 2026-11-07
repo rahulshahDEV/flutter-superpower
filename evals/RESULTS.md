@@ -7,13 +7,35 @@ own report (analyze/test re-run, Must/Must-not inspected in the diff).
 
 | Status | Cases |
 |---|---|
-| ✅ Recorded PASS with skill (mixed skill versions; independently verified) | 01, 04, 07, 08, 15, 17, 18, 38, 43, 47 (10/51; corrected runs noted below) |
-| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42, 44, 45, 46, 48, 49, 50, 51 (41/51) |
-| 🔬 Baseline (no skill) run | 04, 38, 47 — both lanes PASS; no demonstrated advantage |
+| ✅ Recorded PASS with skill (mixed skill versions; independently verified) | 01, 04, 07, 08, 15, 17, 18, 38, 43, 45, 46, 47, 52, 53 (14/53; corrected runs noted below) |
+| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42, 44, 48, 49, 50, 51 (39/53) |
+| 🔬 Baseline (no skill) run | 04, 38, 47 both lanes PASS; 45 core behavior PASS, raw-message safety findings below |
 
 Case 38 adds the first matched baseline. Both lanes passed, so the recorded results still
 do not establish a causal skill advantage. Expand comparisons on harder, less prescriptive
 tasks; retain passing baselines rather than selecting only favorable results.
+
+## 2026-11-07 — v2.13.0 feature suggestions and reliability
+
+Evidence: [advice responses, input hashes, source patches and parent logs](artifacts/2026-11-07-suggestions/README.md).
+
+- New cases 52–53 PASS: current package/integration suggestions, simplest slice and
+  long-term migration/exit support, including Pigeon/FFIgen/JNIgen/web trade-offs and SDK
+  compatibility. Parent input hashes prove both advice apps remained entirely unchanged.
+  No installation, generation, native build or vendor/hardware validation is claimed.
+- Case 45 with skill: 16 tests PASS. Matched baseline fixed core concurrency behavior but
+  passes 17/19 checks because raw exception strings fail two broader safety assertions.
+  Safety was not an explicit standalone case-45 Must; record a quality difference rather
+  than claiming the baseline failed its core task or proved a general skill advantage.
+- Case 46 PASS: 13 own + 10 parent checks, including ambiguous acknowledgement replay,
+  conflicts/newer edits, transactional failure, account/lifetime guards and coalesced sync.
+  Store/server fakes establish policy, not actual persistence/backend/process guarantees.
+- Advice-only requests now bypass implementation gates while real implementation requests
+  continue without an added approval stage. Current interop sources and older-SDK constraints
+  are separated; no unconditional preview adoption or native-to-web compatibility claim.
+- Final consistency, full Flutter regression and skill validation PASS. Source patches
+  replayed; frozen with-skill concurrency/offline dependencies resolve and analyze cleanly.
+- Cases 44 and 48–51 remain unrun. External private deny-list remains unavailable.
 
 ## 2026-11-07 — v2.12.1 state-choice and persistence validation
 

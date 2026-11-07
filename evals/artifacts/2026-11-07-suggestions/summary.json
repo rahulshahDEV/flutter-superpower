@@ -1,0 +1,59 @@
+{
+  "version": "2.13.0",
+  "date": "2026-11-07",
+  "model": "inherited session model; exact ID not exposed",
+  "case45": {
+    "baseline": {
+      "own_tests": 11,
+      "parent_checks": 8,
+      "outcome": "17 pass / 2 raw-error safety failures; core concurrency PASS",
+      "lockfile_sha256": "7e6d304630cc5456a3937fc72a21cfe4991c652036b131c26ac88c052d51feaa"
+    },
+    "with_skill": {
+      "own_tests": 8,
+      "parent_checks": 8,
+      "outcome": "PASS",
+      "lockfile_sha256": "7e6d304630cc5456a3937fc72a21cfe4991c652036b131c26ac88c052d51feaa"
+    }
+  },
+  "case46": {
+    "offline": {
+      "own_tests": 13,
+      "parent_checks": 10,
+      "outcome": "PASS",
+      "lockfile_sha256": "1aabdebee4ea4bb45ef907796998df1f3cafd60678d59d57c9bd2adf4e9b74b0"
+    }
+  },
+  "advice": {
+    "52": {
+      "outcome": "PASS",
+      "project_unchanged": true,
+      "sources": 12
+    },
+    "53": {
+      "outcome": "PASS",
+      "project_unchanged": true,
+      "sources": 11
+    },
+    "input_hashes": {
+      "share": {
+        "ENVIRONMENT.md": "de106ce286230e11d825a78d256f980052d1298fa3d93481b48daeecbbe10a41",
+        "pubspec.lock": "a9b7138f01f62a82c97de3d7ca489e319b080e892320b8f0ddd55b6b40088efe",
+        "pubspec.yaml": "082703dfd5b471b94b2278f2df2f7b26699af180411b6cf3d2d8e8f18a6cf8e9",
+        ".flutter-plugins-dependencies": "416ff350930fbf3137e268f340c07a70d1220b3caed6b8c37842d800573142d4",
+        "TASK.md": "ce8896064206667a1c2e41d0fab2fcd857e23d6b4ce750914c0f27b07acd92e7",
+        ".dart_tool/package_config.json": "ffc552ae393b43f6037f873309739ab095fb932abf330560ded08f819b6e41b3",
+        ".dart_tool/package_graph.json": "ceb33b1872fc63d5b538259047077d22fcb29b340b7c50485eb0f85083207d10",
+        ".dart_tool/version": "367f3dbda741cea985d6d1536d86690eddf3e45f12c09450bcbc62b65b2b36df",
+        "lib/features/reports/domain/report_share.dart": "04de50da9b2b98131e241968af34ec3f0ecc1a388ddc1a65a054f53d972f7667"
+      },
+      "interop": {
+        "ENVIRONMENT.md": "de106ce286230e11d825a78d256f980052d1298fa3d93481b48daeecbbe10a41",
+        "pubspec.yaml": "64ce1a11b9818eba3091e81b80741f7f021feb4baa46e13acd2690866a4ef511",
+        "TASK.md": "cfbc8a46fcf906727cd215cb270b2f886c8a8b2679fbd5e3c4cbe5c2e71cba0a",
+        "native/VENDOR_CONTRACT.md": "73ce66e3bb8ca69c44067170329d62f8421b97710b59e54f387e743f56f686e3",
+        "native/include/dsp.h": "0a223313f4f67a2acd2cf2dbc4f222ff6594db567c678000d12ad06bdf80b681"
+      }
+    }
+  }
+}

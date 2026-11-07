@@ -11,6 +11,15 @@ structure, dependency ownership, lifecycle and testing guide. Scaffold scripts g
 the Cubit default and reject incompatible apps before writing. Other stacks use the manual
 workflow; runnable framework examples live in `tests/stack_examples/`.
 
+## Suggestion mode
+
+Ask “I need to integrate this feature—suggest the best package and approach.” The skill
+checks your existing stack and current sources, compares a best fit and fallback, and gives
+the easiest implementation slice plus upgrade/exit costs. It covers SDK/plugin reuse,
+Pigeon, platform channels, Dart FFI/FFIgen, JNIgen and web interop where appropriate.
+Advice-only requests do not change your app; requests to implement continue into the normal
+workflow. Example: “Compare Pigeon and FFI for this native SDK on our pinned Flutter version.”
+
 ## How it works
 
 - The frontmatter `description` triggers the skill automatically on any Flutter task
@@ -50,7 +59,7 @@ tests/run.sh           # installer + scaffold + generator + state-stack examples
 tests/state-stacks.sh  # focused framework examples (needs Flutter)
 ```
 
-Behavior cases live in `evals/` (51 cases; protocol in `evals/README.md`, results in
+Behavior cases live in `evals/` (53 cases; protocol in `evals/README.md`, results in
 `evals/RESULTS.md`).
 There is no CI by design — the tests run locally, and they must be green before a release.
 
@@ -187,6 +196,7 @@ flutter-superpower/
     ├── security.md                  ← secrets, log redaction, storage, transport, hardening
     ├── accessibility.md             ← semantics, targets, text scaling, contrast, focus
     ├── localization.md              ← StringConstants vs ARB, plurals, intl, RTL
+    ├── feature-advice.md             ← package/integration suggestions and migration support
     ├── dependencies.md              ← add/remove discipline and evaluation
     ├── native.md                    ← Android/iOS toolchains, flavors, signing, native features
     ├── native-diagnostics.md        ← logs, crash symbols, ANRs, performance traces

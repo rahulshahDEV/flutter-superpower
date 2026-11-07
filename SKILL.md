@@ -1,9 +1,9 @@
 ---
 name: flutter-superpower
-description: Build, extend, audit, debug, or refactor Flutter apps with feature-first architecture, Bloc/Cubit, Riverpod, Provider or GetX, stack-appropriate DI, and deliberate UI and platform decisions. Use for Flutter implementation, native integration/debugging, and Codemagic/fastlane/Shorebird delivery; existing project conventions take priority over these defaults.
+description: Recommend packages and integration approaches, or build, extend, audit, debug and refactor Flutter apps with feature-first architecture, Bloc/Cubit, Riverpod, Provider or GetX, stack-appropriate DI, and deliberate UI and platform decisions. Use for Flutter implementation, native integration/debugging, and Codemagic/fastlane/Shorebird delivery; existing project conventions take priority over these defaults.
 license: MIT
 metadata:
-  version: "2.12.1"
+  version: "2.13.0"
 ---
 
 # Flutter Superpower
@@ -21,7 +21,7 @@ centralized theme/strings, ScreenUtil, K-widgets and dev/prod flavors.**
 
 ## Senior mode — own the task
 
-Inspect, implement, verify and complete the task.
+Advice-only requests → `references/feature-advice.md`; otherwise implement and verify.
 
 1. **Profile before changing** — inspect pubspec, `lib/`, routing, DI, state, networking,
    models, widgets, theme, tests, platform config, env. State the profile
@@ -36,7 +36,7 @@ Inspect, implement, verify and complete the task.
    Ask when blocked.
 5. **Self-review** architecture, scope, UI, correctness, security and regression; fix findings,
    verify.
-6. **Never write "Done."** without the evidence block: Implemented / Files changed /
+6. **Implementation evidence:** Implemented / Files changed /
    Verification (format, analyze, test, build) / Not verified / Notes.
 
 Behavior: `references/senior-mode.md`. Audits: `references/auditing.md`.
@@ -45,13 +45,13 @@ Behavior: `references/senior-mode.md`. Audits: `references/auditing.md`.
 
 1. Feature-first: `lib/features/<feature>/{data,domain,presentation}`. `core/` never imports `features/`, except route assembly in `core/router/`.
 2. Select state/DI first: user choice > existing conventions > Cubit default. Read `references/state-selection.md`; Riverpod, Provider and GetX are supported. Keep one owner per state; no implicit migration.
-3. Cubit default: Cubit + State live in separate files under `presentation/cubit/<flow>/`. Basic fetch variants: sealed → `Initial/Loading/Success/Failure`; freezed → `initial/loading/loaded/failed`. Fresh app default: **sealed** (no codegen); switch to freezed only when states carry many fields or the app already uses freezed. Joining an app? Mirror its choice.
+3. Cubit: separate files under `presentation/cubit/<flow>/`. Default sealed states: `Initial/Loading/Success/Failure`; freezed: `initial/loading/loaded/failed` for existing/field-heavy apps. Mirror the existing state shape.
 4. State owners never hold `BuildContext`, navigate, or own `TextEditingController`s. UI navigates; state owners map repository results.
 5. Cubit default DI = `get_it` + `injectable`. `@injectable` cubits, `@LazySingleton(as: XRepository)` impls, `@module` for plugins. Never `GetIt` inside widgets except `getIt<X>()` at provider/route creation.
 6. Honor the selected/existing router. For default `go_router`/`AppRouter`: screens own `static const String path` + `routeName`. IDs in paths, shareable filters in queries; transient objects via typed `state.extra` with a `fromExtra` fallback. Navigate with `context.goTo/pushRoute/popRoute/goReplace`.
 7. Data flow = data source throws typed exceptions → repository wraps `safeApiCall`/`errorHandler` → returns `FutureEither<T>` (`Either<Failure, T>`) → selected state adapter → UI shows failure message. One `Failure` type family per app.
-8. Models: Equatable entities (plain, all-final, `props`); wire models `@JsonSerializable` extend entities by default (mapping exception: `architecture.md`); generated `.g.dart`/`.freezed.dart` are gitignored and rebuilt, never hand-edited.
-9. All user-visible strings, asset paths, API paths, colors, and storage keys live in constants classes (`StringConstants`, `MediaConstants`/`Media`, `ApiConstants`/`ApiEndpoints`, `StorageKeys`, `AppColors`/`Colours`). Never inline a string or hex color in a widget.
+8. Models: Equatable entities with final fields; `@JsonSerializable` wire models extend entities by default (mapping exception: `architecture.md`). Generated `.g.dart`/`.freezed.dart` are gitignored and rebuilt, never hand-edited.
+9. Centralize copy, assets, API paths, colors and storage keys in project constants/localizations. No inline user-facing strings or hex colors in widgets.
 10. Sizing via `AppSizes` tokens and bounded ScreenUtil design scaling, applied once. Constraints choose layouts; preserve user text scaling and logical-pixel touch minimums.
 11. Reuse the design system before writing UI: `KButton`, `KTextField`, `ImageRenderer`, `EmptyStateWidget`, `ErrorStateWidget`, `LoadingWidget`, shimmer wrapper, custom snackbar (`AppSnackBar`/`CustomSnackBar`), `BottomSheetDivider`. New shared widget → promote to `core/widgets/` only when a second feature needs it.
 12. Config via flavors `dev`/`prod` (`lib/main_dev.dart`, `lib/main_prod.dart`) + `flutter_dotenv` + `AppConfig`/`FlavorConfig`. Quality gate: `dart format .` → (`fdev gen`, or `dart run build_runner build --delete-conflicting-outputs`, if annotations/generated code changed) → `flutter analyze` → `flutter test`. Prefer the owner's `fdev` CLI for builds/codegen — see `references/fdev.md`.
@@ -59,6 +59,7 @@ Behavior: `references/senior-mode.md`. Audits: `references/auditing.md`.
 ## Workflow
 
 ```
+Suggest/compare integration? → references/feature-advice.md (recommendation + migration path)
 UI work?      → references/ui-workflow.md (brief, states, implementation, visual evidence)
 State stack?  → references/state-selection.md, then the selected stack guide
 New Cubit app? → scripts/new_app.sh <name>; then references/playbooks.md § New App
@@ -157,6 +158,7 @@ Behavior needs a runnable check (`references/testing.md`).
 | `references/security.md` | secrets, log redaction, storage, transport, release hardening |
 | `references/accessibility.md` | semantics, touch targets, text scaling, contrast, focus, motion |
 | `references/localization.md` | StringConstants vs ARB, plurals, intl formatting, RTL |
+| `references/feature-advice.md` | suggestion mode, packages vs interop, simplest plan, upgrade/exit path |
 | `references/dependencies.md` | add/remove discipline, evaluation, house-pinned choices |
 | `references/native.md` | Android/iOS build triage, toolchains, flavors, signing |
 | `references/native-diagnostics.md` | crashes, ANRs, logs, symbols, Instruments/Perfetto |
@@ -184,11 +186,11 @@ Behavior needs a runnable check (`references/testing.md`).
 - `try/catch` that swallows, `!`, `dynamic`, `late` as a crutch.
 - Editing a generated file, or committing `.g.dart`/`.freezed.dart`/`injection.config.dart`.
 - "I'll add the test after" — after means never.
-- Claiming done without pasting analyzer/test output.
+- Claiming implementation complete without analyzer/test evidence.
 
-## Evidence before claiming done
+## Implementation evidence
 
-Report exact results; never assert success without evidence:
+For implementation, report exact results; advice reports sources and unverified assumptions:
 
 ```bash
 dart format .

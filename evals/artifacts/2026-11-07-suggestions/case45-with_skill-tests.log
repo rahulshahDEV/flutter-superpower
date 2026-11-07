@@ -1,0 +1,18 @@
+00:00 +0: loading <APP>/test/search_bloc_test.dart
+00:00 +0: <APP>/test/search_bloc_test.dart: refresh owns the result even when the previous search finishes last
+00:00 +1: <APP>/test/parent_acceptance_test.dart: refresh and query reads share latest-intent ownership
+00:00 +2: <APP>/test/parent_acceptance_test.dart: refresh and query reads share latest-intent ownership
+00:00 +3: <APP>/test/search_bloc_test.dart: latest failure retains content and rejects an older success
+00:00 +4: <APP>/test/parent_acceptance_test.dart: query after refresh rejects stale cross-type failure
+00:00 +5: <APP>/test/search_bloc_test.dart: distinct writes are FIFO and pending/successful duplicates have one effect
+00:00 +6: <APP>/test/parent_acceptance_test.dart: latest failure and retained content survive stale success
+00:00 +7: <APP>/test/search_bloc_test.dart: failed write advances queue, pending duplicate is ignored, explicit retry works
+00:00 +8: <APP>/test/parent_acceptance_test.dart: distinct writes are FIFO; duplicates do not drop queued intents or reads
+00:00 +9: <APP>/test/search_bloc_test.dart: payload conflict fails safely while pending, failed and successful
+00:00 +10: <APP>/test/parent_acceptance_test.dart: failed write can retry without dropping the next distinct write
+00:00 +11: <APP>/test/parent_acceptance_test.dart: failed write can retry without dropping the next distinct write
+00:00 +12: <APP>/test/search_bloc_test.dart: close suppresses late read states and finishes accepted queued writes
+00:00 +13: <APP>/test/parent_acceptance_test.dart: reusing an operation ID for different payload never writes it
+00:00 +14: <APP>/test/parent_acceptance_test.dart: state snapshots cannot be mutated by repository callers or consumers
+00:00 +15: <APP>/test/parent_acceptance_test.dart: closing with read and write in flight does not cancel the server effect
+00:00 +16: All tests passed!

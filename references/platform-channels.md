@@ -3,6 +3,8 @@
 Use native code when a required OS capability isn't adequately served by the SDK or an
 existing maintained plugin. Inspect `dependencies.md` first. Keep native implementation in a
 small plugin/module or the project's existing bridge, not spread across screen code.
+For a recommendation before implementation, use `feature-advice.md`; retain the existing
+state/DI/router and explain both setup effort and long-term ownership.
 
 ## Design the contract first
 
@@ -14,10 +16,12 @@ implementation fault are different outcomes, not one generic null.
 
 | Need | Usual mechanism |
 |---|---|
-| Small request/response bridge | MethodChannel with an explicit typed Dart adapter |
-| Larger structured API across Dart/Kotlin/Swift | Pigeon-generated contracts |
+| Owned typed API across host platforms | Pigeon-generated contracts; verify backend and platform support |
+| Existing small/raw request/response bridge | MethodChannel with an explicit typed Dart adapter |
 | Ongoing sensor/progress events | EventChannel with subscription ownership/backpressure |
-| Existing C-compatible compute library | Evaluate Dart FFI with explicit memory/thread ownership |
+| Existing C-compatible library / measured compute need | `dart:ffi` + FFIgen, with explicit ABI/memory/thread ownership |
+| Existing Java/Kotlin library | JNIgen or a typed host wrapper, subject to toolchain support |
+| Browser/JavaScript API | `dart:js_interop` / `package:web` through a web-specific adapter |
 | Embedded native UI | Platform views; assess composition, gestures, accessibility and cost |
 
 Channel names, method names and codecs form a protocol. Validate values at both boundaries,
@@ -26,6 +30,45 @@ machine-readable error codes and safe user copy; native diagnostics stay out of 
 Regenerate both sides after schema changes and keep generator/runtime versions compatible.
 Consult [Flutter platform integration](https://docs.flutter.dev/platform-integration/platform-channels)
 for the current codec, Pigeon and threading APIs rather than copying an old registrant.
+
+## Select a version-compatible backend
+
+Current Flutter interop documentation describes both Pigeon platform-channel bindings and
+native FFI/JNI bindings in preview. Pigeon is the schema/contract generator; do not assume
+its transport is always channels. Inspect the project's SDK, installed generator, supported
+languages/targets and migration notes before selecting or changing the backend. Documentation
+for a newer Flutter release is not proof a feature exists in the app's pinned SDK.
+Keep a supported stable path unless the task explicitly justifies preview adoption.
+
+FFIgen generates bindings from C/Objective-C headers; C++ needs a C-compatible exported
+surface. Java/Kotlin calls need JNI support rather than treating JVM objects as C functions.
+Swift APIs exposed through Objective-C and pure Swift features have different support;
+verify the actual vendor headers and installed tool, and add a small native wrapper when
+needed. Web needs a separate supported implementation; a native library/FFI binding does
+not automatically become browser/Wasm compatible. Never select a native mechanism solely
+because a benchmark from a different workload says it is faster.
+
+## Direct interop ownership and upgrades
+
+- Define who allocates/frees each buffer/object/reference, whether ownership is borrowed
+  or transferred, and the lifetime of callbacks. Never retain pointers after release or
+  free memory with a different allocator. Handle string encoding, lengths and nullability.
+- A synchronous native call can block its calling thread. Move suitable work off the UI
+  isolate/thread; UI-affine OS APIs still require their supported platform thread. Check
+  callback threading and reentrancy rather than assuming `async` makes the call safe.
+- Record C ABI/symbol layout, calling conventions, native library version and supported
+  architectures. Verify binary packaging/loading, minimum OS, licensing and release symbols.
+  Generated Dart bindings do not supply a missing native binary or correct ABI mismatch.
+- Keep a small app-facing Dart boundary when it provides a useful seam; hide raw pointers,
+  vendor object wrappers and generated transport types from domain/UI. Release resources
+  at the existing owner, with deterministic tests plus native diagnostics for crashes/leaks.
+- Pin generator/native build inputs and retain configuration. On API/ABI change, regenerate
+  bindings and test success/failure/cancellation/disposal across supported targets. Pigeon,
+  FFIgen and JNIgen may use dedicated project scripts; `fdev gen`/build_runner alone is not
+  proof all bindings were rebuilt. No handwritten edits to generated Dart/host output.
+- Migrate adapters in runnable stages behind the existing contract. Remove old registration,
+  binaries, dependencies and permissions only after consumers move. Persisted data, in-flight
+  operations and server protocols have separate compatibility/rollback rules.
 
 ## Thread and lifecycle ownership
 
@@ -90,3 +133,10 @@ process.
 
 Report build/OS/device, tested paths and limitations. A simulator pass does not establish
 camera/Bluetooth/background scheduling or production push/signing behavior on hardware.
+
+Mechanism sources (checked 2026-11-07):
+[interop overview](https://docs.flutter.dev/interop),
+[Pigeon backends](https://docs.flutter.dev/interop/pigeon),
+[FFIgen API limits](https://docs.flutter.dev/interop/ffigen),
+[JNIgen](https://docs.flutter.dev/interop/jnigen),
+[JavaScript interop](https://dart.dev/interop/js-interop).

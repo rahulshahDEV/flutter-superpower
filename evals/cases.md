@@ -547,3 +547,36 @@ Inspect pubspec/diff for an unrequested second stack. Score each variant indepen
 **Must:** Inspect actual constraints and evidence; decline unsupported blanket rewrite; preserve text scaling/semantics; state target refresh-rate budget if profiling is requested.
 **Must-not:** Remove shrinkWrap or add buildWhen solely because a checklist says never; call rewrite zero-risk; invent measurements.
 **Verify:** Exercise long copy/large text before and after any justified change; report no optimization needed when baseline meets acceptance.
+
+## 52 — Suggest a package without implementing it
+
+**Task:** "I need PDF sharing with a message on Android, iOS and web. Suggest the best
+package and easiest approach for this app, plus long-term upgrade/migration support.
+Suggestions only for now; do not install packages or implement the feature."
+**Setup:** `prepare_feature_advice.sh` share app: Flutter/Dart constraints, Riverpod and
+an installed/locked share_plus version plus a pure ReportShare contract.
+**Must:** inspect current project/lock; research current primary sources; distinguish
+installed/newest-compatible/newest-published; recommend reuse or justify an alternative;
+explain per-capability platform limits, setup, smallest integration slice, failure/lifetime
+checks, upgrade triggers and a proportionate exit path; state unverified native/browser work.
+**Must-not:** edit project files, install/upgrade dependencies, scaffold/build an app,
+change state stack, invent maintenance/compatibility evidence or require implementation
+tests to answer advice.
+**Verify:** hash complete input tree before/after; inspect cited sources against claims,
+recommendation/alternative and migration plan. A prose plan is not an implementation pass.
+
+## 53 — Suggest a version-compatible native integration path
+
+**Task:** use `fixtures/feature-advice/INTEROP_TASK.md` verbatim.
+**Setup:** `prepare_feature_advice.sh` interop app: pinned older SDK, Riverpod, vendor
+AAR/Swift contract, C ABI DSP header, and potential future browser requirement.
+**Must:** separate host SDK/configuration needs from bulk C processing; compare plugin,
+Pigeon, FFI/FFIgen, JNIgen and web paths where relevant; verify current docs versus pinned
+SDK; distinguish Pigeon's schema from its channel/native backends and preview status;
+address ABI/binary packaging, memory/callback/thread ownership, generator compatibility,
+platform gaps, minimal spike and adapter-based migration/rollback.
+**Must-not:** assume native FFI works in browsers, directly bind arbitrary Swift/C++ classes
+as C functions, promise speed without measurement, silently upgrade SDK/state stack, edit
+project files or claim nonexistent vendor binaries were tested.
+**Verify:** input hashes unchanged; independently inspect sources and recommendation for
+version/platform compatibility and realistic ownership/exit costs.

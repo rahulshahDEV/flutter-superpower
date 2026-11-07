@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.13.0
+
+- Added explicit feature suggestion mode: best-fit package/implementation advice, current
+  compatibility evidence, simplest delivery slice and long-term upgrade/exit paths.
+- Expanded version-aware plugin/Pigeon/FFIgen/JNIgen/web interop guidance without forcing
+  implementation or migration for advice-only requests.
+- Verified suggestion responses leave apps unchanged; archived independent Bloc concurrency
+  and offline replay evaluations, held-out checks and dependency locks.
+
 ## 2.12.1
 
 - Extended reproducible state-selection inputs to the full existing/greenfield matrix.

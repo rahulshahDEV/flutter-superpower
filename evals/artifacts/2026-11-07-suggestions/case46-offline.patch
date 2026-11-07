@@ -1,0 +1,515 @@
+--- a/lib/note_sync.dart
++++ b/lib/note_sync.dart
+@@ -63,16 +63,161 @@
+   Future<NoteWriteResult> write(PendingEdit edit);
+ }
+ 
+-// Complete this presentation-independent coordinator; keep its public surface.
++// The application owns one active coordinator per account. Store transactions
++// provide atomicity; the server must deduplicate account-scoped operation IDs.
+ final class NoteSyncService {
+   NoteSyncService(this.store, this.server, this.newId);
+   final LocalNoteStore store;
+   final NoteServer server;
+   final String Function() newId;
+-  void signIn(String accountId) => throw UnimplementedError();
+-  void signOut() => throw UnimplementedError();
+-  void edit(String noteId, String body) => throw UnimplementedError();
+-  NoteRecord? get(String noteId) => throw UnimplementedError();
+-  Future<void> sync() => throw UnimplementedError();
+-  void close() => throw UnimplementedError();
+-}
++  String? _accountId;
++  bool _closed = false;
++  int _generation = 0;
++  Future<void>? _sync;
++
++  void signIn(String accountId) {
++    if (_closed) throw StateError('Coordinator is closed');
++    if (_accountId == accountId) return;
++    _accountId = accountId;
++    _generation++;
++    _sync = null;
++  }
++
++  void signOut() {
++    _accountId = null;
++    _generation++;
++    _sync = null;
++  }
++
++  void edit(String noteId, String body) {
++    final account = _accountId;
++    if (_closed || account == null) throw StateError('No active account');
++    final id = newId();
++    store.transaction((tx) {
++      final version = tx.readNote(account, noteId)?.serverVersion ?? 0;
++      final conflict = tx
++          .edits(account)
++          .any(
++            (edit) =>
++                edit.noteId == noteId && edit.status == NoteStatus.conflict,
++          );
++      tx.putNote(
++        NoteRecord(
++          accountId: account,
++          noteId: noteId,
++          body: body,
++          serverVersion: version,
++          status: conflict ? NoteStatus.conflict : NoteStatus.pending,
++        ),
++      );
++      // Preserve the original precondition; replay must never silently rebase.
++      tx.putEdit(
++        PendingEdit(
++          operationId: id,
++          accountId: account,
++          noteId: noteId,
++          body: body,
++          baseVersion: version,
++        ),
++      );
++    });
++  }
++
++  NoteRecord? get(String noteId) {
++    final account = _accountId;
++    if (_closed || account == null) return null;
++    return store.transaction((tx) => tx.readNote(account, noteId));
++  }
++
++  Future<void> sync() {
++    final account = _accountId;
++    if (_closed || account == null) return Future.value();
++    final running = _sync;
++    if (running != null) return running;
++    final generation = _generation;
++    final future = Future<void>.sync(() => _drain(account, generation));
++    final tracked = future.whenComplete(() {
++      if (_generation == generation) _sync = null;
++    });
++    _sync = tracked;
++    return tracked;
++  }
++
++  bool _active(String account, int generation) =>
++      !_closed && _accountId == account && _generation == generation;
++
++  Future<void> _drain(String account, int generation) async {
++    while (_active(account, generation)) {
++      final edit = store.transaction((tx) {
++        final edits = tx.edits(account);
++        final blocked = edits
++            .where((e) => e.status == NoteStatus.conflict)
++            .map((e) => e.noteId)
++            .toSet();
++        for (final edit in edits) {
++          if (edit.status == NoteStatus.pending &&
++              !blocked.contains(edit.noteId)) {
++            return edit;
++          }
++        }
++        return null;
++      });
++      if (edit == null) return;
++      final NoteWriteResult result;
++      try {
++        result = await server.write(edit);
++      } catch (_) {
++        if (!_active(account, generation)) return;
++        rethrow;
++      }
++      if (!_active(account, generation)) return;
++      store.transaction((tx) {
++        final note = tx.readNote(account, edit.noteId);
++        if (note == null) throw StateError('Queued note is missing');
++        switch (result) {
++          case NoteAccepted():
++            tx.deleteEdit(edit.operationId);
++          case NoteConflict():
++            tx.putEdit(
++              PendingEdit(
++                operationId: edit.operationId,
++                accountId: edit.accountId,
++                noteId: edit.noteId,
++                body: edit.body,
++                baseVersion: edit.baseVersion,
++                status: NoteStatus.conflict,
++              ),
++            );
++        }
++        final remaining = tx
++            .edits(account)
++            .where((e) => e.noteId == note.noteId);
++        final status = remaining.any((e) => e.status == NoteStatus.conflict)
++            ? NoteStatus.conflict
++            : remaining.isNotEmpty
++            ? NoteStatus.pending
++            : NoteStatus.synced;
++        final version = switch (result) {
++          NoteAccepted(:final version) => version,
++          NoteConflict(:final serverVersion) => serverVersion,
++        };
++        tx.putNote(
++          NoteRecord(
++            accountId: account,
++            noteId: note.noteId,
++            body: note.body,
++            serverVersion: version > note.serverVersion
++                ? version
++                : note.serverVersion,
++            status: status,
++          ),
++        );
++      });
++    }
++  }
++
++  void close() {
++    _closed = true;
++    signOut();
++  }
++}
+--- /dev/null
++++ b/test/note_sync_test.dart
+@@ -0,0 +1,340 @@
++import 'dart:async';
++import 'package:flutter_test/flutter_test.dart';
++import 'package:offline_eval/note_sync.dart';
++
++void main() {
++  test(
++    'local edit and intent commit together; commit failure leaves neither',
++    () {
++      final store = MemoryStore();
++      final service = NoteSyncService(
++        store,
++        VersionedServer(),
++        () => 'operation-1',
++      )..signIn('alice');
++      store.failCommit = true;
++      expect(() => service.edit('note', 'draft'), throwsStateError);
++      store.failCommit = false;
++      expect(service.get('note'), isNull);
++      expect(store.queue, isEmpty);
++      store.failCommit = false;
++      service.edit('note', 'draft');
++      expect(service.get('note')?.body, 'draft');
++      expect(service.get('note')?.status, NoteStatus.pending);
++      expect(store.queue.single.operationId, 'operation-1');
++      expect(store.queue.single.baseVersion, 0);
++    },
++  );
++
++  for (final failure in ['note', 'queue']) {
++    test('$failure write failure rolls back both records', () {
++      final store = MemoryStore();
++      final service = NoteSyncService(store, VersionedServer(), () => 'id')
++        ..signIn('a');
++      store.failNoteWrite = failure == 'note';
++      store.failEditWrite = failure == 'queue';
++      expect(() => service.edit('n', 'body'), throwsStateError);
++      expect(store.notes, isEmpty);
++      expect(store.queue, isEmpty);
++    });
++  }
++
++  test(
++    'offline work resumes from retained store after reconstruction',
++    () async {
++      final store = MemoryStore();
++      final server = VersionedServer()..offline = true;
++      final first = NoteSyncService(store, server, () => 'stable')..signIn('a');
++      first.edit('n', 'offline body');
++      await expectLater(first.sync(), throwsStateError);
++      first.close();
++      final resumed = NoteSyncService(store, server, () => 'unused')
++        ..signIn('a');
++      expect(resumed.get('n')?.status, NoteStatus.pending);
++      expect(store.queue.single.operationId, 'stable');
++      server.offline = false;
++      await resumed.sync();
++      expect(resumed.get('n')?.body, 'offline body');
++      expect(resumed.get('n')?.status, NoteStatus.synced);
++      expect(store.queue, isEmpty);
++      expect(server.effects, 1);
++    },
++  );
++
++  test('interruption before delivery retains original intent', () async {
++    final store = MemoryStore();
++    final server = VersionedServer();
++    final first = NoteSyncService(store, server, () => 'stable')..signIn('a');
++    first.edit('n', 'draft');
++    first.close();
++    expect(server.deliveries, isEmpty);
++    final resumed = NoteSyncService(store, server, () => 'unused')..signIn('a');
++    await resumed.sync();
++    expect(server.deliveries.single.operationId, 'stable');
++    expect(server.effects, 1);
++  });
++
++  test(
++    'lost acknowledgement retries identity and deduplicates before version check',
++    () async {
++      final store = MemoryStore();
++      final server = VersionedServer()..loseAcknowledgement = true;
++      final first = NoteSyncService(store, server, () => 'stable')..signIn('a');
++      first.edit('n', 'body');
++      await expectLater(first.sync(), throwsStateError);
++      expect(server.effects, 1);
++      expect(store.queue.single.operationId, 'stable');
++      first.close();
++      server.notes['a/n'] = (body: 'later remote body', version: 8);
++      server.loseAcknowledgement = false;
++      final resumed = NoteSyncService(store, server, () => 'unused')
++        ..signIn('a');
++      await resumed.sync();
++      expect(server.effects, 1);
++      expect(server.notes['a/n']?.body, 'later remote body');
++      expect(resumed.get('n')?.serverVersion, 1);
++      expect(resumed.get('n')?.status, NoteStatus.synced);
++      expect(server.deliveries.map((e) => e.operationId), ['stable', 'stable']);
++    },
++  );
++
++  test(
++    'local acknowledgement commit failure safely retries server acceptance',
++    () async {
++      final store = MemoryStore();
++      final server = VersionedServer()
++        ..onAccepted = () {
++          store.failCommit = true;
++        };
++      final service = NoteSyncService(store, server, () => 'stable')
++        ..signIn('a');
++      service.edit('n', 'draft');
++      await expectLater(service.sync(), throwsStateError);
++      expect(server.effects, 1);
++      expect(store.queue.single.operationId, 'stable');
++      expect(store.notes['a/n']?.status, NoteStatus.pending);
++      store.failCommit = false;
++      server.onAccepted = null;
++      service.close();
++      final resumed = NoteSyncService(store, server, () => 'unused')
++        ..signIn('a');
++      await resumed.sync();
++      expect(server.effects, 1);
++      expect(server.deliveries.map((e) => e.operationId), ['stable', 'stable']);
++      expect(resumed.get('n')?.status, NoteStatus.synced);
++    },
++  );
++
++  test(
++    'conflict preserves body and prevents further replay including reconstruction',
++    () async {
++      final store = MemoryStore();
++      final server = VersionedServer();
++      server.notes['a/n'] = (body: 'remote', version: 4);
++      var id = 0;
++      final first = NoteSyncService(store, server, () => 'id-${id++}')
++        ..signIn('a');
++      first.edit('n', 'my draft');
++      await first.sync();
++      expect(first.get('n')?.body, 'my draft');
++      expect(first.get('n')?.status, NoteStatus.conflict);
++      expect(first.get('n')?.serverVersion, 4);
++      expect(store.queue.single.status, NoteStatus.conflict);
++      expect(store.queue.single.baseVersion, 0);
++      first.edit('n', 'my newer draft');
++      first.close();
++      final resumed = NoteSyncService(store, server, () => 'unused')
++        ..signIn('a');
++      await resumed.sync();
++      expect(resumed.get('n')?.body, 'my newer draft');
++      expect(resumed.get('n')?.status, NoteStatus.conflict);
++      expect(store.queue, hasLength(2));
++      expect(server.deliveries, hasLength(1));
++      expect(server.notes['a/n']?.body, 'remote');
++    },
++  );
++
++  test(
++    'older acknowledgement preserves newer input and original preconditions',
++    () async {
++      final store = MemoryStore();
++      final server = ControlledServer();
++      var id = 0;
++      final service = NoteSyncService(store, server, () => 'id-${id++}')
++        ..signIn('a');
++      service.edit('n', 'first');
++      final syncing = service.sync();
++      final coalesced = service.sync();
++      expect(identical(syncing, coalesced), isTrue);
++      service.edit('n', 'second');
++      server.next.complete(const NoteAccepted(1));
++      await server.secondStarted.future;
++      expect(service.get('n')?.body, 'second');
++      expect(service.get('n')?.status, NoteStatus.pending);
++      expect(service.get('n')?.serverVersion, 1);
++      expect(store.queue.single.operationId, 'id-1');
++      expect(store.queue.single.baseVersion, 0);
++      server.second.complete(const NoteConflict('first', 1));
++      await syncing;
++      expect(service.get('n')?.body, 'second');
++      expect(service.get('n')?.status, NoteStatus.conflict);
++      expect(server.deliveries, hasLength(2));
++    },
++  );
++
++  for (final transition in [
++    'logout',
++    'switch',
++    'close',
++    'same-account-return',
++  ]) {
++    test(
++      '$transition ignores in-flight completion and retains account queue',
++      () async {
++        final store = MemoryStore();
++        final server = ControlledServer();
++        var id = 0;
++        final service = NoteSyncService(store, server, () => 'id-${id++}')
++          ..signIn('a');
++        service.edit('n', 'alice');
++        service.edit('other', 'alice other');
++        final syncing = service.sync();
++        if (transition == 'close') {
++          service.close();
++        } else {
++          service.signOut();
++          if (transition == 'switch') {
++            service.signIn('b');
++            expect(service.get('n'), isNull);
++            service.edit('n', 'bob');
++          }
++          if (transition == 'same-account-return') service.signIn('a');
++        }
++        server.next.complete(const NoteAccepted(1));
++        await syncing;
++        expect(store.notes['a/n']?.status, NoteStatus.pending);
++        expect(store.queue.where((e) => e.accountId == 'a'), hasLength(2));
++        expect(server.deliveries, hasLength(1));
++        if (transition == 'switch') {
++          final bobSync = service.sync();
++          await server.secondStarted.future;
++          expect(server.deliveries.last.accountId, 'b');
++          expect(server.deliveries.last.body, 'bob');
++          server.second.complete(const NoteAccepted(1));
++          await bobSync;
++          expect(service.get('n')?.status, NoteStatus.synced);
++          expect(store.notes['a/n']?.body, 'alice');
++        }
++        if (transition == 'close') {
++          expect(() => service.signIn('b'), throwsStateError);
++        }
++      },
++    );
++  }
++}
++
++final class MemoryStore implements LocalNoteStore {
++  Map<String, NoteRecord> notes = {};
++  List<PendingEdit> queue = [];
++  bool failCommit = false;
++  bool failNoteWrite = false;
++  bool failEditWrite = false;
++
++  @override
++  T transaction<T>(T Function(NoteTransaction) action) {
++    final transaction = MemoryTransaction(
++      Map.of(notes),
++      List.of(queue),
++      failNoteWrite,
++      failEditWrite,
++    );
++    final result = action(transaction);
++    if (failCommit) throw StateError('commit failed');
++    notes = transaction.notes;
++    queue = transaction.queue;
++    return result;
++  }
++}
++
++final class MemoryTransaction implements NoteTransaction {
++  MemoryTransaction(
++    this.notes,
++    this.queue,
++    this.failNoteWrite,
++    this.failEditWrite,
++  );
++  final Map<String, NoteRecord> notes;
++  final List<PendingEdit> queue;
++  final bool failNoteWrite;
++  final bool failEditWrite;
++  String key(String account, String note) => '$account/$note';
++  @override
++  NoteRecord? readNote(String accountId, String noteId) =>
++      notes[key(accountId, noteId)];
++  @override
++  void putNote(NoteRecord note) {
++    if (failNoteWrite) throw StateError('note write failed');
++    notes[key(note.accountId, note.noteId)] = note;
++  }
++
++  @override
++  List<PendingEdit> edits(String accountId) =>
++      queue.where((e) => e.accountId == accountId).toList();
++  @override
++  void putEdit(PendingEdit edit) {
++    if (failEditWrite) throw StateError('queue write failed');
++    final index = queue.indexWhere((e) => e.operationId == edit.operationId);
++    if (index < 0) {
++      queue.add(edit);
++    } else {
++      queue[index] = edit;
++    }
++  }
++
++  @override
++  void deleteEdit(String operationId) =>
++      queue.removeWhere((e) => e.operationId == operationId);
++}
++
++final class VersionedServer implements NoteServer {
++  final Map<String, NoteAccepted> accepted = {};
++  final Map<String, ({String body, int version})> notes = {};
++  final List<PendingEdit> deliveries = [];
++  bool offline = false;
++  bool loseAcknowledgement = false;
++  int effects = 0;
++  void Function()? onAccepted;
++  @override
++  Future<NoteWriteResult> write(PendingEdit edit) async {
++    deliveries.add(edit);
++    if (offline) throw StateError('offline');
++    final identity = '${edit.accountId}/${edit.operationId}';
++    if (accepted[identity] case final previous?) return previous;
++    final key = '${edit.accountId}/${edit.noteId}';
++    final current = notes[key] ?? (body: '', version: 0);
++    if (current.version != edit.baseVersion) {
++      return NoteConflict(current.body, current.version);
++    }
++    final result = NoteAccepted(current.version + 1);
++    accepted[identity] = result;
++    notes[key] = (body: edit.body, version: result.version);
++    effects++;
++    onAccepted?.call();
++    if (loseAcknowledgement) throw StateError('acknowledgement lost');
++    return result;
++  }
++}
++
++final class ControlledServer implements NoteServer {
++  final next = Completer<NoteWriteResult>();
++  final second = Completer<NoteWriteResult>();
++  final secondStarted = Completer<void>();
++  final List<PendingEdit> deliveries = [];
++  @override
++  Future<NoteWriteResult> write(PendingEdit edit) {
++    deliveries.add(edit);
++    if (deliveries.length == 1) return next.future;
++    if (!secondStarted.isCompleted) secondStarted.complete();
++    return second.future;
++  }
++}

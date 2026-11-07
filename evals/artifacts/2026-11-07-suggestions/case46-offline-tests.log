@@ -1,0 +1,25 @@
+00:00 +0: loading <APP>/test/note_sync_test.dart
+00:00 +0: <APP>/test/parent_acceptance_test.dart: local note and outbox either commit together or remain unchanged
+00:00 +1: <APP>/test/parent_acceptance_test.dart: offline queue survives coordinator reconstruction without changing operation ID
+00:00 +2: <APP>/test/parent_acceptance_test.dart: lost acknowledgement replays one stable ID and produces one server effect
+00:00 +3: <APP>/test/parent_acceptance_test.dart: conflicts retain user input and stop automatic replay
+00:00 +4: <APP>/test/parent_acceptance_test.dart: old acknowledgement cannot overwrite a newer local edit
+00:00 +5: <APP>/test/parent_acceptance_test.dart: logout rejects late acknowledgement and retains account-scoped pending work
+00:00 +6: <APP>/test/parent_acceptance_test.dart: overlapping sync calls coalesce on the active coordinator
+00:00 +7: <APP>/test/parent_acceptance_test.dart: failed acknowledgement commit retains replayable work atomically
+00:00 +8: <APP>/test/parent_acceptance_test.dart: completion after close cannot acknowledge retained account work
+00:00 +9: <APP>/test/parent_acceptance_test.dart: a conflicted note does not prevent a different note from synchronizing
+00:00 +10: <APP>/test/note_sync_test.dart: local edit and intent commit together; commit failure leaves neither
+00:00 +11: <APP>/test/note_sync_test.dart: note write failure rolls back both records
+00:00 +12: <APP>/test/note_sync_test.dart: queue write failure rolls back both records
+00:00 +13: <APP>/test/note_sync_test.dart: offline work resumes from retained store after reconstruction
+00:00 +14: <APP>/test/note_sync_test.dart: interruption before delivery retains original intent
+00:00 +15: <APP>/test/note_sync_test.dart: lost acknowledgement retries identity and deduplicates before version check
+00:00 +16: <APP>/test/note_sync_test.dart: local acknowledgement commit failure safely retries server acceptance
+00:00 +17: <APP>/test/note_sync_test.dart: conflict preserves body and prevents further replay including reconstruction
+00:00 +18: <APP>/test/note_sync_test.dart: older acknowledgement preserves newer input and original preconditions
+00:00 +19: <APP>/test/note_sync_test.dart: logout ignores in-flight completion and retains account queue
+00:00 +20: <APP>/test/note_sync_test.dart: switch ignores in-flight completion and retains account queue
+00:00 +21: <APP>/test/note_sync_test.dart: close ignores in-flight completion and retains account queue
+00:00 +22: <APP>/test/note_sync_test.dart: same-account-return ignores in-flight completion and retains account queue
+00:00 +23: All tests passed!

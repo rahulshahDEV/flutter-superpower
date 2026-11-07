@@ -3,6 +3,19 @@
 Scope: the reusable Flutter Superpower skill, its references, scaffold templates and tests.
 Baseline audit: v2.9.0 (2026-10-24); latest hardening plan below.
 
+## 2026-11-07 — feature suggestion mode and reliability continuation
+
+Target: 2.13.0. Add a first-class advice workflow for package choice and easiest integration,
+with explicit platform/version/maintenance evidence and proportionate long-term migration.
+Keep project changes out of advice-only requests and keep authorized implementations moving.
+Update native decision guidance using current primary docs while checking pinned SDK support.
+
+Validation: independent package-sharing and native/DSP advice tasks with complete input-tree
+hash comparisons; matched Bloc cross-event/save-order task; offline replay/coordinator task.
+Parent-held checks and review are separate from agent reports. Archive both baseline safety
+findings and passing skill implementations without claiming broad causal superiority.
+Capability/device/backend limits and unrun cases remain in `evals/RESULTS.md`.
+
 ## 2026-11-07 — continue validation
 
 Target: 2.12.1. Finish the case-43 state-choice matrix, exercise schema migrations using real

@@ -61,6 +61,11 @@ commands pass.
   report initial and corrected verdicts separately. `tests/state-stacks.sh` is deterministic
   framework regression, not an agent behavior evaluation.
 
+- `evals/prepare_reliability.sh <new-dir>` prepares matched case-45 Bloc apps and case-46
+  offline coordinator contracts; withhold each corresponding acceptance file.
+- `evals/prepare_feature_advice.sh <new-dir>` prepares cases 52–53; capture project hashes
+  before advice runs, save advice outside the app and compare unchanged trees afterward.
+
 ## Case index
 
 | # | Case | Primary reference under test |
@@ -116,6 +121,8 @@ commands pass.
 | 49 | Verify production error delivery | production-observability |
 | 50 | Expose a public feature contract without cycles | feature-boundaries |
 | 51 | Optimize only the measured bottleneck | app-optimization, performance |
+| 52 | Package suggestions without application edits | feature-advice, dependencies |
+| 53 | Native integration and migration suggestions | feature-advice, platform-channels |
 
 ## Honest limits
 

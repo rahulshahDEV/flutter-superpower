@@ -1,0 +1,414 @@
+--- a/lib/search_bloc.dart
++++ b/lib/search_bloc.dart
+@@ -42,34 +42,116 @@
+   final String? saveError;
+ }
+ 
++enum _SaveStatus { pending, succeeded, failed }
++
++final class _SaveOperation {
++  _SaveOperation(this.payload);
++  final String payload;
++  _SaveStatus status = _SaveStatus.pending;
++}
++
+ final class SearchBloc extends Bloc<SearchEvent, SearchState> {
+   SearchBloc(this.repository) : super(SearchState()) {
+-    on<SearchChanged>((event, emit) => _read(event.query, emit));
+-    on<SearchRefreshed>((event, emit) => _read(state.query, emit));
+-    on<SaveRequested>((event, emit) async {
+-      await repository.save(event.operationId, event.payload);
+-      emit(
+-        SearchState(
+-          query: state.query,
+-          items: state.items,
+-          loading: state.loading,
+-          readError: state.readError,
+-          savedIds: [...state.savedIds, event.operationId],
+-        ),
+-      );
++    // One event stream establishes intent order across both read event types.
++    // The handlers may overlap; writes have their own explicit FIFO below.
++    on<SearchEvent>((event, emit) {
++      return switch (event) {
++        SearchChanged(:final query) => _read(query, emit),
++        SearchRefreshed() => _read(state.query, emit),
++        SaveRequested() => _enqueueSave(event, emit),
++      };
+     });
+   }
++
+   final SearchRepository repository;
++  int _readGeneration = 0;
++  final _operations = <String, _SaveOperation>{};
++  Future<void> _writeTail = Future<void>.value();
++  Future<void>? _closing;
++
+   Future<void> _read(String query, Emitter<SearchState> emit) async {
++    final generation = ++_readGeneration;
+     emit(
+       SearchState(
+         query: query,
+         items: state.items,
+         loading: true,
+         savedIds: state.savedIds,
++        saveError: state.saveError,
+       ),
+     );
+-    final items = await repository.search(query);
+-    emit(SearchState(query: query, items: items, savedIds: state.savedIds));
++    try {
++      final items = await repository.search(query);
++      if (emit.isDone || generation != _readGeneration) return;
++      emit(
++        SearchState(
++          query: query,
++          items: items,
++          savedIds: state.savedIds,
++          saveError: state.saveError,
++        ),
++      );
++    } catch (error) {
++      if (emit.isDone || generation != _readGeneration) return;
++      emit(
++        SearchState(
++          query: query,
++          items: state.items,
++          readError: error.toString(),
++          savedIds: state.savedIds,
++          saveError: state.saveError,
++        ),
++      );
++    }
+   }
++
++  Future<void> _enqueueSave(SaveRequested event, Emitter<SearchState> emit) {
++    final existing = _operations[event.operationId];
++    if (existing != null) {
++      if (existing.payload != event.payload) {
++        _saveFeedback(
++          emit,
++          error: 'Operation ID reused with a different payload',
++        );
++        return Future<void>.value();
++      }
++      if (existing.status != _SaveStatus.failed) return Future<void>.value();
++    }
++    final operation = existing ?? _SaveOperation(event.payload);
++    operation.status = _SaveStatus.pending;
++    _operations[event.operationId] = operation;
++    return _writeTail = _writeTail.then((_) async {
++      try {
++        await repository.save(event.operationId, operation.payload);
++        operation.status = _SaveStatus.succeeded;
++        _saveFeedback(emit, savedId: event.operationId);
++      } catch (error) {
++        operation.status = _SaveStatus.failed;
++        _saveFeedback(emit, error: error.toString());
++      }
++    });
++  }
++
++  void _saveFeedback(
++    Emitter<SearchState> emit, {
++    String? savedId,
++    String? error,
++  }) {
++    if (emit.isDone) return;
++    emit(
++      SearchState(
++        query: state.query,
++        items: state.items,
++        loading: state.loading,
++        readError: state.readError,
++        savedIds: [...state.savedIds, ?savedId],
++        saveError: error,
++      ),
++    );
++  }
++
++  // Bloc.close dispatches buffered events and ends their emitters. Our write
++  // queue outlives those emitters so every accepted write still executes.
++  @override
++  Future<void> close() => _closing ??= super.close().then((_) => _writeTail);
+ }
+--- /dev/null
++++ b/test/search_bloc_test.dart
+@@ -0,0 +1,277 @@
++import 'dart:async';
++
++import 'package:concurrency_eval/search_bloc.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++final class ReadCall {
++  ReadCall(this.query);
++  final String query;
++  final result = Completer<List<String>>();
++}
++
++final class WriteCall {
++  WriteCall(this.id, this.payload);
++  final String id;
++  final String payload;
++  final result = Completer<void>();
++}
++
++final class ControlledRepository implements SearchRepository {
++  final reads = <ReadCall>[];
++  final writes = <WriteCall>[];
++  final effects = <String>[];
++
++  @override
++  Future<List<String>> search(String query) {
++    final call = ReadCall(query);
++    reads.add(call);
++    return call.result.future;
++  }
++
++  @override
++  Future<void> save(String operationId, String payload) async {
++    final call = WriteCall(operationId, payload);
++    writes.add(call);
++    await call.result.future;
++    effects.add(operationId);
++  }
++}
++
++// Drain the event and future microtask queues without time-dependent sleeps.
++Future<void> settle() => Future<void>.delayed(Duration.zero);
++
++void main() {
++  late ControlledRepository repository;
++  late SearchBloc bloc;
++
++  setUp(() {
++    repository = ControlledRepository();
++    bloc = SearchBloc(repository);
++  });
++  tearDown(() async {
++    for (final call in repository.reads) {
++      if (!call.result.isCompleted) call.result.complete([]);
++    }
++    for (final call in repository.writes) {
++      if (!call.result.isCompleted) call.result.complete();
++    }
++    await settle();
++    if (!bloc.isClosed) await bloc.close();
++  });
++
++  test('refresh supersedes changed read and keeps its query', () async {
++    bloc.add(const SearchChanged('selected'));
++    await settle();
++    bloc.add(const SearchRefreshed());
++    await settle();
++    expect(repository.reads.map((call) => call.query), [
++      'selected',
++      'selected',
++    ]);
++    repository.reads[1].result.complete(['fresh']);
++    await settle();
++    repository.reads[0].result.complete(['stale']);
++    await settle();
++    expect(bloc.state.query, 'selected');
++    expect(bloc.state.items, ['fresh']);
++    expect(bloc.state.loading, isFalse);
++  });
++
++  test(
++    'changed read supersedes refresh failure and preserves save feedback',
++    () async {
++      bloc.add(const SearchRefreshed());
++      await settle();
++      bloc.add(const SearchChanged('new'));
++      await settle();
++      repository.reads[1].result.complete(['new']);
++      await settle();
++      repository.reads[0].result.completeError(StateError('stale'));
++      await settle();
++      expect(bloc.state.query, 'new');
++      expect(bloc.state.items, ['new']);
++      expect(bloc.state.readError, isNull);
++    },
++  );
++
++  test(
++    'current failure retains content and stale success cannot clear it',
++    () async {
++      bloc.add(const SearchChanged('seed'));
++      await settle();
++      repository.reads[0].result.complete(['useful']);
++      await settle();
++      bloc.add(const SearchChanged('old'));
++      await settle();
++      bloc.add(const SearchRefreshed());
++      await settle();
++      repository.reads[2].result.completeError(StateError('offline'));
++      await settle();
++      expect(bloc.state.items, ['useful']);
++      expect(bloc.state.readError, contains('offline'));
++      expect(bloc.state.loading, isFalse);
++      repository.reads[1].result.complete(['obsolete']);
++      await settle();
++      expect(bloc.state.items, ['useful']);
++      expect(bloc.state.readError, contains('offline'));
++    },
++  );
++
++  test(
++    'distinct saves are FIFO, deduplicated, and independent of reads',
++    () async {
++      bloc.add(const SaveRequested('a', 'one'));
++      bloc.add(const SaveRequested('a', 'one'));
++      bloc.add(const SaveRequested('b', 'two'));
++      bloc.add(const SearchChanged('query'));
++      await settle();
++      expect(repository.writes.map((call) => call.id), ['a']);
++      repository.reads.single.result.complete(['content']);
++      await settle();
++      expect(bloc.state.items, ['content']);
++      repository.writes[0].result.complete();
++      await settle();
++      expect(repository.writes.map((call) => call.id), ['a', 'b']);
++      repository.writes[1].result.complete();
++      await settle();
++      bloc.add(const SaveRequested('a', 'one'));
++      await settle();
++      expect(repository.writes.length, 2);
++      expect(repository.effects, ['a', 'b']);
++      expect(bloc.state.savedIds, ['a', 'b']);
++      expect(bloc.state.items, ['content']);
++    },
++  );
++
++  test('failure does not drop queue and same payload can retry', () async {
++    bloc.add(const SaveRequested('a', 'one'));
++    bloc.add(const SaveRequested('b', 'two'));
++    await settle();
++    repository.writes[0].result.completeError(StateError('write failed'));
++    await settle();
++    expect(bloc.state.saveError, contains('write failed'));
++    expect(repository.writes.map((call) => call.id), ['a', 'b']);
++    bloc.add(const SaveRequested('a', 'one'));
++    bloc.add(const SaveRequested('a', 'one'));
++    await settle();
++    expect(repository.writes.length, 2);
++    repository.writes[1].result.complete();
++    await settle();
++    expect(repository.writes.map((call) => call.id), ['a', 'b', 'a']);
++    repository.writes[2].result.complete();
++    await settle();
++    expect(repository.effects, ['b', 'a']);
++    expect(bloc.state.savedIds, ['b', 'a']);
++    expect(bloc.state.saveError, isNull);
++  });
++
++  test(
++    'conflicting payload never calls repository, including after failure',
++    () async {
++      bloc.add(const SaveRequested('a', 'original'));
++      await settle();
++      bloc.add(const SaveRequested('a', 'conflict'));
++      await settle();
++      expect(repository.writes.length, 1);
++      expect(bloc.state.saveError, isNotNull);
++      repository.writes[0].result.completeError(StateError('failed'));
++      await settle();
++      bloc.add(const SaveRequested('a', 'conflict'));
++      await settle();
++      expect(repository.writes.length, 1);
++      expect(bloc.state.saveError, isNotNull);
++      bloc.add(const SaveRequested('a', 'original'));
++      await settle();
++      expect(repository.writes.length, 2);
++      repository.writes[1].result.complete();
++      await settle();
++      bloc.add(const SaveRequested('a', 'conflict'));
++      await settle();
++      expect(repository.writes.length, 2);
++      expect(bloc.state.saveError, isNotNull);
++    },
++  );
++
++  test('read and save failures do not clear the other feedback', () async {
++    bloc.add(const SaveRequested('a', 'one'));
++    bloc.add(const SearchChanged('q'));
++    await settle();
++    repository.writes.single.result.completeError(StateError('save problem'));
++    await settle();
++    repository.reads.single.result.completeError(StateError('read problem'));
++    await settle();
++    expect(bloc.state.saveError, contains('save problem'));
++    expect(bloc.state.readError, contains('read problem'));
++    bloc.add(const SearchRefreshed());
++    await settle();
++    expect(bloc.state.saveError, contains('save problem'));
++    repository.reads[1].result.complete(['ok']);
++    await settle();
++    expect(bloc.state.saveError, contains('save problem'));
++  });
++
++  test('close drains accepted writes while read is in flight', () async {
++    bloc.add(const SaveRequested('a', 'one'));
++    bloc.add(const SaveRequested('b', 'two'));
++    bloc.add(const SearchChanged('q'));
++    await settle();
++    var closed = false;
++    final closing = bloc.close().then((_) => closed = true);
++    await settle();
++    expect(closed, isFalse);
++    repository.writes[0].result.completeError(StateError('failed'));
++    await settle();
++    expect(repository.writes.map((call) => call.id), ['a', 'b']);
++    repository.writes[1].result.complete();
++    repository.reads.single.result.complete(['late']);
++    await closing;
++    expect(repository.effects, ['b']);
++    expect(closed, isTrue);
++  });
++
++  test('stale success cannot end loading for a newer intent', () async {
++    bloc.add(const SearchChanged('old'));
++    await settle();
++    bloc.add(const SearchChanged('latest'));
++    await settle();
++    repository.reads[0].result.complete(['old']);
++    await settle();
++    expect(bloc.state.query, 'latest');
++    expect(bloc.state.loading, isTrue);
++    expect(bloc.state.items, isEmpty);
++    repository.reads[1].result.complete(['latest']);
++    await settle();
++    expect(bloc.state.items, ['latest']);
++    expect(bloc.state.loading, isFalse);
++  });
++
++  test('successful write preserves current read error and content', () async {
++    bloc.add(const SearchChanged('q'));
++    await settle();
++    repository.reads.single.result.completeError(StateError('offline'));
++    await settle();
++    bloc.add(const SaveRequested('a', 'one'));
++    await settle();
++    repository.writes.single.result.complete();
++    await settle();
++    expect(bloc.state.readError, contains('offline'));
++    expect(bloc.state.savedIds, ['a']);
++  });
++
++  test(
++    'immediate close drains events already added before handlers start',
++    () async {
++      bloc.add(const SaveRequested('a', 'one'));
++      bloc.add(const SaveRequested('b', 'two'));
++      final closing = bloc.close();
++      await settle();
++      expect(repository.writes.map((call) => call.id), ['a']);
++      repository.writes[0].result.complete();
++      await settle();
++      expect(repository.writes.map((call) => call.id), ['a', 'b']);
++      repository.writes[1].result.complete();
++      await closing;
++      expect(repository.effects, ['a', 'b']);
++    },
++  );
++}

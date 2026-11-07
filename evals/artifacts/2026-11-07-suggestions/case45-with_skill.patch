@@ -1,0 +1,424 @@
+--- a/lib/search_bloc.dart
++++ b/lib/search_bloc.dart
+@@ -42,34 +42,109 @@
+   final String? saveError;
+ }
+ 
++enum _SaveStatus { pending, succeeded, failed }
++
++final class _SaveOperation {
++  _SaveOperation(this.payload);
++  final String payload;
++  _SaveStatus status = _SaveStatus.pending;
++}
++
+ final class SearchBloc extends Bloc<SearchEvent, SearchState> {
+   SearchBloc(this.repository) : super(SearchState()) {
++    // Both registrations share one generation: refresh and query changes compete
++    // for the same visible read, despite having independent Bloc event streams.
+     on<SearchChanged>((event, emit) => _read(event.query, emit));
+     on<SearchRefreshed>((event, emit) => _read(state.query, emit));
+-    on<SaveRequested>((event, emit) async {
+-      await repository.save(event.operationId, event.payload);
+-      emit(
+-        SearchState(
+-          query: state.query,
+-          items: state.items,
+-          loading: state.loading,
+-          readError: state.readError,
+-          savedIds: [...state.savedIds, event.operationId],
+-        ),
+-      );
+-    });
++    on<SaveRequested>(_save);
+   }
++
+   final SearchRepository repository;
++  int _readGeneration = 0;
++  final _operations = <String, _SaveOperation>{};
++  Future<void> _writeTail = Future<void>.value();
++
+   Future<void> _read(String query, Emitter<SearchState> emit) async {
++    final generation = ++_readGeneration;
+     emit(
+       SearchState(
+         query: query,
+         items: state.items,
+         loading: true,
+         savedIds: state.savedIds,
++        saveError: state.saveError,
+       ),
+     );
+-    final items = await repository.search(query);
+-    emit(SearchState(query: query, items: items, savedIds: state.savedIds));
++    try {
++      final items = await repository.search(query);
++      if (emit.isDone || generation != _readGeneration) return;
++      emit(
++        SearchState(
++          query: query,
++          items: items,
++          savedIds: state.savedIds,
++          saveError: state.saveError,
++        ),
++      );
++    } catch (_) {
++      if (emit.isDone || generation != _readGeneration) return;
++      emit(
++        SearchState(
++          query: query,
++          items: state.items,
++          readError: 'Search failed. Please retry.',
++          savedIds: state.savedIds,
++          saveError: state.saveError,
++        ),
++      );
++    }
++  }
++
++  Future<void> _save(SaveRequested event, Emitter<SearchState> emit) async {
++    final previous = _operations[event.operationId];
++    if (previous != null) {
++      if (previous.payload != event.payload) {
++        _saveFeedback(emit, error: 'Operation ID belongs to another payload.');
++        return;
++      }
++      if (previous.status != _SaveStatus.failed) return;
++    }
++
++    // Reserve the ID before waiting for the queue, so repeated delivery of a
++    // pending operation cannot accidentally become a retry after it fails.
++    final operation = _SaveOperation(event.payload);
++    _operations[event.operationId] = operation;
++    final work = _writeTail.then((_) async {
++      try {
++        await repository.save(event.operationId, event.payload);
++        operation.status = _SaveStatus.succeeded;
++        _saveFeedback(emit, savedId: event.operationId);
++      } catch (_) {
++        operation.status = _SaveStatus.failed;
++        _saveFeedback(emit, error: 'Save failed. Please retry.');
++      }
++    });
++    _writeTail = work;
++    await work;
++  }
++
++  void _saveFeedback(
++    Emitter<SearchState> emit, {
++    String? savedId,
++    String? error,
++  }) {
++    if (emit.isDone) return;
++    emit(
++      SearchState(
++        query: state.query,
++        items: state.items,
++        loading: state.loading,
++        readError: state.readError,
++        savedIds: savedId == null
++            ? state.savedIds
++            : [...state.savedIds, savedId],
++        saveError: error,
++      ),
++    );
+   }
+ }
+--- /dev/null
++++ b/test/search_bloc_test.dart
+@@ -0,0 +1,295 @@
++import 'dart:async';
++
++import 'package:concurrency_eval/search_bloc.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++final class ReadCall {
++  ReadCall(this.query);
++  final String query;
++  final result = Completer<List<String>>();
++}
++
++final class SaveCall {
++  SaveCall(this.id, this.payload);
++  final String id;
++  final String payload;
++  final result = Completer<void>();
++}
++
++final class ControlledRepository implements SearchRepository {
++  final reads = <ReadCall>[];
++  final writes = <SaveCall>[];
++  final effects = <String>[];
++
++  @override
++  Future<List<String>> search(String query) {
++    final call = ReadCall(query);
++    reads.add(call);
++    return call.result.future;
++  }
++
++  @override
++  Future<void> save(String operationId, String payload) async {
++    final call = SaveCall(operationId, payload);
++    writes.add(call);
++    await call.result.future;
++    effects.add(operationId);
++  }
++}
++
++// An event-loop fence lets Bloc consume already-submitted events; repository work
++// remains explicitly controlled by completers, with no elapsed-time assumptions.
++Future<void> dispatchEvents() => Future<void>(() {});
++
++void main() {
++  test(
++    'refresh owns the result even when the previous search finishes last',
++    () async {
++      final repository = ControlledRepository();
++      final bloc = SearchBloc(repository);
++      addTearDown(bloc.close);
++      bloc.add(const SearchChanged('chosen'));
++      await dispatchEvents();
++      bloc.add(const SearchRefreshed());
++      await dispatchEvents();
++      expect(repository.reads.map((call) => call.query), ['chosen', 'chosen']);
++      repository.reads[1].result.complete(['fresh']);
++      await dispatchEvents();
++      expect(bloc.state.items, ['fresh']);
++      repository.reads[0].result.complete(['stale']);
++      await dispatchEvents();
++      expect(bloc.state.items, ['fresh']);
++      expect(bloc.state.query, 'chosen');
++      expect(bloc.state.loading, isFalse);
++    },
++  );
++
++  test('new query owns loading and ignores stale refresh failure', () async {
++    final repository = ControlledRepository();
++    final bloc = SearchBloc(repository);
++    addTearDown(bloc.close);
++    bloc.add(const SearchChanged('old'));
++    await dispatchEvents();
++    repository.reads[0].result.complete(['useful']);
++    await dispatchEvents();
++    bloc.add(const SearchRefreshed());
++    await dispatchEvents();
++    bloc.add(const SearchChanged('new'));
++    await dispatchEvents();
++    repository.reads[1].result.completeError(Exception('stale failure'));
++    await dispatchEvents();
++    expect(bloc.state.query, 'new');
++    expect(bloc.state.loading, isTrue);
++    expect(bloc.state.readError, isNull);
++    expect(bloc.state.items, ['useful']);
++    repository.reads[2].result.complete(['new result']);
++    await dispatchEvents();
++    expect(bloc.state.items, ['new result']);
++    expect(bloc.state.loading, isFalse);
++  });
++
++  test('latest failure retains content and rejects an older success', () async {
++    final repository = ControlledRepository();
++    final bloc = SearchBloc(repository);
++    addTearDown(bloc.close);
++    bloc.add(const SearchChanged('base'));
++    await dispatchEvents();
++    repository.reads[0].result.complete(['retained']);
++    await dispatchEvents();
++    bloc.add(const SearchChanged('obsolete'));
++    await dispatchEvents();
++    bloc.add(const SearchChanged('latest'));
++    await dispatchEvents();
++    repository.reads[2].result.completeError(Exception('latest failure'));
++    await dispatchEvents();
++    expect(bloc.state.query, 'latest');
++    expect(bloc.state.items, ['retained']);
++    expect(bloc.state.loading, isFalse);
++    final failure = bloc.state.readError;
++    expect(failure, isNotNull);
++    repository.reads[1].result.complete(['obsolete']);
++    await dispatchEvents();
++    expect(bloc.state.query, 'latest');
++    expect(bloc.state.items, ['retained']);
++    expect(bloc.state.readError, failure);
++    bloc.add(const SearchRefreshed());
++    await dispatchEvents();
++    expect(repository.reads.last.query, 'latest');
++    expect(bloc.state.readError, isNull);
++    repository.reads.last.result.complete([]);
++    await dispatchEvents();
++    expect(bloc.state.items, isEmpty);
++  });
++
++  test(
++    'distinct writes are FIFO and pending/successful duplicates have one effect',
++    () async {
++      final repository = ControlledRepository();
++      final bloc = SearchBloc(repository);
++      addTearDown(bloc.close);
++      bloc
++        ..add(const SaveRequested('a', 'first'))
++        ..add(const SaveRequested('a', 'first'))
++        ..add(const SaveRequested('b', 'second'))
++        ..add(const SaveRequested('b', 'second'))
++        ..add(const SaveRequested('c', 'third'));
++      await dispatchEvents();
++      expect(repository.writes.map((call) => call.id), ['a']);
++      repository.writes[0].result.complete();
++      await dispatchEvents();
++      expect(repository.writes.map((call) => call.id), ['a', 'b']);
++      repository.writes[1].result.complete();
++      await dispatchEvents();
++      expect(repository.writes.map((call) => call.id), ['a', 'b', 'c']);
++      repository.writes[2].result.complete();
++      await dispatchEvents();
++      bloc
++        ..add(const SaveRequested('a', 'first'))
++        ..add(const SaveRequested('b', 'second'));
++      await dispatchEvents();
++      expect(repository.effects, ['a', 'b', 'c']);
++      expect(repository.writes.map((call) => call.payload), [
++        'first',
++        'second',
++        'third',
++      ]);
++      expect(bloc.state.savedIds, ['a', 'b', 'c']);
++    },
++  );
++
++  test(
++    'failed write advances queue, pending duplicate is ignored, explicit retry works',
++    () async {
++      final repository = ControlledRepository();
++      final bloc = SearchBloc(repository);
++      addTearDown(bloc.close);
++      bloc
++        ..add(const SaveRequested('a', 'first'))
++        ..add(const SaveRequested('a', 'first'))
++        ..add(const SaveRequested('b', 'second'));
++      await dispatchEvents();
++      repository.writes[0].result.completeError(Exception('save failed'));
++      await dispatchEvents();
++      expect(bloc.state.saveError, isNotNull);
++      expect(bloc.state.savedIds, isEmpty);
++      expect(repository.writes.map((call) => call.id), ['a', 'b']);
++      bloc.add(const SaveRequested('a', 'first'));
++      await dispatchEvents();
++      expect(repository.writes.length, 2);
++      repository.writes[1].result.complete();
++      await dispatchEvents();
++      expect(repository.writes.map((call) => call.id), ['a', 'b', 'a']);
++      repository.writes[2].result.complete();
++      await dispatchEvents();
++      expect(repository.effects, ['b', 'a']);
++      expect(bloc.state.savedIds, ['b', 'a']);
++      expect(bloc.state.saveError, isNull);
++    },
++  );
++
++  test(
++    'payload conflict fails safely while pending, failed and successful',
++    () async {
++      final repository = ControlledRepository();
++      final bloc = SearchBloc(repository);
++      addTearDown(bloc.close);
++      bloc.add(const SaveRequested('id', 'original'));
++      await dispatchEvents();
++      bloc.add(const SaveRequested('id', 'conflicting'));
++      await dispatchEvents();
++      expect(bloc.state.saveError, contains('another payload'));
++      expect(repository.writes.length, 1);
++      repository.writes[0].result.completeError(Exception('failure'));
++      await dispatchEvents();
++      bloc.add(const SaveRequested('id', 'conflicting'));
++      await dispatchEvents();
++      expect(bloc.state.saveError, contains('another payload'));
++      expect(repository.writes.length, 1);
++      bloc.add(const SaveRequested('id', 'original'));
++      await dispatchEvents();
++      expect(repository.writes.length, 2);
++      repository.writes[1].result.complete();
++      await dispatchEvents();
++      bloc.add(const SaveRequested('id', 'conflicting'));
++      await dispatchEvents();
++      expect(bloc.state.saveError, contains('another payload'));
++      expect(repository.writes.length, 2);
++      expect(repository.effects, ['id']);
++      expect(bloc.state.savedIds, ['id']);
++    },
++  );
++
++  test(
++    'reads and writes overlap with independent feedback and no lost state',
++    () async {
++      final repository = ControlledRepository();
++      final bloc = SearchBloc(repository);
++      addTearDown(bloc.close);
++      bloc
++        ..add(const SearchChanged('selected'))
++        ..add(const SaveRequested('a', 'first'))
++        ..add(const SaveRequested('b', 'second'));
++      await dispatchEvents();
++      expect(repository.reads.length, 1);
++      expect(repository.writes.length, 1);
++      repository.writes[0].result.completeError(Exception('write failed'));
++      await dispatchEvents();
++      final saveError = bloc.state.saveError;
++      expect(saveError, isNotNull);
++      expect(bloc.state.loading, isTrue);
++      bloc.add(const SearchRefreshed());
++      await dispatchEvents();
++      expect(bloc.state.saveError, saveError);
++      expect(repository.writes.map((call) => call.id), ['a', 'b']);
++      repository.reads[1].result.completeError(Exception('read failed'));
++      await dispatchEvents();
++      final readError = bloc.state.readError;
++      expect(readError, isNotNull);
++      expect(bloc.state.saveError, saveError);
++      repository.writes[1].result.complete();
++      await dispatchEvents();
++      expect(bloc.state.savedIds, ['b']);
++      expect(bloc.state.readError, readError);
++      repository.reads[0].result.complete(['obsolete']);
++      await dispatchEvents();
++      expect(bloc.state.readError, readError);
++      bloc.add(const SearchRefreshed());
++      await dispatchEvents();
++      repository.reads[2].result.complete(['current']);
++      await dispatchEvents();
++      expect(bloc.state.savedIds, ['b']);
++      expect(bloc.state.items, ['current']);
++      expect(bloc.state.readError, isNull);
++    },
++  );
++
++  test(
++    'close suppresses late read states and finishes accepted queued writes',
++    () async {
++      final repository = ControlledRepository();
++      final bloc = SearchBloc(repository);
++      final states = <SearchState>[];
++      final subscription = bloc.stream.listen(states.add);
++      addTearDown(subscription.cancel);
++      bloc
++        ..add(const SearchChanged('query'))
++        ..add(const SaveRequested('a', 'first'))
++        ..add(const SaveRequested('b', 'second'));
++      await dispatchEvents();
++      expect(repository.writes.map((call) => call.id), ['a']);
++      await bloc.close();
++      final stateCount = states.length;
++      repository.reads[0].result.completeError(Exception('late read failure'));
++      repository.writes[0].result.completeError(
++        Exception('late write failure'),
++      );
++      await dispatchEvents();
++      expect(repository.writes.map((call) => call.id), ['a', 'b']);
++      repository.writes[1].result.complete();
++      await dispatchEvents();
++      expect(repository.effects, ['b']);
++      expect(states.length, stateCount);
++      expect(bloc.isClosed, isTrue);
++    },
++  );
++}

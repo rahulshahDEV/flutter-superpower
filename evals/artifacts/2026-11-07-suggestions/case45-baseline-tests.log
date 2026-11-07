@@ -1,0 +1,37 @@
+00:00 +0: loading <APP>/test/search_bloc_test.dart
+00:00 +0: <APP>/test/search_bloc_test.dart: refresh supersedes changed read and keeps its query
+00:00 +1: <APP>/test/search_bloc_test.dart: changed read supersedes refresh failure and preserves save feedback
+00:00 +2: <APP>/test/search_bloc_test.dart: current failure retains content and stale success cannot clear it
+00:00 +3: <APP>/test/search_bloc_test.dart: distinct saves are FIFO, deduplicated, and independent of reads
+00:00 +4: <APP>/test/search_bloc_test.dart: failure does not drop queue and same payload can retry
+00:00 +5: <APP>/test/search_bloc_test.dart: conflicting payload never calls repository, including after failure
+00:00 +6: <APP>/test/search_bloc_test.dart: read and save failures do not clear the other feedback
+00:00 +7: <APP>/test/search_bloc_test.dart: close drains accepted writes while read is in flight
+00:00 +8: <APP>/test/search_bloc_test.dart: stale success cannot end loading for a newer intent
+00:00 +9: <APP>/test/search_bloc_test.dart: successful write preserves current read error and content
+00:00 +10: <APP>/test/search_bloc_test.dart: immediate close drains events already added before handlers start
+00:00 +11: <APP>/test/parent_acceptance_test.dart: refresh and query reads share latest-intent ownership
+00:00 +12: <APP>/test/parent_acceptance_test.dart: query after refresh rejects stale cross-type failure
+00:00 +13: <APP>/test/parent_acceptance_test.dart: latest failure and retained content survive stale success
+00:00 +13 -1: <APP>/test/parent_acceptance_test.dart: latest failure and retained content survive stale success [E]
+  Expected: not contains 'secret backend text'
+    Actual: 'Bad state: secret backend text'
+
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/parent_acceptance_test.dart 112:5              main.<fn>
+
+00:00 +13 -1: <APP>/test/parent_acceptance_test.dart: distinct writes are FIFO; duplicates do not drop queued intents or reads
+00:00 +14 -1: <APP>/test/parent_acceptance_test.dart: failed write can retry without dropping the next distinct write
+00:00 +14 -2: <APP>/test/parent_acceptance_test.dart: failed write can retry without dropping the next distinct write [E]
+  Expected: not contains 'private server details'
+    Actual: 'Bad state: private server details'
+
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/parent_acceptance_test.dart 157:7              main.<fn>
+
+00:00 +14 -2: <APP>/test/parent_acceptance_test.dart: reusing an operation ID for different payload never writes it
+00:00 +15 -2: <APP>/test/parent_acceptance_test.dart: state snapshots cannot be mutated by repository callers or consumers
+00:00 +16 -2: <APP>/test/parent_acceptance_test.dart: closing with read and write in flight does not cancel the server effect
+00:00 +17 -2: Some tests failed.
