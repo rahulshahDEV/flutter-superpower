@@ -1,0 +1,300 @@
+--- a/lib/draft_database.dart
++++ b/lib/draft_database.dart
+@@ -1,3 +1,5 @@
++import 'dart:convert';
++
+ import 'package:sqlite3/sqlite3.dart';
+ 
+ final class Draft {
+@@ -13,7 +15,6 @@
+   final List<String> tags;
+ }
+ 
+-// Existing schema-1 adapter. Keep API callers compatible while adding schema evolution.
+ final class DraftDatabase {
+   DraftDatabase._(this._database);
+   final Database _database;
+@@ -23,30 +24,77 @@
+     void Function(int)? afterMigrationStep,
+   }) {
+     final db = sqlite3.open(path);
+-    final version =
+-        db.select('PRAGMA user_version').single['user_version'] as int;
+-    if (version == 0) {
+-      db.execute(
+-        'CREATE TABLE drafts (id TEXT PRIMARY KEY, body TEXT NOT NULL)',
+-      );
+-      db.execute('PRAGMA user_version = 1');
+-    } else if (version != 1) {
+-      db.dispose();
+-      throw UnsupportedError('Unsupported schema');
++    var transactionStarted = false;
++    try {
++      // One transaction covers every step, including the version markers and
++      // failure hooks. Reopening after a failed upgrade sees the original file.
++      db.execute('BEGIN IMMEDIATE');
++      transactionStarted = true;
++      final version =
++          db.select('PRAGMA user_version').single['user_version'] as int;
++      if (version > 3) {
++        throw UnsupportedError('Unsupported schema version: $version');
++      }
++      if (version == 0) {
++        db.execute('''
++          CREATE TABLE drafts (
++            id TEXT PRIMARY KEY,
++            body TEXT NOT NULL,
++            updated_at INTEGER NOT NULL DEFAULT 0,
++            tags_json TEXT NOT NULL DEFAULT '[]'
++          )
++        ''');
++        db.execute('CREATE INDEX drafts_updated_at ON drafts(updated_at)');
++        db.execute('PRAGMA user_version = 3');
++        afterMigrationStep?.call(3);
++      } else {
++        if (version < 2) {
++          db.execute(
++            'ALTER TABLE drafts ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0',
++          );
++          db.execute('PRAGMA user_version = 2');
++          afterMigrationStep?.call(2);
++        }
++        if (version < 3) {
++          db.execute(
++            "ALTER TABLE drafts ADD COLUMN tags_json TEXT NOT NULL DEFAULT '[]'",
++          );
++          db.execute('CREATE INDEX drafts_updated_at ON drafts(updated_at)');
++          db.execute('PRAGMA user_version = 3');
++          afterMigrationStep?.call(3);
++        }
++      }
++      db.execute('COMMIT');
++      transactionStarted = false;
++      return DraftDatabase._(db);
++    } catch (_) {
++      try {
++        if (transactionStarted) db.execute('ROLLBACK');
++      } finally {
++        db.dispose();
++      }
++      rethrow;
+     }
+-    return DraftDatabase._(db);
+   }
+ 
+   List<Draft> readDrafts() => _database
+-      .select('SELECT id, body FROM drafts ORDER BY id')
+-      .map((row) => Draft(id: row['id'] as String, body: row['body'] as String))
++      .select('SELECT id, body, updated_at, tags_json FROM drafts ORDER BY id')
++      .map(
++        (row) => Draft(
++          id: row['id'] as String,
++          body: row['body'] as String,
++          updatedAt: row['updated_at'] as int,
++          tags: (jsonDecode(row['tags_json'] as String) as List).cast<String>(),
++        ),
++      )
+       .toList();
+ 
+   void saveDraft(Draft draft) {
+-    _database.execute('INSERT OR REPLACE INTO drafts(id, body) VALUES (?, ?)', [
+-      draft.id,
+-      draft.body,
+-    ]);
++    _database.execute(
++      'INSERT OR REPLACE INTO drafts(id, body, updated_at, tags_json) '
++      'VALUES (?, ?, ?, ?)',
++      [draft.id, draft.body, draft.updatedAt, jsonEncode(draft.tags)],
++    );
+   }
+ 
+   void dispose() => _database.dispose();
+--- /dev/null
++++ b/test/draft_database_test.dart
+@@ -0,0 +1,186 @@
++import 'dart:io';
++
++import 'package:flutter_test/flutter_test.dart';
++import 'package:migration_eval/draft_database.dart';
++import 'package:sqlite3/sqlite3.dart';
++
++void main() {
++  late Directory directory;
++  late String path;
++
++  setUp(() {
++    directory = Directory.systemTemp.createTempSync('draft-migrations-');
++    path = '${directory.path}/drafts.sqlite';
++  });
++  tearDown(() => directory.deleteSync(recursive: true));
++
++  void fixture(int version) {
++    final db = sqlite3.open(path);
++    try {
++      db.execute(
++        'CREATE TABLE drafts (id TEXT PRIMARY KEY, body TEXT NOT NULL'
++        '${version >= 2 ? ', updated_at INTEGER NOT NULL DEFAULT 0' : ''})',
++      );
++      if (version >= 2) {
++        db.execute(
++          'INSERT INTO drafts(id, body, updated_at) VALUES (?, ?, ?)',
++          ['original', 'Hello 🌏\n"quoted"', 123456789],
++        );
++      } else {
++        db.execute('INSERT INTO drafts(id, body) VALUES (?, ?)', [
++          'original',
++          'Hello 🌏\n"quoted"',
++        ]);
++      }
++      db.execute('PRAGMA user_version = $version');
++    } finally {
++      db.dispose();
++    }
++  }
++
++  Map<String, Object?> snapshot() {
++    final db = sqlite3.open(path);
++    try {
++      return {
++        'version': db.select('PRAGMA user_version').map(Map.of).toList(),
++        'schema': db
++            .select(
++              'SELECT type, name, tbl_name, sql FROM sqlite_master '
++              'ORDER BY type, name',
++            )
++            .map(Map.of)
++            .toList(),
++        'data': db
++            .select('SELECT * FROM drafts ORDER BY id')
++            .map(Map.of)
++            .toList(),
++      };
++    } finally {
++      db.dispose();
++    }
++  }
++
++  test('fresh install is schema 3 and all fields survive save and reopen', () {
++    var adapter = DraftDatabase.open(path);
++    adapter.saveDraft(
++      Draft(id: 'b', body: 'body', updatedAt: 99, tags: ['one', '"two"', '🌏']),
++    );
++    adapter.saveDraft(Draft(id: 'a', body: 'default'));
++    adapter.dispose();
++    adapter = DraftDatabase.open(path);
++    final drafts = adapter.readDrafts();
++    expect(drafts.map((draft) => draft.id), ['a', 'b']);
++    expect(drafts.first.updatedAt, 0);
++    expect(drafts.first.tags, isEmpty);
++    expect(drafts.last.body, 'body');
++    expect(drafts.last.updatedAt, 99);
++    expect(drafts.last.tags, ['one', '"two"', '🌏']);
++    adapter.saveDraft(Draft(id: 'b', body: 'changed', updatedAt: 100));
++    expect(adapter.readDrafts().last.body, 'changed');
++    adapter.dispose();
++    final db = sqlite3.open(path);
++    expect(db.select('PRAGMA user_version').single['user_version'], 3);
++    expect(
++      db.select('PRAGMA index_info(drafts_updated_at)').single['name'],
++      'updated_at',
++    );
++    expect(db.select('PRAGMA integrity_check').single.values.single, 'ok');
++    db.dispose();
++  });
++
++  for (final version in [1, 2]) {
++    test('v$version on-disk fixture upgrades preserving data and defaults', () {
++      fixture(version);
++      final steps = <int>[];
++      final adapter = DraftDatabase.open(path, afterMigrationStep: steps.add);
++      final draft = adapter.readDrafts().single;
++      expect(draft.id, 'original');
++      expect(draft.body, 'Hello 🌏\n"quoted"');
++      expect(draft.updatedAt, version == 1 ? 0 : 123456789);
++      expect(draft.tags, isEmpty);
++      expect(steps, version == 1 ? [2, 3] : [3]);
++      adapter.dispose();
++      expect(snapshot()['version'], [
++        {'user_version': 3},
++      ]);
++      final reopenedSteps = <int>[];
++      DraftDatabase.open(path, afterMigrationStep: reopenedSteps.add).dispose();
++      expect(reopenedSteps, isEmpty);
++    });
++
++    for (final failAt in version == 1 ? [2, 3] : [3]) {
++      test('v$version failure at step $failAt rolls back entire upgrade', () {
++        fixture(version);
++        final before = snapshot();
++        expect(
++          () => DraftDatabase.open(
++            path,
++            afterMigrationStep: (step) {
++              if (step == failAt) throw StateError('injected at $step');
++            },
++          ),
++          throwsStateError,
++        );
++        expect(snapshot(), before);
++        final adapter = DraftDatabase.open(path);
++        expect(adapter.readDrafts().single.id, 'original');
++        adapter.dispose();
++      });
++    }
++  }
++
++  test('v2 binary SQL can read, update and insert on v3, then v3 can read', () {
++    fixture(2);
++    final adapter = DraftDatabase.open(path);
++    adapter.saveDraft(
++      Draft(id: 'original', body: 'tagged', updatedAt: 7, tags: ['kept']),
++    );
++    adapter.dispose();
++    final oldBinary = sqlite3.open(path);
++    expect(oldBinary.select('SELECT id, body, updated_at FROM drafts').single, {
++      'id': 'original',
++      'body': 'tagged',
++      'updated_at': 7,
++    });
++    oldBinary.execute(
++      'UPDATE drafts SET body = ?, updated_at = ? WHERE id = ?',
++      ['old writer', 8, 'original'],
++    );
++    oldBinary.execute(
++      'INSERT INTO drafts(id, body, updated_at) VALUES (?, ?, ?)',
++      ['new', 'old insertion', 9],
++    );
++    expect(oldBinary.select('PRAGMA user_version').single['user_version'], 3);
++    oldBinary.dispose();
++    final reopened = DraftDatabase.open(path);
++    final drafts = reopened.readDrafts();
++    expect(drafts.first.id, 'new');
++    expect(drafts.first.tags, isEmpty);
++    expect(drafts.first.updatedAt, 9);
++    expect(drafts.last.body, 'old writer');
++    expect(drafts.last.updatedAt, 8);
++    expect(drafts.last.tags, ['kept']);
++    reopened.dispose();
++  });
++
++  test('future schema is rejected with schema, version and data intact', () {
++    fixture(4);
++    final before = snapshot();
++    expect(() => DraftDatabase.open(path), throwsUnsupportedError);
++    expect(snapshot(), before);
++  });
++
++  test('corrupt file is retained byte for byte', () {
++    final bytes = List<int>.generate(512, (i) => i % 251);
++    File(path).writeAsBytesSync(bytes);
++    expect(() => DraftDatabase.open(path), throwsA(isA<SqliteException>()));
++    expect(File(path).readAsBytesSync(), bytes);
++  });
++
++  test('unsupported version-zero existing schema is not replaced', () {
++    fixture(0);
++    final before = snapshot();
++    expect(() => DraftDatabase.open(path), throwsA(isA<SqliteException>()));
++    expect(snapshot(), before);
++  });
++}

@@ -1,0 +1,85 @@
+{
+  "date": "2026-11-07",
+  "model": "inherited session model; exact identifier not exposed",
+  "case43": {
+    "riverpod": {
+      "tests": 15,
+      "parent_checks": 8,
+      "result": "PASS",
+      "lockfile_sha256": "43e775052bc1d6ef7db3a514e5c69852d8da779aefa06f067a387fd9a47695c1",
+      "locked_replay": true
+    },
+    "provider": {
+      "tests": 15,
+      "parent_checks": 8,
+      "result": "PASS",
+      "lockfile_sha256": "76496b83e2c9a5d8fff44d792694611cf5737d29b69a68b45fb74bd7cae59244",
+      "locked_replay": true
+    },
+    "getx": {
+      "tests": 15,
+      "parent_checks": 8,
+      "result": "PASS",
+      "lockfile_sha256": "793909cf4141191a8ed3395dc3054fda6ef90cfb953a5d6798803449a0b0f0bc",
+      "locked_replay": true
+    },
+    "cubit": {
+      "tests": 15,
+      "parent_checks": 8,
+      "result": "PASS",
+      "lockfile_sha256": "db8dc039de73fbc49053e0331fcbb56dc8a046c781f45f3725acaadcfba4a867",
+      "locked_replay": true
+    },
+    "bloc": {
+      "tests": 15,
+      "parent_checks": 8,
+      "result": "PASS",
+      "lockfile_sha256": "db8dc039de73fbc49053e0331fcbb56dc8a046c781f45f3725acaadcfba4a867",
+      "locked_replay": true
+    },
+    "new_riverpod": {
+      "tests": 16,
+      "parent_checks": 8,
+      "result": "PASS",
+      "lockfile_sha256": "43e775052bc1d6ef7db3a514e5c69852d8da779aefa06f067a387fd9a47695c1",
+      "locked_replay": true
+    },
+    "new_provider": {
+      "tests": 16,
+      "parent_checks": 8,
+      "result": "PASS",
+      "lockfile_sha256": "76496b83e2c9a5d8fff44d792694611cf5737d29b69a68b45fb74bd7cae59244",
+      "locked_replay": true
+    },
+    "new_getx": {
+      "tests": 16,
+      "parent_checks": 8,
+      "result": "PASS",
+      "lockfile_sha256": "793909cf4141191a8ed3395dc3054fda6ef90cfb953a5d6798803449a0b0f0bc",
+      "locked_replay": true
+    },
+    "new_default": {
+      "tests": 16,
+      "parent_checks": 8,
+      "result": "PASS after DI correction",
+      "lockfile_sha256": "40d74559bb72a43351f864c1f94f93603b5ffe5ad308410c7bdedb1a0eed7ff6",
+      "locked_replay": true
+    }
+  },
+  "case47": {
+    "baseline": {
+      "tests": 19,
+      "parent_checks": 9,
+      "result": "PASS",
+      "lockfile_sha256": "00a8053bb7901a232e55e785893aeaa217e9be68c37b134b6c7d04e71922abe0",
+      "locked_replay": true
+    },
+    "with_skill": {
+      "tests": 22,
+      "parent_checks": 9,
+      "result": "PASS",
+      "lockfile_sha256": "00a8053bb7901a232e55e785893aeaa217e9be68c37b134b6c7d04e71922abe0",
+      "locked_replay": true
+    }
+  }
+}

@@ -3,7 +3,7 @@ name: flutter-superpower
 description: Build, extend, audit, debug, or refactor Flutter apps with feature-first architecture, Bloc/Cubit, Riverpod, Provider or GetX, stack-appropriate DI, and deliberate UI and platform decisions. Use for Flutter implementation, native integration/debugging, and Codemagic/fastlane/Shorebird delivery; existing project conventions take priority over these defaults.
 license: MIT
 metadata:
-  version: "2.12.0"
+  version: "2.12.1"
 ---
 
 # Flutter Superpower

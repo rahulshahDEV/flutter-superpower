@@ -1,0 +1,21 @@
+00:00 +0: loading <APP>/test/draft_database_test.dart
+00:00 +0: <APP>/test/draft_database_test.dart: fresh install is schema 3 and all fields survive save and reopen
+00:00 +1: <APP>/test/draft_database_test.dart: v1 on-disk fixture upgrades preserving data and defaults
+00:00 +2: <APP>/test/draft_database_test.dart: v1 failure at step 2 rolls back entire upgrade
+00:00 +3: <APP>/test/draft_database_test.dart: v1 failure at step 3 rolls back entire upgrade
+00:00 +4: <APP>/test/draft_database_test.dart: v2 on-disk fixture upgrades preserving data and defaults
+00:00 +5: <APP>/test/draft_database_test.dart: v2 failure at step 3 rolls back entire upgrade
+00:00 +6: <APP>/test/draft_database_test.dart: v2 binary SQL can read, update and insert on v3, then v3 can read
+00:00 +7: <APP>/test/draft_database_test.dart: future schema is rejected with schema, version and data intact
+00:00 +8: <APP>/test/draft_database_test.dart: corrupt file is retained byte for byte
+00:00 +9: <APP>/test/draft_database_test.dart: unsupported version-zero existing schema is not replaced
+00:00 +10: <APP>/test/parent_acceptance_test.dart: schema 1 upgrades on disk and survives reopen
+00:00 +11: <APP>/test/parent_acceptance_test.dart: schema 2 upgrades on disk and survives reopen
+00:00 +12: <APP>/test/parent_acceptance_test.dart: fresh install is schema 3 and stores full draft values
+00:00 +13: <APP>/test/parent_acceptance_test.dart: migration failure from 1 after step 2 preserves old schema and values
+00:00 +14: <APP>/test/parent_acceptance_test.dart: migration failure from 1 after step 3 preserves old schema and values
+00:00 +15: <APP>/test/parent_acceptance_test.dart: migration failure from 2 after step 3 preserves old schema and values
+00:00 +16: <APP>/test/parent_acceptance_test.dart: future version rejection preserves actual file bytes and data
+00:00 +17: <APP>/test/parent_acceptance_test.dart: corrupt bytes are not replaced with an empty database
+00:00 +18: <APP>/test/parent_acceptance_test.dart: v2 SQL can update and insert with defaults on v3 throughout rollback window
+00:00 +19: All tests passed!

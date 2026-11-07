@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.12.1
+
+- Extended reproducible state-selection inputs to the full existing/greenfield matrix.
+- Added matched, real-SQLite schema-migration inputs and parent-held acceptance checks.
+- Verified 139 widget checks across the complete state-choice matrix and matched SQLite
+  suites (19 baseline / 22 with skill), preserving initial failures and corrected verdicts.
+- Archived replayable source, tested dependency lockfiles and explicit host/device limits.
+
 ## 2.12.0
 
 - Aligned stack, router, naming, use-case and authentication contracts; added event Bloc

@@ -3,6 +3,18 @@
 Scope: the reusable Flutter Superpower skill, its references, scaffold templates and tests.
 Baseline audit: v2.9.0 (2026-10-24); latest hardening plan below.
 
+## 2026-11-07 — continue validation
+
+Target: 2.12.1. Finish the case-43 state-choice matrix, exercise schema migrations using real
+SQLite with an independent matched baseline, strengthen held-out checks through review,
+archive reproducible source/results, and re-run consistency/full regression before release.
+
+Progress: nine state variants verified (139 widget checks), including a recorded/corrected
+Injectable-default deviation; matched SQLite runs pass 19/22 tests. The parent screen harness
+was corrected to provide bounded route constraints. New state/DB input preparations and
+stronger held-out schema checks are reproducible. Native/process-death/telemetry and other
+unrun case limits remain explicit in `evals/RESULTS.md`; no private deny-list pass is claimed.
+
 ## 2026-11-06 — principal engineering hardening
 
 Target: 2.12.0. Preserve requested/existing stacks and load capability guides only when needed.

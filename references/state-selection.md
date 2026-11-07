@@ -45,6 +45,10 @@ Use cases are useful for reused orchestration, not compulsory forwarding wrapper
 
 ## Scaffolding and verification
 
+Check both the state owner and its actual composition against the selected recipe before
+claiming conformity; declaring packages alone does not verify DI. Unspecified greenfield
+uses the default Injectable recipe; established manual DI remains an existing-project choice.
+
 `scripts/new_app.sh`, `scripts/new_feature.sh` and `templates/` generate Cubit/GetIt only.
 Do not run them into a Riverpod/Provider/GetX app and then retrofit a second stack.
 For an alternative new app, use `flutter create --org com.example <name>`, then follow the

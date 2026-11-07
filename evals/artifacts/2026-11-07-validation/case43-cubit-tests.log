@@ -1,0 +1,17 @@
+00:00 +0: loading <APP>/test/features/orders/orders_route_test.dart
+00:00 +0: <APP>/test/parent_acceptance_test.dart: one fetch per mount; empty is successful content
+00:00 +1: <APP>/test/features/orders/orders_route_test.dart: initial failure displays safe message without empty success
+00:00 +2: <APP>/test/parent_acceptance_test.dart: failure retries through the borrowed repository
+00:00 +3: <APP>/test/features/orders/orders_route_test.dart: loading, empty, safe failure and retry recovery
+00:00 +4: <APP>/test/parent_acceptance_test.dart: failed refresh preserves useful content
+00:00 +5: <APP>/test/features/orders/orders_route_test.dart: refresh retains content and only latest completion publishes
+00:00 +6: <APP>/test/features/orders/orders_route_test.dart: refresh retains content and only latest completion publishes
+00:00 +7: <APP>/test/parent_acceptance_test.dart: same-key account change resets and rejects prior completion
+00:00 +8: <APP>/test/features/orders/orders_route_test.dart: unchanged rebuild initializes once; account replacement clears state
+00:00 +9: <APP>/test/parent_acceptance_test.dart: same-key repository replacement has a fresh owner
+00:00 +10: <APP>/test/features/orders/orders_route_test.dart: repository replacement on same key isolates late completion
+00:00 +11: <APP>/test/parent_acceptance_test.dart: leaving during load and reopening starts fresh
+00:00 +12: <APP>/test/features/orders/orders_route_test.dart: exit and reopening has fresh owner and ignores abandoned work
+00:00 +13: <APP>/test/parent_acceptance_test.dart: simultaneous routes keep their account data independent
+00:00 +14: <APP>/test/features/orders/orders_route_test.dart: simultaneous routes each initialize independently
+00:00 +15: All tests passed!

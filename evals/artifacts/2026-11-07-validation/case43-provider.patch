@@ -1,0 +1,374 @@
+--- /dev/null
++++ b/lib/features/orders/presentation/pages/orders_route.dart
+@@ -0,0 +1,54 @@
++import 'package:flutter/material.dart';
++import 'package:provider/provider.dart';
++
++import 'package:stack_eval/features/orders/domain/orders_repository.dart';
++import 'package:stack_eval/features/orders/presentation/viewmodels/orders_view_model.dart';
++import 'package:stack_eval/features/orders/presentation/widgets/orders_view_widget.dart';
++
++final class OrdersRoute extends StatelessWidget {
++  const OrdersRoute({
++    required this.repository,
++    required this.accountId,
++    super.key,
++  });
++  final OrdersRepository repository;
++  final String accountId;
++  @override
++  Widget build(BuildContext context) => _OwnedOrders(
++    key: _OrdersKey(repository, accountId),
++    repository: repository,
++    accountId: accountId,
++  );
++}
++
++/// Repository identity and account changes create a fresh route-owned scope.
++final class _OrdersKey extends LocalKey {
++  const _OrdersKey(this.repository, this.accountId);
++  final OrdersRepository repository;
++  final String accountId;
++  @override
++  bool operator ==(Object other) =>
++      other is _OrdersKey &&
++      identical(repository, other.repository) &&
++      accountId == other.accountId;
++  @override
++  int get hashCode => Object.hash(identityHashCode(repository), accountId);
++}
++
++final class _OwnedOrders extends StatelessWidget {
++  const _OwnedOrders({
++    required this.repository,
++    required this.accountId,
++    super.key,
++  });
++  final OrdersRepository repository;
++  final String accountId;
++  @override
++  Widget build(BuildContext context) => ChangeNotifierProvider(
++    create: (_) => OrdersViewModel(repository, accountId)..refresh(),
++    child: Consumer<OrdersViewModel>(
++      builder: (context, model, child) =>
++          OrdersView(state: model.state, retry: model.refresh),
++    ),
++  );
++}
+--- /dev/null
++++ b/lib/features/orders/presentation/state/orders_state.dart
+@@ -0,0 +1,14 @@
++import 'package:stack_eval/features/orders/domain/orders_repository.dart';
++
++final class OrdersState {
++  OrdersState({
++    List<Order> items = const [],
++    this.loading = false,
++    this.loaded = false,
++    this.message,
++  }) : items = List.unmodifiable(items);
++  final List<Order> items;
++  final bool loading;
++  final bool loaded;
++  final String? message;
++}
+--- /dev/null
++++ b/lib/features/orders/presentation/utils/orders_text.dart
+@@ -0,0 +1,6 @@
++final class OrdersText {
++  OrdersText._();
++  static const loading = 'Loading';
++  static const empty = 'No orders';
++  static const retry = 'Retry';
++}
+--- /dev/null
++++ b/lib/features/orders/presentation/viewmodels/orders_view_model.dart
+@@ -0,0 +1,41 @@
++import 'package:flutter/foundation.dart';
++
++import 'package:stack_eval/features/orders/domain/orders_repository.dart';
++import 'package:stack_eval/features/orders/presentation/state/orders_state.dart';
++
++final class OrdersViewModel extends ChangeNotifier {
++  OrdersViewModel(this.repository, this.accountId);
++  final OrdersRepository repository;
++  final String accountId;
++  OrdersState _state = OrdersState();
++  OrdersState get state => _state;
++  int _request = 0;
++  bool _disposed = false;
++  void _publish(OrdersState value) {
++    _state = value;
++    notifyListeners();
++  }
++
++  Future<void> refresh() async {
++    final request = ++_request;
++    _publish(
++      OrdersState(items: state.items, loaded: state.loaded, loading: true),
++    );
++    final result = await repository.fetch(accountId);
++    if (_disposed || request != _request) return;
++    _publish(switch (result) {
++      OrdersSuccess(:final items) => OrdersState(items: items, loaded: true),
++      OrdersFailure(:final message) => OrdersState(
++        items: state.items,
++        loaded: state.loaded,
++        message: message,
++      ),
++    });
++  }
++
++  @override
++  void dispose() {
++    _disposed = true;
++    super.dispose();
++  }
++}
+--- /dev/null
++++ b/lib/features/orders/presentation/widgets/orders_view_widget.dart
+@@ -0,0 +1,26 @@
++import 'package:flutter/material.dart';
++
++import 'package:stack_eval/features/orders/presentation/state/orders_state.dart';
++import 'package:stack_eval/features/orders/presentation/utils/orders_text.dart';
++
++final class OrdersView extends StatelessWidget {
++  const OrdersView({required this.state, required this.retry, super.key});
++  final OrdersState state;
++  final VoidCallback retry;
++  @override
++  Widget build(BuildContext context) => Column(
++    children: [
++      if (state.loading) const Text(OrdersText.loading),
++      if (state.loaded && state.items.isEmpty) const Text(OrdersText.empty),
++      if (state.message case final message?) Text(message),
++      Expanded(
++        child: ListView.builder(
++          itemCount: state.items.length,
++          itemBuilder: (context, index) =>
++              ListTile(title: Text(state.items[index].id)),
++        ),
++      ),
++      TextButton(onPressed: retry, child: const Text(OrdersText.retry)),
++    ],
++  );
++}
+--- /dev/null
++++ b/test/features/orders/orders_route_test.dart
+@@ -0,0 +1,215 @@
++import 'dart:async';
++
++import 'package:flutter/material.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++import 'package:stack_eval/features/orders/domain/orders_repository.dart';
++import 'package:stack_eval/features/orders/presentation/pages/orders_route.dart';
++
++final class FakeOrders implements OrdersRepository {
++  final calls = <String>[];
++  final pending = <Completer<OrdersResult>>[];
++  @override
++  Future<OrdersResult> fetch(String accountId) {
++    calls.add(accountId);
++    final completer = Completer<OrdersResult>();
++    pending.add(completer);
++    return completer.future;
++  }
++
++  void succeed(int index, List<String> ids) =>
++      pending[index].complete(OrdersSuccess(ids.map(Order.new).toList()));
++  void fail(int index) =>
++      pending[index].complete(const OrdersFailure('Safe failure'));
++}
++
++Widget route(FakeOrders repository, {String account = 'a'}) => MaterialApp(
++  home: Scaffold(
++    body: OrdersRoute(
++      key: const ValueKey('route'),
++      repository: repository,
++      accountId: account,
++    ),
++  ),
++);
++Future<void> retry(WidgetTester tester) async {
++  await tester.tap(find.text('Retry'));
++  await tester.pump();
++  await tester.pump();
++}
++
++void main() {
++  testWidgets('initial failure displays safe message without empty success', (
++    tester,
++  ) async {
++    final repository = FakeOrders();
++    await tester.pumpWidget(route(repository));
++    await tester.pump();
++    repository.fail(0);
++    await tester.pump();
++    await tester.pump();
++    expect(find.text('Safe failure'), findsOneWidget);
++    expect(find.text('No orders'), findsNothing);
++    expect(find.text('Loading'), findsNothing);
++    expect(find.text('Retry'), findsOneWidget);
++  });
++
++  testWidgets('loading, empty, safe failure and retry recovery', (
++    tester,
++  ) async {
++    final repository = FakeOrders();
++    await tester.pumpWidget(route(repository));
++    await tester.pump();
++    await tester.pump();
++    expect(find.text('Loading'), findsOneWidget);
++    expect(repository.calls, ['a']);
++    repository.succeed(0, []);
++    await tester.pump();
++    await tester.pump();
++    expect(find.text('No orders'), findsOneWidget);
++    await retry(tester);
++    repository.fail(1);
++    await tester.pump();
++    await tester.pump();
++    expect(find.text('Safe failure'), findsOneWidget);
++    await retry(tester);
++    repository.succeed(2, ['order-42']);
++    await tester.pump();
++    await tester.pump();
++    expect(find.text('order-42'), findsOneWidget);
++    expect(find.text('Safe failure'), findsNothing);
++  });
++  testWidgets('refresh retains content and only latest completion publishes', (
++    tester,
++  ) async {
++    final repository = FakeOrders();
++    await tester.pumpWidget(route(repository));
++    await tester.pump();
++    await tester.pump();
++    repository.succeed(0, ['retained']);
++    await tester.pump();
++    await tester.pump();
++    await retry(tester);
++    expect(find.text('retained'), findsOneWidget);
++    repository.fail(1);
++    await tester.pump();
++    await tester.pump();
++    expect(find.text('retained'), findsOneWidget);
++    expect(find.text('Safe failure'), findsOneWidget);
++    await retry(tester);
++    await retry(tester);
++    repository.succeed(3, ['latest']);
++    await tester.pump();
++    await tester.pump();
++    repository.succeed(2, ['stale']);
++    await tester.pump();
++    await tester.pump();
++    expect(find.text('latest'), findsOneWidget);
++    expect(find.text('stale'), findsNothing);
++  });
++  testWidgets(
++    'unchanged rebuild initializes once; account replacement clears state',
++    (tester) async {
++      final repository = FakeOrders();
++      await tester.pumpWidget(route(repository));
++      await tester.pump();
++      await tester.pump();
++      repository.succeed(0, ['account-a']);
++      await tester.pump();
++      await tester.pump();
++      await tester.pumpWidget(route(repository));
++      await tester.pump();
++      await tester.pump();
++      expect(repository.calls, ['a']);
++      await retry(tester);
++      await tester.pumpWidget(route(repository, account: 'b'));
++      await tester.pump();
++      await tester.pump();
++      expect(repository.calls, ['a', 'a', 'b']);
++      expect(find.text('account-a'), findsNothing);
++      repository.succeed(2, ['account-b']);
++      await tester.pump();
++      await tester.pump();
++      repository.succeed(1, ['late-a']);
++      await tester.pump();
++      await tester.pump();
++      expect(find.text('account-b'), findsOneWidget);
++      expect(find.text('late-a'), findsNothing);
++      expect(tester.takeException(), isNull);
++    },
++  );
++  testWidgets('repository replacement on same key isolates late completion', (
++    tester,
++  ) async {
++    final first = FakeOrders();
++    final second = FakeOrders();
++    await tester.pumpWidget(route(first));
++    await tester.pump();
++    await tester.pump();
++    await tester.pumpWidget(route(second));
++    await tester.pump();
++    await tester.pump();
++    second.succeed(0, ['new-repository']);
++    await tester.pump();
++    await tester.pump();
++    first.succeed(0, ['old-repository']);
++    await tester.pump();
++    await tester.pump();
++    expect(find.text('new-repository'), findsOneWidget);
++    expect(find.text('old-repository'), findsNothing);
++    expect(tester.takeException(), isNull);
++  });
++  testWidgets('exit and reopening has fresh owner and ignores abandoned work', (
++    tester,
++  ) async {
++    final repository = FakeOrders();
++    await tester.pumpWidget(route(repository));
++    await tester.pump();
++    await tester.pump();
++    await tester.pumpWidget(const SizedBox());
++    await tester.pumpWidget(route(repository));
++    await tester.pump();
++    await tester.pump();
++    expect(repository.calls, ['a', 'a']);
++    repository.succeed(0, ['abandoned']);
++    await tester.pump();
++    await tester.pump();
++    expect(find.text('abandoned'), findsNothing);
++    repository.succeed(1, ['reopened']);
++    await tester.pump();
++    await tester.pump();
++    expect(find.text('reopened'), findsOneWidget);
++    expect(tester.takeException(), isNull);
++  });
++  testWidgets('simultaneous routes each initialize independently', (
++    tester,
++  ) async {
++    final repository = FakeOrders();
++    await tester.pumpWidget(
++      MaterialApp(
++        home: Scaffold(
++          body: Row(
++            children: [
++              Expanded(
++                child: OrdersRoute(repository: repository, accountId: 'same'),
++              ),
++              Expanded(
++                child: OrdersRoute(repository: repository, accountId: 'same'),
++              ),
++            ],
++          ),
++        ),
++      ),
++    );
++    await tester.pump();
++    await tester.pump();
++    expect(repository.calls, ['same', 'same']);
++    repository.succeed(0, ['first-route']);
++    repository.succeed(1, ['second-route']);
++    await tester.pump();
++    await tester.pump();
++    expect(find.text('first-route'), findsOneWidget);
++    expect(find.text('second-route'), findsOneWidget);
++    expect(tester.takeException(), isNull);
++  });
++}

@@ -184,15 +184,19 @@ void main() {
         home: Scaffold(
           body: Column(
             children: [
-              OrdersRoute(
-                key: const ValueKey('first'),
-                repository: repository,
-                accountId: 'a',
+              Expanded(
+                child: OrdersRoute(
+                  key: const ValueKey('first'),
+                  repository: repository,
+                  accountId: 'a',
+                ),
               ),
-              OrdersRoute(
-                key: const ValueKey('second'),
-                repository: repository,
-                accountId: 'b',
+              Expanded(
+                child: OrdersRoute(
+                  key: const ValueKey('second'),
+                  repository: repository,
+                  accountId: 'b',
+                ),
               ),
             ],
           ),

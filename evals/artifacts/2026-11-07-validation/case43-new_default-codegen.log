@@ -1,0 +1,6 @@
+W These options have been removed and were ignored: --delete-conflicting-outputs
+  0s injectable_generator:injectable_builder on 10 inputs; lib/core/state/safe_cubit.dart
+  0s injectable_generator:injectable_builder on 10 inputs: 10 skipped
+  0s injectable_generator:injectable_config_builder on 10 inputs; lib/core/state/safe_cubit.dart
+  0s injectable_generator:injectable_config_builder on 10 inputs: 10 skipped
+  Built with build_runner/aot in 0s; wrote 0 outputs.

@@ -7,14 +7,37 @@ own report (analyze/test re-run, Must/Must-not inspected in the diff).
 
 | Status | Cases |
 |---|---|
-| ✅ Recorded PASS with skill (mixed skill versions; independently verified) | 01, 04, 07, 08, 15, 17, 18, 38 (8/51) |
-| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42, 44, 45, 46, 47, 48, 49, 50, 51 (42/51) |
-| ◐ Partial current-version run | 43 — existing Riverpod/Provider/GetX behavior passed; standards/other variants incomplete |
-| 🔬 Baseline (no skill) run | 04, 38 — both lanes PASS; no demonstrated advantage |
+| ✅ Recorded PASS with skill (mixed skill versions; independently verified) | 01, 04, 07, 08, 15, 17, 18, 38, 43, 47 (10/51; corrected runs noted below) |
+| ⬜ Not run | 02, 03, 05, 06, 09, 10, 11, 12, 13, 14, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 41, 42, 44, 45, 46, 48, 49, 50, 51 (41/51) |
+| 🔬 Baseline (no skill) run | 04, 38, 47 — both lanes PASS; no demonstrated advantage |
 
 Case 38 adds the first matched baseline. Both lanes passed, so the recorded results still
 do not establish a causal skill advantage. Expand comparisons on harder, less prescriptive
 tasks; retain passing baselines rather than selecting only favorable results.
+
+## 2026-11-07 — v2.12.1 state-choice and persistence validation
+
+Evidence: [source patches, reports, logs and methodology](artifacts/2026-11-07-validation/README.md).
+
+- Completed all nine supplied case-43 variants: five existing stacks, three requested
+  greenfield stacks, and unspecified greenfield default. Parent checks and own suites:
+  139 passing widget tests, clean format/analyzers, absolute imports and selected owners.
+- Initial no-preference variant failed the default DI rule by omitting Injectable. Preserved
+  the original patch/report; corrected via real generation and factory parameters, then
+  independently reran verification. This is a corrected PASS, not an initial PASS.
+- Parent simultaneous-route harness originally imposed unbounded screen constraints;
+  corrected the harness to bound routes before scoring. Other eight apps required no repair.
+- Matched case 47: real on-disk SQLite upgrades, rollback, future/corrupt preservation and
+  previous-v2 SQL compatibility. Baseline 19 tests / with skill 22 tests; clean analyzers.
+  Held-out checks include exact rollback snapshots and index target/defaults. Both pass;
+  no causal skill advantage is demonstrated.
+- Archived per-lane dependency lockfiles/checksums preserve the tested package graph.
+- Source patches replay against fresh inputs. Default codegen/tests and with-skill SQLite
+  tests also rerun from replayed inputs. Generated files are rebuilt, not archived as source.
+- Final repository consistency, full Flutter regression and skill validation: PASS.
+  Archived lockfiles also pass enforced dependency resolution on fresh replay inputs.
+- Host tests do not establish mobile DB versions, process-death recovery or backend telemetry
+  delivery. Cases 44–46 and 48–51 remain unrun. External private deny-list remains unavailable.
 
 ## 2026-11-06 — v2.12.0 principal engineering hardening
 

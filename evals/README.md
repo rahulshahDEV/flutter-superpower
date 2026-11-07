@@ -51,7 +51,11 @@ commands pass.
 - `evals/prepare_request_ordering.sh <new-dir>` prepares identical baseline/with-skill
   case-04 apps; use separate independent agents and withhold `fixtures/request-ordering/acceptance_test.dart`.
 - `evals/prepare_state_stack.sh <new-dir>` prepares case-43 Riverpod/Provider/GetX apps;
-  withhold `fixtures/state-stack/acceptance_test.dart` until implementations finish.
+  add `--matrix` for all nine existing/greenfield variants (Cubit, event Bloc and default
+  selection included). Withhold `fixtures/state-stack/acceptance_test.dart` until implementations finish.
+- `evals/prepare_migrations.sh <new-dir>` prepares matched baseline/with-skill case-47
+  schema-1 SQLite adapters. Withhold `fixtures/migrations/acceptance_test.dart`; parent
+  tests build actual versioned database files and require the host SQLite dynamic library.
 - Copy the applicable acceptance file into each completed app's `test/` and independently
   run analyze/tests. A held-out failure is a recorded failure even if repaired afterward;
   report initial and corrected verdicts separately. `tests/state-stacks.sh` is deterministic
